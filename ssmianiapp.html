@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkidkaServis Catalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                        },
+                        secondary: {
+                            500: '#EC4899',
+                            600: '#DB2777',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .slide-in {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        .slide-out {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-100%); opacity: 0; }
+        }
+        .product-card {
+            transition: all 0.2s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app" class="max-w-md mx-auto bg-white shadow-lg rounded-b-xl overflow-hidden">
+        <!-- Header -->
+        <header class="bg-primary-500 text-white p-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-bold flex items-center">
+                    <i data-feather="shopping-cart" class="mr-2"></i> SkidkaServis
+                </h1>
+                <button id="toggleMenu" class="p-1 rounded-full hover:bg-primary-600 transition">
+                    <i data-feather="menu"></i>
+                </button>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="mt-3 relative">
+                <input type="text" placeholder="Search products..." 
+                    class="w-full py-2 px-4 pr-10 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-secondary-500">
+                <button class="absolute right-3 top-2 text-gray-500">
+                    <i data-feather="search"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-4">
+            <!-- Breadcrumbs -->
+            <div id="breadcrumbs" class="flex items-center text-sm text-gray-600 mb-4 overflow-x-auto">
+                <span class="whitespace-nowrap">Home</span>
+            </div>
+
+            <!-- Categories/Sections -->
+            <div id="content" class="space-y-3">
+                <!-- Will be filled dynamically -->
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="text-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500 mx-auto"></div>
+                <p class="mt-2 text-gray-600">Loading...</p>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-white border-t border-gray-200 flex justify-around py-2">
+            <button class="p-2 rounded-full hover:bg-gray-100 transition" data-nav="home">
+                <i data-feather="home"></i>
+            </button>
+            <button class="p-2 rounded-full hover:bg-gray-100 transition" data-nav="search">
+                <i data-feather="search"></i>
+            </button>
+            <button class="p-2 rounded-full hover:bg-gray-100 transition" data-nav="categories">
+                <i data-feather="grid"></i>
+            </button>
+            <button class="p-2 rounded-full hover:bg-gray-100 transition" data-nav="cart">
+                <i data-feather="shopping-cart"></i>
+            </button>
+        </nav>
+
+        <!-- Side Menu -->
+        <div id="sideMenu" class="fixed inset-y-0 right-0 w-64 bg-white shadow-xl transform translate-x-full transition-transform z-50">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-semibold">Menu</h2>
+                    <button id="closeMenu" class="p-1 rounded-full hover:bg-gray-100">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 space-y-3">
+                <button class="w-full flex items-center p-2 hover:bg-gray-100 rounded-lg transition">
+                    <i data-feather="user" class="mr-2"></i> Profile
+                </button>
+                <button class="w-full flex items-center p-2 hover:bg-gray-100 rounded-lg transition">
+                    <i data-feather="heart" class="mr-2"></i> Favorites
+                </button>
+                <button class="w-full flex items-center p-2 hover:bg-gray-100 rounded-lg transition">
+                    <i data-feather="help-circle" class="mr-2"></i> Help
+                </button>
+                <button class="w-full flex items-center p-2 hover:bg-gray-100 rounded-lg transition">
+                    <i data-feather="settings" class="mr-2"></i> Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - in a real app, this would come from an API
+        const catalogData = {
+            sections: [
+                {
+                    name: "Металлопрокат",
+                    categories: [
+                        {
+                            name: "Профнастил",
+                            models: [
+                                {
+                                    name: "С8",
+                                    submodels: [
+                                        {
+                                            name: "Оцинкованный",
+                                            products: [
+                                                {
+                                                    color: "Белый",
+                                                    price: "1200 руб/м²",
+                                                    photo: "http://static.photos/metal/640x360/1",
+                                                    description: "Профнастил С8 оцинкованный, толщина 0.5мм"
+                                                },
+                                                {
+                                                    color: "Красный",
+                                                    price: "1250 руб/м²",
+                                                    photo: "http://static.photos/metal/640x360/2",
+                                                    description: "Профнастил С8 оцинкованный, толщина 0.5мм"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Navigation state
+        let navigationState = {
+            currentSection: null,
+            currentCategory: null,
+            currentModel: null,
+            currentSubmodel: null
+        };
+
+        // DOM Elements
+        const app = document.getElementById('app');
+        const content = document.getElementById('content');
+        const breadcrumbs = document.getElementById('breadcrumbs');
+        const loading = document.getElementById('loading');
+        const sideMenu = document.getElementById('sideMenu');
+        const toggleMenu = document.getElementById('toggleMenu');
+        const closeMenu = document.getElementById('closeMenu');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+            loadSections();
+            
+            // Event listeners
+            toggleMenu.addEventListener('click', () => {
+                sideMenu.classList.remove('translate-x-full');
+            });
+            
+            closeMenu.addEventListener('click', () => {
+                sideMenu.classList.add('translate-x-full');
+            });
+            
+            // Navigation buttons
+            document.querySelectorAll('[data-nav]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const page = btn.dataset.nav;
+                    if (page === 'home') loadSections();
+                    if (page === 'categories') loadSections();
+                });
+            });
+        });
+
+        // Load sections
+        function loadSections() {
+            showLoading();
+            clearNavigation();
+            
+            setTimeout(() => {
+                hideLoading();
+                
+                let html = '';
+                catalogData.sections.forEach(section => {
+                    html += `
+                        <div class="product-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition">
+                            <div class="p-4">
+                                <h3 class="font-semibold text-lg">${section.name}</h3>
+                                <button onclick="loadCategories('${section.name}')" 
+                                    class="mt-2 w-full py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition flex justify-between items-center">
+                                    <span>View Categories</span>
+                                    <i data-feather="chevron-right" class="ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+                feather.replace();
+                updateBreadcrumbs([{name: 'Home', action: 'loadSections()'}]);
+            }, 500);
+        }
+
+        // Load categories for a section
+        function loadCategories(sectionName) {
+            showLoading();
+            
+            setTimeout(() => {
+                hideLoading();
+                
+                const section = catalogData.sections.find(s => s.name === sectionName);
+                if (!section) return;
+                
+                navigationState.currentSection = sectionName;
+                
+                let html = '';
+                section.categories.forEach(category => {
+                    html += `
+                        <div class="product-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition">
+                            <div class="p-4">
+                                <h3 class="font-semibold text-lg">${category.name}</h3>
+                                <button onclick="loadModels('${sectionName}', '${category.name}')" 
+                                    class="mt-2 w-full py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition flex justify-between items-center">
+                                    <span>View Models</span>
+                                    <i data-feather="chevron-right" class="ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+                feather.replace();
+                updateBreadcrumbs([
+                    {name: 'Home', action: 'loadSections()'},
+                    {name: sectionName, action: `loadCategories('${sectionName}')`}
+                ]);
+            }, 500);
+        }
+
+        // Load models for a category
+        function loadModels(sectionName, categoryName) {
+            showLoading();
+            
+            setTimeout(() => {
+                hideLoading();
+                
+                const section = catalogData.sections.find(s => s.name === sectionName);
+                if (!section) return;
+                
+                const category = section.categories.find(c => c.name === categoryName);
+                if (!category) return;
+                
+                navigationState.currentSection = sectionName;
+                navigationState.currentCategory = categoryName;
+                
+                let html = '';
+                category.models.forEach(model => {
+                    html += `
+                        <div class="product-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition">
+                            <div class="p-4">
+                                <h3 class="font-semibold text-lg">${model.name}</h3>
+                                <button onclick="loadSubmodels('${sectionName}', '${categoryName}', '${model.name}')" 
+                                    class="mt-2 w-full py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition flex justify-between items-center">
+                                    <span>View Variants</span>
+                                    <i data-feather="chevron-right" class="ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+                feather.replace();
+                updateBreadcrumbs([
+                    {name: 'Home', action: 'loadSections()'},
+                    {name: sectionName, action: `loadCategories('${sectionName}')`},
+                    {name: categoryName, action: `loadModels('${sectionName}', '${categoryName}')`}
+                ]);
+            }, 500);
+        }
+
+        // Load submodels for a model
+        function loadSubmodels(sectionName, categoryName, modelName) {
+            showLoading();
+            
+            setTimeout(() => {
+                hideLoading();
+                
+                const section = catalogData.sections.find(s => s.name === sectionName);
+                if (!section) return;
+                
+                const category = section.categories.find(c => c.name === categoryName);
+                if (!category) return;
+                
+                const model = category.models.find(m => m.name === modelName);
+                if (!model) return;
+                
+                navigationState.currentSection = sectionName;
+                navigationState.currentCategory = categoryName;
+                navigationState.currentModel = modelName;
+                
+                let html = '';
+                model.submodels.forEach(submodel => {
+                    html += `
+                        <div class="product-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition">
+                            <div class="p-4">
+                                <h3 class="font-semibold text-lg">${submodel.name}</h3>
+                                <button onclick="loadProducts('${sectionName}', '${categoryName}', '${modelName}', '${submodel.name}')" 
+                                    class="mt-2 w-full py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition flex justify-between items-center">
+                                    <span>View Products</span>
+                                    <i data-feather="chevron-right" class="ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+                feather.replace();
+                updateBreadcrumbs([
+                    {name: 'Home', action: 'loadSections()'},
+                    {name: sectionName, action: `loadCategories('${sectionName}')`},
+                    {name: categoryName, action: `loadModels('${sectionName}', '${categoryName}')`},
+                    {name: modelName, action: `loadSubmodels('${sectionName}', '${categoryName}', '${modelName}')`}
+                ]);
+            }, 500);
+        }
+
+        // Load products for a submodel
+        function loadProducts(sectionName, categoryName, modelName, submodelName) {
+            showLoading();
+            
+            setTimeout(() => {
+                hideLoading();
+                
+                const section = catalogData.sections.find(s => s.name === sectionName);
+                if (!section) return;
+                
+                const category = section.categories.find(c => c.name === categoryName);
+                if (!category) return;
+                
+                const model = category.models.find(m => m.name === modelName);
+                if (!model) return;
+                
+                const submodel = model.submodels.find(s => s.name === submodelName);
+                if (!submodel) return;
+                
+                navigationState.currentSection = sectionName;
+                navigationState.currentCategory = categoryName;
+                navigationState.currentModel = modelName;
+                navigationState.currentSubmodel = submodelName;
+                
+                let html = '';
+                submodel.products.forEach((product, index) => {
+                    html += `
+                        <div class="product-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition">
+                            <img src="${product.photo}" alt="${product.color}" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold text-lg">${product.color}</h3>
+                                    <span class="bg-secondary-500 text-white px-2 py-1 rounded text-sm">${product.price}</span>
+                                </div>
+                                <p class="text-gray-600 mt-1">${product.description}</p>
+                                
+                                <div class="mt-3 flex space-x-2">
+                                    <button class="flex-1 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition">
+                                        <i data-feather="shopping-cart" class="inline mr-1"></i> Add to Cart
+                                    </button>
+                                    <button class="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+                                        <i data-feather="heart"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+                feather.replace();
+                updateBreadcrumbs([
+                    {name: 'Home', action: 'loadSections()'},
+                    {name: sectionName, action: `loadCategories('${sectionName}')`},
+                    {name: categoryName, action: `loadModels('${sectionName}', '${categoryName}')`},
+                    {name: modelName, action: `loadSubmodels('${sectionName}', '${categoryName}', '${modelName}')`},
+                    {name: submodelName, action: `loadProducts('${sectionName}', '${categoryName}', '${modelName}', '${submodelName}')`}
+                ]);
+            }, 500);
+        }
+
+        // Update breadcrumbs
+        function updateBreadcrumbs(items) {
+            breadcrumbs.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const crumb = document.createElement('span');
+                crumb.className = 'flex items-center whitespace-nowrap';
+                
+                if (index > 0) {
+                    const separator = document.createElement('span');
+                    separator.className = 'mx-2';
+                    separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
+                    breadcrumbs.appendChild(separator);
+                }
+                
+                const link = document.createElement('button');
+                link.className = 'hover:text-primary-500 transition';
+                link.textContent = item.name;
+                link.onclick = new Function(item.action);
+                
+                crumb.appendChild(link);
+                breadcrumbs.appendChild(crumb);
+            });
+            
+            feather.replace();
+        }
+
+        // Clear navigation state
+        function clearNavigation() {
+            navigationState = {
+                currentSection: null,
+                currentCategory: null,
+                currentModel: null,
+                currentSubmodel: null
+            };
+        }
+
+        // Show loading indicator
+        function showLoading() {
+            loading.classList.remove('hidden');
+            content.classList.add('hidden');
+        }
+
+        // Hide loading indicator
+        function hideLoading() {
+            loading.classList.add('hidden');
+            content.classList.remove('hidden');
+        }
+
+        // Make functions global for onclick handlers
+        window.loadSections = loadSections;
+        window.loadCategories = loadCategories;
+        window.loadModels = loadModels;
+        window.loadSubmodels = loadSubmodels;
+        window.loadProducts = loadProducts;
+    </script>
+</body>
+</html>
