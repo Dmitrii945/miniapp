@@ -1,6 +1,6 @@
 // Telegram Web App initialization
 const tg = window.Telegram?.WebApp;
-const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
+const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api'; // ← исправлено
 
 // Navigation state
 let navigationState = {
@@ -35,6 +35,21 @@ function initTelegramApp() {
     }
 }
 
+// Side menu functions
+function openSideMenu() {
+    sideMenu.classList.remove('hidden');
+    setTimeout(() => {
+        sideMenu.querySelector('div').classList.remove('translate-x-full');
+    }, 10);
+}
+
+function closeSideMenu() {
+    sideMenu.querySelector('div').classList.add('translate-x-full');
+    setTimeout(() => {
+        sideMenu.classList.add('hidden');
+    }, 300);
+}
+
 // API functions
 async function apiFetch(endpoint) {
     try {
@@ -52,7 +67,7 @@ async function apiFetch(endpoint) {
 }
 
 function formatPrice(price) {
-    if (!price || price === float('inf')) return '';
+    if (!price || price === Number.POSITIVE_INFINITY) return ''; // ← исправлено
     if (price >= 1000) {
         return ` от ${Math.round(price)} р.`;
     } else {
@@ -428,6 +443,19 @@ function showError(message) {
 document.addEventListener('DOMContentLoaded', () => {
     initTelegramApp();
     feather.replace();
+    
+    // Event listeners
+    document.getElementById('toggleMenu').addEventListener('click', openSideMenu);
+    document.getElementById('closeMenu').addEventListener('click', closeSideMenu);
+    
+    // Navigation buttons
+    document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const page = btn.dataset.nav;
+            if (page === 'home' || page === 'categories') loadSections();
+        });
+    });
+    
     loadSections();
 });
 
@@ -439,3 +467,5 @@ window.loadSubmodels = loadSubmodels;
 window.loadProducts = loadProducts;
 window.openInBot = openInBot;
 window.contactAboutProduct = contactAboutProduct;
+window.openSideMenu = openSideMenu;
+window.closeSideMenu = closeSideMenu;
