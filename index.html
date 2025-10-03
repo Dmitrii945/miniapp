@@ -1,6 +1,6 @@
 // Telegram Web App initialization
 const tg = window.Telegram?.WebApp;
-const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api'; // ← исправлено
+const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
 
 // Navigation state
 let navigationState = {
@@ -67,7 +67,7 @@ async function apiFetch(endpoint) {
 }
 
 function formatPrice(price) {
-    if (!price || price === Number.POSITIVE_INFINITY) return ''; // ← исправлено
+    if (!price || price === Number.POSITIVE_INFINITY) return '';
     if (price >= 1000) {
         return ` от ${Math.round(price)} р.`;
     } else {
