@@ -1,677 +1,441 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkidkaServis Catalog</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            500: '#3B82F6',
-                            600: '#2563EB',
-                        },
-                        secondary: {
-                            500: '#EC4899',
-                            600: '#DB2777',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Стили для Telegram Mini App */
-        body {
-            margin: 0;
-            padding: 0;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
+// Telegram Web App initialization
+const tg = window.Telegram?.WebApp;
+const API_BASE = 'https://Dmitrii2613.pythonanywhere.com/api';
+
+// Navigation state
+let navigationState = {
+    currentSection: null,
+    currentCategory: null, 
+    currentModel: null,
+    currentSubmodel: null
+};
+
+// DOM Elements
+const app = document.getElementById('app');
+const content = document.getElementById('content');
+const breadcrumbs = document.getElementById('breadcrumbs');
+const loading = document.getElementById('loading');
+const emptyState = document.getElementById('emptyState');
+const sideMenu = document.getElementById('sideMenu');
+
+// Initialize Telegram Web App
+function initTelegramApp() {
+    if (tg) {
+        tg.expand();
+        tg.enableClosingConfirmation();
+        tg.BackButton.onClick(goBack);
         
-        .tg-theme-bg {
-            background: var(--tg-theme-bg-color, #ffffff);
+        // Apply Telegram theme
+        document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+        document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+        document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#999999');
+        document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f4f4f5');
+        document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3B82F6');
+        document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+    }
+}
+
+// API functions
+async function apiFetch(endpoint) {
+    try {
+        showLoading();
+        const response = await fetch(`${API_BASE}${endpoint}`);
+        const data = await response.json();
+        hideLoading();
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        hideLoading();
+        showError('Ошибка загрузки данных');
+        return null;
+    }
+}
+
+function formatPrice(price) {
+    if (!price || price === float('inf')) return '';
+    if (price >= 1000) {
+        return ` от ${Math.round(price)} р.`;
+    } else {
+        return ` от ${Math.round(price)} р.`;
+    }
+}
+
+// Navigation functions
+function goBack() {
+    const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
+    
+    if (currentSubmodel) {
+        loadSubmodels(currentSection.id, currentCategory.id, currentModel.id);
+    } else if (currentModel) {
+        loadModels(currentSection.id, currentCategory.id);
+    } else if (currentCategory) {
+        loadCategories(currentSection.id);
+    } else if (currentSection) {
+        loadSections();
+    } else {
+        if (tg) {
+            tg.close();
         }
-        
-        .tg-theme-secondary-bg {
-            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
-        }
-        
-        .tg-theme-text {
-            color: var(--tg-theme-text-color, #000000);
-        }
-        
-        .tg-theme-hint {
-            color: var(--tg-theme-hint-color, #999999);
-        }
-        
-        .tg-theme-button {
-            background: var(--tg-theme-button-color, #3B82F6);
-            color: var(--tg-theme-button-text-color, #ffffff);
-        }
-        
-        .slide-in {
-            animation: slideIn 0.3s ease-out forwards;
-        }
-        
-        .slide-out {
-            animation: slideOut 0.3s ease-out forwards;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(-100%); opacity: 0; }
-        }
-        
-        .product-card {
-            transition: all 0.2s ease;
-        }
-        
-        .product-card:hover {
-            transform: translateY(-2px);
-        }
-        
-        /* Убираем стандартные стили кнопок */
-        button {
-            border: none;
-            background: none;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body class="tg-theme-bg tg-theme-text">
-    <div id="app" class="min-h-screen safe-area-inset">
-        <!-- Header -->
-        <header class="tg-theme-secondary-bg sticky top-0 z-40">
-            <div class="p-4">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-xl font-bold flex items-center">
-                        <i data-feather="shopping-cart" class="mr-2"></i> SkidkaServis
-                    </h1>
-                    <button id="toggleMenu" class="p-2 rounded-full hover:bg-black/10 transition">
-                        <i data-feather="menu"></i>
+    }
+}
+
+function updateBackButton() {
+    if (!tg) return;
+    
+    const hasHistory = navigationState.currentSection !== null;
+    if (hasHistory) {
+        tg.BackButton.show();
+    } else {
+        tg.BackButton.hide();
+    }
+}
+
+function openInBot() {
+    if (tg) {
+        tg.openTelegramLink('https://t.me/SSERVICE72_bot');
+    } else {
+        window.open('https://t.me/SSERVICE72_bot', '_blank');
+    }
+}
+
+function contactAboutProduct(productInfo) {
+    const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+    
+    if (tg) {
+        tg.openTelegramLink(`https://t.me/SSERVICE72_bot?start=product_${encodeURIComponent(productInfo)}`);
+    } else {
+        window.open(`https://t.me/SSERVICE72_bot?start=product_${encodeURIComponent(productInfo)}`, '_blank');
+    }
+}
+
+// Load sections from API
+async function loadSections() {
+    const data = await apiFetch('/sections');
+    if (!data || !data.sections || data.sections.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    clearNavigation();
+    
+    let html = '';
+    data.sections.forEach(section => {
+        html += `
+            <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg mb-2">${section.name}</h3>
+                    <button onclick="loadCategories('${section.id}')" 
+                        class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                        <span>Смотреть категории</span>
+                        <i data-feather="chevron-right" class="ml-2"></i>
                     </button>
                 </div>
-                
-                <!-- Search Bar -->
-                <div class="mt-3 relative">
-                    <input type="text" placeholder="Поиск товаров..." 
-                        class="w-full py-3 px-4 pr-10 rounded-xl bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 tg-theme-text">
-                    <button class="absolute right-3 top-3 text-gray-500">
-                        <i data-feather="search"></i>
+            </div>
+        `;
+    });
+    
+    content.innerHTML = html;
+    feather.replace();
+    updateBreadcrumbs([{name: 'Главная', action: 'loadSections()'}]);
+    updateBackButton();
+}
+
+// Load categories from API
+async function loadCategories(sectionHash) {
+    const data = await apiFetch(`/categories/${sectionHash}`);
+    if (!data || !data.categories || data.categories.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    navigationState.currentSection = {
+        name: data.section_name,
+        id: sectionHash
+    };
+    
+    let html = '';
+    data.categories.forEach(category => {
+        const priceText = category.min_price ? formatPrice(category.min_price) : '';
+        html += `
+            <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg mb-1">${category.name}</h3>
+                    ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                    <button onclick="loadModels('${sectionHash}', '${category.id}')" 
+                        class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                        <span>Смотреть модели</span>
+                        <i data-feather="chevron-right" class="ml-2"></i>
                     </button>
                 </div>
             </div>
-        </header>
+        `;
+    });
+    
+    content.innerHTML = html;
+    feather.replace();
+    updateBreadcrumbs([
+        {name: 'Главная', action: 'loadSections()'},
+        {name: data.section_name, action: `loadCategories('${sectionHash}')`}
+    ]);
+    updateBackButton();
+}
 
-        <!-- Main Content -->
-        <main class="p-4 pb-20">
-            <!-- Breadcrumbs -->
-            <div id="breadcrumbs" class="flex items-center text-sm tg-theme-hint mb-4 overflow-x-auto">
-                <span class="whitespace-nowrap">Главная</span>
+// Load models from API
+async function loadModels(sectionHash, categoryHash) {
+    const data = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
+    if (!data || !data.models || data.models.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    navigationState.currentSection = {
+        name: data.section_name,
+        id: sectionHash
+    };
+    navigationState.currentCategory = {
+        name: data.category_name,
+        id: categoryHash
+    };
+    
+    let html = '';
+    data.models.forEach(model => {
+        const priceText = model.min_price ? formatPrice(model.min_price) : '';
+        html += `
+            <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
+                    ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                    <button onclick="loadSubmodels('${sectionHash}', '${categoryHash}', '${model.id}')" 
+                        class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                        <span>Смотреть подмодели</span>
+                        <i data-feather="chevron-right" class="ml-2"></i>
+                    </button>
+                </div>
             </div>
+        `;
+    });
+    
+    content.innerHTML = html;
+    feather.replace();
+    updateBreadcrumbs([
+        {name: 'Главная', action: 'loadSections()'},
+        {name: data.section_name, action: `loadCategories('${sectionHash}')`},
+        {name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`}
+    ]);
+    updateBackButton();
+}
 
-            <!-- Categories/Sections -->
-            <div id="content" class="space-y-3">
-                <!-- Will be filled dynamically -->
+// Load submodels from API
+async function loadSubmodels(sectionHash, categoryHash, modelHash) {
+    const data = await apiFetch(`/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
+    if (!data || !data.submodels || data.submodels.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    navigationState.currentSection = {
+        name: data.section_name,
+        id: sectionHash
+    };
+    navigationState.currentCategory = {
+        name: data.category_name,
+        id: categoryHash
+    };
+    navigationState.currentModel = {
+        name: data.model_name,
+        id: modelHash
+    };
+    
+    let html = '';
+    data.submodels.forEach(submodel => {
+        const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
+        const productCount = submodel.product_count ? ` (${submodel.product_count} товаров)` : '';
+        
+        html += `
+            <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg mb-1">${submodel.name}${productCount}</h3>
+                    ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                    <button onclick="loadProducts('${sectionHash}', '${categoryHash}', '${modelHash}', '${submodel.id}')" 
+                        class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                        <span>Смотреть товары</span>
+                        <i data-feather="chevron-right" class="ml-2"></i>
+                    </button>
+                </div>
             </div>
+        `;
+    });
+    
+    content.innerHTML = html;
+    feather.replace();
+    updateBreadcrumbs([
+        {name: 'Главная', action: 'loadSections()'},
+        {name: data.section_name, action: `loadCategories('${sectionHash}')`},
+        {name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`},
+        {name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`}
+    ]);
+    updateBackButton();
+}
 
-            <!-- Loading Indicator -->
-            <div id="loading" class="text-center py-8 hidden">
-                <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500 mx-auto"></div>
-                <p class="mt-2 tg-theme-hint">Загрузка...</p>
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="text-center py-12 hidden">
-                <i data-feather="package" class="w-16 h-16 mx-auto tg-theme-hint mb-4"></i>
-                <p class="tg-theme-hint">Товары не найдены</p>
-            </div>
-        </main>
-
-        <!-- Bottom Navigation -->
-        <nav class="fixed bottom-0 left-0 right-0 tg-theme-secondary-bg border-t border-gray-200 flex justify-around py-3 safe-area-inset-bottom">
-            <button class="p-2 rounded-full hover:bg-black/10 transition" data-nav="home">
-                <i data-feather="home"></i>
-            </button>
-            <button class="p-2 rounded-full hover:bg-black/10 transition" data-nav="search">
-                <i data-feather="search"></i>
-            </button>
-            <button class="p-2 rounded-full hover:bg-black/10 transition" data-nav="categories">
-                <i data-feather="grid"></i>
-            </button>
-            <button class="p-2 rounded-full hover:bg-black/10 transition" onclick="openInBot()">
-                <i data-feather="shopping-cart"></i>
-            </button>
-        </nav>
-
-        <!-- Side Menu -->
-        <div id="sideMenu" class="fixed inset-0 bg-black/50 z-50 hidden" onclick="closeSideMenu()">
-            <div class="absolute right-0 top-0 bottom-0 w-64 tg-theme-bg shadow-xl transform translate-x-full transition-transform" onclick="event.stopPropagation()">
-                <div class="p-4 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-lg font-semibold">Меню</h2>
-                        <button onclick="closeSideMenu()" class="p-1 rounded-full hover:bg-black/10">
-                            <i data-feather="x"></i>
+// Load products from API
+async function loadProducts(sectionHash, categoryHash, modelHash, submodelHash) {
+    const data = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
+    if (!data || !data.products || data.products.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    navigationState.currentSection = {
+        name: data.section_name,
+        id: sectionHash
+    };
+    navigationState.currentCategory = {
+        name: data.category_name,
+        id: categoryHash
+    };
+    navigationState.currentModel = {
+        name: data.model_name,
+        id: modelHash
+    };
+    navigationState.currentSubmodel = {
+        name: data.submodel_name,
+        id: submodelHash
+    };
+    
+    let html = '';
+    data.products.forEach((product, index) => {
+        const fallbackImage = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';
+        
+        html += `
+            <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                ${product.photo_url ? `
+                    <img src="${product.photo_url}" alt="${product.color || 'Товар'}" 
+                        class="w-full h-48 object-cover bg-gray-100"
+                        onerror="this.src='${fallbackImage}'">
+                ` : `
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                        <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
+                    </div>
+                `}
+                <div class="p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-lg">${product.color || 'Без названия'}</h3>
+                        ${product.price ? `
+                            <span class="bg-secondary-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                ${product.price}
+                            </span>
+                        ` : ''}
+                    </div>
+                    
+                    ${product.photo_description ? `
+                        <p class="text-gray-600 mb-2">${product.photo_description}</p>
+                    ` : ''}
+                    
+                    ${product.description ? `
+                        <p class="text-gray-500 text-sm mb-3">${product.description}</p>
+                    ` : ''}
+                    
+                    <div class="flex space-x-2">
+                        <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
+                                onclick="contactAboutProduct('${data.section_name} → ${data.category_name} → ${data.model_name} → ${product.color || 'Товар'} - ${product.price || 'Цена не указана'}')">
+                            <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
                         </button>
                     </div>
                 </div>
-                <div class="p-4 space-y-3">
-                    <button class="w-full flex items-center p-3 hover:bg-black/5 rounded-xl transition text-left">
-                        <i data-feather="user" class="mr-3"></i> Профиль
-                    </button>
-                    <button class="w-full flex items-center p-3 hover:bg-black/5 rounded-xl transition text-left">
-                        <i data-feather="heart" class="mr-3"></i> Избранное
-                    </button>
-                    <button class="w-full flex items-center p-3 hover:bg-black/5 rounded-xl transition text-left">
-                        <i data-feather="help-circle" class="mr-3"></i> Помощь
-                    </button>
-                    <button class="w-full flex items-center p-3 hover:bg-black/5 rounded-xl transition text-left">
-                        <i data-feather="settings" class="mr-3"></i> Настройки
-                    </button>
-                </div>
             </div>
-        </div>
-    </div>
+        `;
+    });
+    
+    content.innerHTML = html;
+    feather.replace();
+    updateBreadcrumbs([
+        {name: 'Главная', action: 'loadSections()'},
+        {name: data.section_name, action: `loadCategories('${sectionHash}')`},
+        {name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`},
+        {name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`},
+        {name: data.submodel_name, action: `loadProducts('${sectionHash}', '${categoryHash}', '${modelHash}', '${submodelHash}')`}
+    ]);
+    updateBackButton();
+}
 
-    <script>
-        // Telegram Web App initialization
-        const tg = window.Telegram?.WebApp;
+// Utility functions
+function updateBreadcrumbs(items) {
+    breadcrumbs.innerHTML = '';
+    
+    items.forEach((item, index) => {
+        const crumb = document.createElement('span');
+        crumb.className = 'flex items-center whitespace-nowrap';
         
-        // Sample data - in a real app, this would come from an API
-        const catalogData = {
-            sections: [
-                {
-                    name: "Металлопрокат",
-                    categories: [
-                        {
-                            name: "Профнастил",
-                            models: [
-                                {
-                                    name: "С8",
-                                    submodels: [
-                                        {
-                                            name: "Оцинкованный",
-                                            products: [
-                                                {
-                                                    color: "Белый",
-                                                    price: "1200 руб/м²",
-                                                    photo: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop",
-                                                    description: "Профнастил С8 оцинкованный, толщина 0.5мм"
-                                                },
-                                                {
-                                                    color: "Красный", 
-                                                    price: "1250 руб/м²",
-                                                    photo: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop",
-                                                    description: "Профнастил С8 оцинкованный, толщина 0.5мм"
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    name: "Кровельные материалы",
-                    categories: [
-                        {
-                            name: "Металлочерепица",
-                            models: [
-                                {
-                                    name: "Монтеррей",
-                                    submodels: [
-                                        {
-                                            name: "Classic",
-                                            products: [
-                                                {
-                                                    color: "Зеленый",
-                                                    price: "1850 руб/м²", 
-                                                    photo: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop",
-                                                    description: "Металлочерепица Монтеррей Classic"
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-
-        // Navigation state
-        let navigationState = {
-            currentSection: null,
-            currentCategory: null, 
-            currentModel: null,
-            currentSubmodel: null
-        };
-
-        // DOM Elements
-        const app = document.getElementById('app');
-        const content = document.getElementById('content');
-        const breadcrumbs = document.getElementById('breadcrumbs');
-        const loading = document.getElementById('loading');
-        const emptyState = document.getElementById('emptyState');
-        const sideMenu = document.getElementById('sideMenu');
-
-        // Initialize Telegram Web App
-        function initTelegramApp() {
-            if (tg) {
-                tg.expand();
-                tg.enableClosingConfirmation();
-                tg.BackButton.onClick(goBack);
-                
-                // Apply Telegram theme
-                document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-                document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-                document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#999999');
-                document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f4f4f5');
-                document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3B82F6');
-                document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
-            }
+        if (index > 0) {
+            const separator = document.createElement('span');
+            separator.className = 'mx-2 tg-theme-hint';
+            separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
+            breadcrumbs.appendChild(separator);
         }
+        
+        const link = document.createElement('button');
+        link.className = 'hover:text-primary-500 transition tg-theme-text text-sm';
+        link.textContent = item.name;
+        link.onclick = new Function(item.action);
+        
+        crumb.appendChild(link);
+        breadcrumbs.appendChild(crumb);
+    });
+    
+    feather.replace();
+}
 
-        // Navigation functions
-        function goBack() {
-            const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
-            
-            if (currentSubmodel) {
-                loadSubmodels(currentSection, currentCategory, currentModel);
-            } else if (currentModel) {
-                loadModels(currentSection, currentCategory);
-            } else if (currentCategory) {
-                loadCategories(currentSection);
-            } else if (currentSection) {
-                loadSections();
-            } else {
-                if (tg) {
-                    tg.close();
-                }
-            }
-        }
+function clearNavigation() {
+    navigationState = {
+        currentSection: null,
+        currentCategory: null,
+        currentModel: null,
+        currentSubmodel: null
+    };
+}
 
-        function updateBackButton() {
-            if (!tg) return;
-            
-            const hasHistory = navigationState.currentSection !== null;
-            if (hasHistory) {
-                tg.BackButton.show();
-            } else {
-                tg.BackButton.hide();
-            }
-        }
+function showLoading() {
+    loading.classList.remove('hidden');
+    content.classList.add('hidden');
+    emptyState.classList.add('hidden');
+}
 
-        function openInBot() {
-            if (tg) {
-                tg.openTelegramLink('https://t.me/SSERVICE72_bot');
-            } else {
-                window.open('https://t.me/SSERVICE72_bot', '_blank');
-            }
-        }
+function hideLoading() {
+    loading.classList.add('hidden');
+    content.classList.remove('hidden');
+}
 
-        function openSideMenu() {
-            sideMenu.classList.remove('hidden');
-            setTimeout(() => {
-                sideMenu.querySelector('div').classList.remove('translate-x-full');
-            }, 10);
-        }
+function showEmptyState() {
+    content.classList.add('hidden');
+    loading.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+}
 
-        function closeSideMenu() {
-            sideMenu.querySelector('div').classList.add('translate-x-full');
-            setTimeout(() => {
-                sideMenu.classList.add('hidden');
-            }, 300);
-        }
+function showError(message) {
+    content.innerHTML = `
+        <div class="text-center py-8">
+            <i data-feather="alert-triangle" class="w-12 h-12 mx-auto text-red-500 mb-4"></i>
+            <p class="text-red-500">${message}</p>
+            <button onclick="loadSections()" class="mt-4 py-2 px-4 bg-primary-500 text-white rounded-lg">
+                Попробовать снова
+            </button>
+        </div>
+    `;
+    feather.replace();
+}
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initTelegramApp();
-            feather.replace();
-            loadSections();
-            
-            // Event listeners
-            document.getElementById('toggleMenu').addEventListener('click', openSideMenu);
-            
-            // Navigation buttons
-            document.querySelectorAll('[data-nav]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const page = btn.dataset.nav;
-                    if (page === 'home' || page === 'categories') loadSections();
-                });
-            });
-        });
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    initTelegramApp();
+    feather.replace();
+    loadSections();
+});
 
-        // Load sections
-        function loadSections() {
-            showLoading();
-            clearNavigation();
-            
-            setTimeout(() => {
-                hideLoading();
-                
-                if (!catalogData.sections || catalogData.sections.length === 0) {
-                    showEmptyState();
-                    return;
-                }
-                
-                let html = '';
-                catalogData.sections.forEach(section => {
-                    html += `
-                        <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="p-4">
-                                <h3 class="font-semibold text-lg mb-2">${section.name}</h3>
-                                <button onclick="loadCategories('${section.name}')" 
-                                    class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                    <span>Смотреть категории</span>
-                                    <i data-feather="chevron-right" class="ml-2"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                content.innerHTML = html;
-                feather.replace();
-                updateBreadcrumbs([{name: 'Главная', action: 'loadSections()'}]);
-                updateBackButton();
-            }, 300);
-        }
-
-        // Load categories for a section
-        function loadCategories(sectionName) {
-            showLoading();
-            
-            setTimeout(() => {
-                hideLoading();
-                
-                const section = catalogData.sections.find(s => s.name === sectionName);
-                if (!section || !section.categories || section.categories.length === 0) {
-                    showEmptyState();
-                    return;
-                }
-                
-                navigationState.currentSection = sectionName;
-                
-                let html = '';
-                section.categories.forEach(category => {
-                    html += `
-                        <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="p-4">
-                                <h3 class="font-semibold text-lg mb-2">${category.name}</h3>
-                                <button onclick="loadModels('${sectionName}', '${category.name}')" 
-                                    class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                    <span>Смотреть модели</span>
-                                    <i data-feather="chevron-right" class="ml-2"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                content.innerHTML = html;
-                feather.replace();
-                updateBreadcrumbs([
-                    {name: 'Главная', action: 'loadSections()'},
-                    {name: sectionName, action: `loadCategories('${sectionName}')`}
-                ]);
-                updateBackButton();
-            }, 300);
-        }
-
-        // Load models for a category
-        function loadModels(sectionName, categoryName) {
-            showLoading();
-            
-            setTimeout(() => {
-                hideLoading();
-                
-                const section = catalogData.sections.find(s => s.name === sectionName);
-                if (!section) return;
-                
-                const category = section.categories.find(c => c.name === categoryName);
-                if (!category || !category.models || category.models.length === 0) {
-                    showEmptyState();
-                    return;
-                }
-                
-                navigationState.currentSection = sectionName;
-                navigationState.currentCategory = categoryName;
-                
-                let html = '';
-                category.models.forEach(model => {
-                    html += `
-                        <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="p-4">
-                                <h3 class="font-semibold text-lg mb-2">${model.name}</h3>
-                                <button onclick="loadSubmodels('${sectionName}', '${categoryName}', '${model.name}')" 
-                                    class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                    <span>Смотреть варианты</span>
-                                    <i data-feather="chevron-right" class="ml-2"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                content.innerHTML = html;
-                feather.replace();
-                updateBreadcrumbs([
-                    {name: 'Главная', action: 'loadSections()'},
-                    {name: sectionName, action: `loadCategories('${sectionName}')`},
-                    {name: categoryName, action: `loadModels('${sectionName}', '${categoryName}')`}
-                ]);
-                updateBackButton();
-            }, 300);
-        }
-
-        // Load submodels for a model
-        function loadSubmodels(sectionName, categoryName, modelName) {
-            showLoading();
-            
-            setTimeout(() => {
-                hideLoading();
-                
-                const section = catalogData.sections.find(s => s.name === sectionName);
-                if (!section) return;
-                
-                const category = section.categories.find(c => c.name === categoryName);
-                if (!category) return;
-                
-                const model = category.models.find(m => m.name === modelName);
-                if (!model || !model.submodels || model.submodels.length === 0) {
-                    showEmptyState();
-                    return;
-                }
-                
-                navigationState.currentSection = sectionName;
-                navigationState.currentCategory = categoryName;
-                navigationState.currentModel = modelName;
-                
-                let html = '';
-                model.submodels.forEach(submodel => {
-                    html += `
-                        <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="p-4">
-                                <h3 class="font-semibold text-lg mb-2">${submodel.name}</h3>
-                                <button onclick="loadProducts('${sectionName}', '${categoryName}', '${modelName}', '${submodel.name}')" 
-                                    class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                    <span>Смотреть товары</span>
-                                    <i data-feather="chevron-right" class="ml-2"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                content.innerHTML = html;
-                feather.replace();
-                updateBreadcrumbs([
-                    {name: 'Главная', action: 'loadSections()'},
-                    {name: sectionName, action: `loadCategories('${sectionName}')`},
-                    {name: categoryName, action: `loadModels('${sectionName}', '${categoryName}')`},
-                    {name: modelName, action: `loadSubmodels('${sectionName}', '${categoryName}', '${modelName}')`}
-                ]);
-                updateBackButton();
-            }, 300);
-        }
-
-        // Load products for a submodel
-        function loadProducts(sectionName, categoryName, modelName, submodelName) {
-            showLoading();
-            
-            setTimeout(() => {
-                hideLoading();
-                
-                const section = catalogData.sections.find(s => s.name === sectionName);
-                if (!section) return;
-                
-                const category = section.categories.find(c => c.name === categoryName);
-                if (!category) return;
-                
-                const model = category.models.find(m => m.name === modelName);
-                if (!model) return;
-                
-                const submodel = model.submodels.find(s => s.name === submodelName);
-                if (!submodel || !submodel.products || submodel.products.length === 0) {
-                    showEmptyState();
-                    return;
-                }
-                
-                navigationState.currentSection = sectionName;
-                navigationState.currentCategory = categoryName;
-                navigationState.currentModel = modelName;
-                navigationState.currentSubmodel = submodelName;
-                
-                let html = '';
-                submodel.products.forEach((product, index) => {
-                    html += `
-                        <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <img src="${product.photo}" alt="${product.color}" 
-                                class="w-full h-48 object-cover bg-gray-100"
-                                onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'">
-                            <div class="p-4">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h3 class="font-semibold text-lg">${product.color}</h3>
-                                    <span class="bg-secondary-500 text-white px-3 py-1 rounded-full text-sm font-medium">${product.price}</span>
-                                </div>
-                                <p class="text-gray-600 mb-4">${product.description}</p>
-                                
-                                <div class="flex space-x-2">
-                                    <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                            onclick="contactAboutProduct('${product.color}', '${product.price}')">
-                                        <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                content.innerHTML = html;
-                feather.replace();
-                updateBreadcrumbs([
-                    {name: 'Главная', action: 'loadSections()'},
-                    {name: sectionName, action: `loadCategories('${sectionName}')`},
-                    {name: categoryName, action: `loadModels('${sectionName}', '${categoryName}')`},
-                    {name: modelName, action: `loadSubmodels('${sectionName}', '${categoryName}', '${modelName}')`},
-                    {name: submodelName, action: `loadProducts('${sectionName}', '${categoryName}', '${modelName}', '${submodelName}')`}
-                ]);
-                updateBackButton();
-            }, 300);
-        }
-
-        function contactAboutProduct(productName, price) {
-            const message = `Здравствуйте! Интересует товар: ${productName} (${price}). Подскажите подробности.`;
-            
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SSERVICE72_bot?start=product_${encodeURIComponent(productName)}`);
-            } else {
-                window.open(`https://t.me/SSERVICE72_bot?start=product_${encodeURIComponent(productName)}`, '_blank');
-            }
-        }
-
-        // Update breadcrumbs
-        function updateBreadcrumbs(items) {
-            breadcrumbs.innerHTML = '';
-            
-            items.forEach((item, index) => {
-                const crumb = document.createElement('span');
-                crumb.className = 'flex items-center whitespace-nowrap';
-                
-                if (index > 0) {
-                    const separator = document.createElement('span');
-                    separator.className = 'mx-2 tg-theme-hint';
-                    separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
-                    breadcrumbs.appendChild(separator);
-                }
-                
-                const link = document.createElement('button');
-                link.className = 'hover:text-primary-500 transition tg-theme-text';
-                link.textContent = item.name;
-                link.onclick = new Function(item.action);
-                
-                crumb.appendChild(link);
-                breadcrumbs.appendChild(crumb);
-            });
-            
-            feather.replace();
-        }
-
-        // Clear navigation state
-        function clearNavigation() {
-            navigationState = {
-                currentSection: null,
-                currentCategory: null,
-                currentModel: null,
-                currentSubmodel: null
-            };
-        }
-
-        // Show loading indicator
-        function showLoading() {
-            loading.classList.remove('hidden');
-            content.classList.add('hidden');
-            emptyState.classList.add('hidden');
-        }
-
-        // Hide loading indicator
-        function hideLoading() {
-            loading.classList.add('hidden');
-            content.classList.remove('hidden');
-        }
-
-        // Show empty state
-        function showEmptyState() {
-            content.classList.add('hidden');
-            loading.classList.add('hidden');
-            emptyState.classList.remove('hidden');
-        }
-
-        // Make functions global for onclick handlers
-        window.loadSections = loadSections;
-        window.loadCategories = loadCategories;
-        window.loadModels = loadModels;
-        window.loadSubmodels = loadSubmodels;
-        window.loadProducts = loadProducts;
-        window.openSideMenu = openSideMenu;
-        window.closeSideMenu = closeSideMenu;
-        window.openInBot = openInBot;
-        window.contactAboutProduct = contactAboutProduct;
-    </script>
-</body>
-</html>
+// Make functions global
+window.loadSections = loadSections;
+window.loadCategories = loadCategories;
+window.loadModels = loadModels;
+window.loadSubmodels = loadSubmodels;
+window.loadProducts = loadProducts;
+window.openInBot = openInBot;
+window.contactAboutProduct = contactAboutProduct;
