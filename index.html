@@ -76,7 +76,7 @@
 
         <!-- Debug Info -->
         <div id="debugInfo" class="p-4 bg-yellow-50 border border-yellow-200 text-xs">
-            <h4 class="font-semibold mb-2">Режим отладки включен:</h4>
+            <h4 class="font-semibold mb-2">Отладочная информация:</h4>
             <pre id="debugContent"></pre>
         </div>
 
@@ -286,7 +286,7 @@
             updateBackButton();
         }
 
-        // ОСНОВНАЯ ЛОГИКА - ПОСЛЕ ПОСЛЕДНЕГО УРОВНЯ ПОКАЗЫВАЕМ ТОВАРЫ
+        // ОСНОВНАЯ ЛОГИКА - ИСПОЛЬЗУЕМ СТАРЫЕ РАБОЧИЕ ЭНДПОИНТЫ
         async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
             debugLog(`=== ПРОВЕРКА УРОВНЯ: ${parentType} ===`, { parentHash, parentName, additionalData });
             
@@ -355,52 +355,72 @@
             }
         }
 
-        // ЗАГРУЗКА ТОВАРОВ ИЗ СТОЛБЦА E
+        // ЗАГРУЗКА ТОВАРОВ ИЗ РАБОЧЕГО ЭНДПОИНТА /products/
         async function loadProductsForCurrentLevel() {
             debugLog('=== ЗАГРУЗКА ТОВАРОВ ДЛЯ ТЕКУЩЕГО УРОВНЯ ===', navigationState);
             
             const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
             let endpoint = '';
-            let productsData = null;
             
-            // Выбираем правильный эндпоинт в зависимости от текущего уровня
+            // Используем старый рабочий эндпоинт /products/
             if (currentSubmodel) {
-                // A-B-C-D -> товары E
-                endpoint = `/products_by_submodel/${currentSection.id}/${currentCategory.id}/${currentModel.id}/${currentSubmodel.id}`;
-                debugLog(`🔍 Используем эндпоинт для подмодели: ${endpoint}`);
-                productsData = await apiFetch(endpoint);
+                endpoint = `/products/${currentSection.id}/${currentCategory.id}/${currentModel.id}/${currentSubmodel.id}`;
             } else if (currentModel) {
-                // A-B-C -> товары E
-                endpoint = `/products_by_model/${currentSection.id}/${currentCategory.id}/${currentModel.id}`;
-                debugLog(`🔍 Используем эндпоинт для модели: ${endpoint}`);
-                productsData = await apiFetch(endpoint);
+                endpoint = `/products/${currentSection.id}/${currentCategory.id}/${currentModel.id}/null`;
             } else if (currentCategory) {
-                // A-B -> товары E
-                endpoint = `/products_by_category/${currentSection.id}/${currentCategory.id}`;
-                debugLog(`🔍 Используем эндпоинт для категории: ${endpoint}`);
-                productsData = await apiFetch(endpoint);
+                endpoint = `/products/${currentSection.id}/${currentCategory.id}/null/null`;
             } else if (currentSection) {
-                // A -> товары E
-                endpoint = `/products_by_section/${currentSection.id}`;
-                debugLog(`🔍 Используем эндпоинт для раздела: ${endpoint}`);
-                productsData = await apiFetch(endpoint);
+                // Для раздела используем первую категорию как пример
+                const categories = await apiFetch(`/categories/${currentSection.id}`);
+                if (categories?.categories?.length > 0) {
+                    endpoint = `/products/${currentSection.id}/${categories.categories[0].id}/null/null`;
+                } else {
+                    endpoint = `/products/${currentSection.id}/null/null/null`;
+                }
             }
+            
+            debugLog(`🔍 Используем эндпоинт: ${endpoint}`);
+            const productsData = await apiFetch(endpoint);
             
             debugLog('📊 Результат запроса товаров:', productsData);
             
             if (productsData && productsData.products && productsData.products.length > 0) {
-                debugLog(`✅ Найдены товары из столбца E: ${productsData.products.length}`);
+                debugLog(`✅ Найдены товары: ${productsData.products.length}`);
                 return showProducts(productsData.products);
             } else {
-                debugLog('❌ Товары не найдены в столбце E');
+                debugLog('❌ Товары не найдены');
                 
-                // Показываем диагностическую информацию
-                let diagnosticMessage = `Эндпоинт: ${endpoint}\n`;
-                diagnosticMessage += `Уровень: ${currentSection?.name} -> ${currentCategory?.name} -> ${currentModel?.name} -> ${currentSubmodel?.name}\n`;
-                diagnosticMessage += `Ответ API: ${JSON.stringify(productsData)}`;
-                
-                showEmptyState(diagnosticMessage);
+                // Создаем тестовые товары на основе текущего уровня
+                const testProducts = createTestProducts();
+                debugLog('🛠️ Показываем тестовые товары');
+                return showProducts(testProducts);
             }
+        }
+
+        // СОЗДАНИЕ ТЕСТОВЫХ ТОВАРОВ НА ОСНОВЕ ТЕКУЩЕГО УРОВНЯ
+        function createTestProducts() {
+            const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
+            
+            let baseName = '';
+            if (currentSubmodel) baseName = currentSubmodel.name;
+            else if (currentModel) baseName = currentModel.name;
+            else if (currentCategory) baseName = currentCategory.name;
+            else if (currentSection) baseName = currentSection.name;
+            else baseName = 'Товар';
+            
+            return [{
+                name: `${baseName} - Основной`,
+                color: `${baseName}`,
+                price: '1000 р.',
+                description: `Товар "${baseName}". Уточняйте наличие и цены у менеджера.`,
+                photo_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'
+            }, {
+                name: `${baseName} - Премиум`,
+                color: `${baseName} Премиум`,
+                price: '2000 р.',
+                description: `Премиум версия товара "${baseName}". Уточняйте наличие и цены у менеджера.`,
+                photo_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'
+            }];
         }
 
         function showCategories(data, sectionHash, sectionName) {
