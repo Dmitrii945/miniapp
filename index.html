@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>СТРОЙБАТ Каталог</title>
+    <title>СТРОЙБАТ Каталог - Поиск товаров</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,802 +16,280 @@
             --tg-theme-button-color: #3B82F6;
             --tg-theme-button-text-color: #ffffff;
         }
-        
-        .tg-theme-button {
-            background-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-        }
-        
-        .tg-theme-text {
-            color: var(--tg-theme-text-color);
-        }
-        
-        .tg-theme-hint {
-            color: var(--tg-theme-hint-color);
-        }
-        
-        .tg-theme-secondary-bg {
-            background-color: var(--tg-theme-secondary-bg-color);
-        }
-        
-        .product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background-color: #f3f4f6;
-        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <div id="app" class="max-w-md mx-auto">
-        <!-- Header -->
-        <header class="bg-white shadow-sm p-4 sticky top-0 z-10">
-            <div class="flex justify-between items-center">
-                <button id="toggleMenu" class="p-2 rounded-lg tg-theme-secondary-bg">
-                    <i data-feather="menu"></i>
-                </button>
-                <h1 class="text-lg font-semibold tg-theme-text">Каталог товаров</h1>
-                <div class="w-10"></div>
-            </div>
+    <div id="app" class="max-w-md mx-auto p-4">
+        <h1 class="text-xl font-bold mb-4">Поиск эндпоинтов товаров</h1>
+        
+        <div class="space-y-4">
+            <button onclick="findProductsEndpoints()" class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium">
+                Найти эндпоинты товаров
+            </button>
             
-            <!-- Breadcrumbs -->
-            <div id="breadcrumbs" class="flex items-center text-sm mt-2 overflow-x-auto whitespace-nowrap"></div>
-        </header>
-
-        <!-- Loading -->
-        <div id="loading" class="hidden p-8 text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p class="mt-4 tg-theme-hint">Загрузка...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden p-8 text-center">
-            <i data-feather="package" class="w-16 h-16 mx-auto tg-theme-hint mb-4"></i>
-            <p class="tg-theme-hint mb-4">Товары не найдены</p>
-            <p class="text-sm tg-theme-hint mb-4" id="errorDetails"></p>
-            <button onclick="loadSections()" class="mt-4 py-2 px-4 tg-theme-button rounded-lg">
-                Попробовать снова
+            <button onclick="testCommonEndpoints()" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium">
+                Тест распространенных эндпоинтов
+            </button>
+            
+            <button onclick="loadSections()" class="w-full py-3 bg-purple-500 text-white rounded-lg font-medium">
+                Загрузить разделы для теста
             </button>
         </div>
-
-        <!-- Debug Info -->
-        <div id="debugInfo" class="hidden p-4 bg-yellow-50 border border-yellow-200 text-xs">
-            <h4 class="font-semibold mb-2">Отладочная информация:</h4>
-            <pre id="debugContent"></pre>
-        </div>
-
-        <!-- Main Content -->
-        <main id="content" class="p-4 space-y-4"></main>
-
-        <!-- Side Menu -->
-        <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
-            <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
-                <div class="p-4">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-lg font-semibold">Меню</h2>
-                        <button id="closeMenu" class="p-2 rounded-lg hover:bg-gray-100">
-                            <i data-feather="x"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="space-y-2">
-                        <button onclick="loadSections(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center">
-                            <i data-feather="home" class="mr-3"></i>
-                            Главная
-                        </button>
-                        <button onclick="openInBot(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center">
-                            <i data-feather="message-circle" class="mr-3"></i>
-                            Открыть в боте
-                        </button>
-                        <button onclick="toggleDebug(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center">
-                            <i data-feather="terminal" class="mr-3"></i>
-                            Отладка
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
+        <div id="results" class="mt-6 space-y-4"></div>
+        <div id="debug" class="mt-4 p-3 bg-gray-100 rounded text-xs font-mono max-h-60 overflow-y-auto"></div>
     </div>
 
     <script>
-        const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
-
-        let navigationState = {
-            currentSection: null,
-            currentCategory: null, 
-            currentModel: null,
-            currentSubmodel: null
-        };
-
-        let debugMode = false;
-        let currentProducts = [];
-        let currentProductIndex = 0;
-
-        const content = document.getElementById('content');
-        const breadcrumbs = document.getElementById('breadcrumbs');
-        const loading = document.getElementById('loading');
-        const emptyState = document.getElementById('emptyState');
-        const sideMenu = document.getElementById('sideMenu');
-        const debugInfo = document.getElementById('debugInfo');
-        const debugContent = document.getElementById('debugContent');
-
-        function initTelegramApp() {
-            if (tg) {
-                tg.expand();
-                tg.enableClosingConfirmation();
-                tg.BackButton.onClick(goBack);
-            }
-        }
-
-        function toggleDebug() {
-            debugMode = !debugMode;
-            if (debugMode) {
-                debugInfo.classList.remove('hidden');
-                debugLog('Режим отладки включен');
-            } else {
-                debugInfo.classList.add('hidden');
-            }
-        }
-
-        function debugLog(message, data = null) {
-            if (!debugMode) return;
-            
-            const timestamp = new Date().toLocaleTimeString();
-            let logMessage = `[${timestamp}] ${message}`;
-            
-            if (data) {
-                logMessage += '\n' + JSON.stringify(data, null, 2);
-            }
-            
-            debugContent.textContent += logMessage + '\n\n';
-            debugInfo.scrollTop = debugInfo.scrollHeight;
-        }
-
-        function openSideMenu() {
-            sideMenu.classList.remove('hidden');
-            setTimeout(() => {
-                sideMenu.querySelector('div').classList.remove('translate-x-full');
-            }, 10);
-        }
-
-        function closeSideMenu() {
-            sideMenu.querySelector('div').classList.add('translate-x-full');
-            setTimeout(() => {
-                sideMenu.classList.add('hidden');
-            }, 300);
+        
+        function debugLog(message) {
+            const debug = document.getElementById('debug');
+            debug.innerHTML += message + '\n';
+            debug.scrollTop = debug.scrollHeight;
         }
 
         async function apiFetch(endpoint) {
             try {
-                debugLog(`Запрос к API`, { endpoint });
-                showLoading();
-                
+                debugLog(`🔍 GET ${endpoint}`);
                 const response = await fetch(`${API_BASE}${endpoint}`);
                 
-                if (response.status === 404) {
-                    debugLog('⚠️ Эндпоинт не найден (404)', { endpoint });
-                    hideLoading();
+                if (!response.ok) {
+                    debugLog(`❌ ${response.status} ${endpoint}`);
                     return null;
                 }
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
                 const data = await response.json();
-                hideLoading();
+                debugLog(`✅ ${endpoint} - найдено: ${Object.values(data)[0]?.length || 0} записей`);
                 return data;
             } catch (error) {
-                debugLog('❌ API Error', { endpoint, error: error.message });
-                hideLoading();
+                debugLog(`❌ Ошибка: ${endpoint} - ${error.message}`);
                 return null;
             }
         }
 
-        function formatPrice(price) {
-            if (!price || isNaN(price)) return '';
-            return ` от ${Math.round(price)} р.`;
-        }
-
-        function goBack() {
-            const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
+        async function findProductsEndpoints() {
+            debugLog('\n=== ПОИСК ЭНДПОИНТОВ ТОВАРОВ ===');
             
-            if (currentSubmodel) {
-                checkNextLevel(currentModel.id, currentModel.name, 'model', {
-                    sectionId: currentSection.id,
-                    sectionName: currentSection.name,
-                    categoryId: currentCategory.id,
-                    categoryName: currentCategory.name
-                });
-            } else if (currentModel) {
-                checkNextLevel(currentCategory.id, currentCategory.name, 'category', {
-                    sectionId: currentSection.id,
-                    sectionName: currentSection.name
-                });
-            } else if (currentCategory) {
-                checkNextLevel(currentSection.id, currentSection.name, 'section');
-            } else if (currentSection) {
-                loadSections();
-            } else {
-                if (tg) {
-                    tg.close();
+            const possibleEndpoints = [
+                '/products',
+                '/items', 
+                '/goods',
+                '/all',
+                '/all_items',
+                '/all_goods',
+                '/catalog',
+                '/products/all',
+                '/items/all',
+                '/goods/all'
+            ];
+
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="text-center py-4">Поиск...</div>';
+
+            let foundEndpoints = [];
+
+            for (const endpoint of possibleEndpoints) {
+                const data = await apiFetch(endpoint);
+                if (data && Object.values(data)[0]?.length > 0) {
+                    foundEndpoints.push({
+                        endpoint,
+                        count: Object.values(data)[0].length,
+                        sample: JSON.stringify(data).substring(0, 200)
+                    });
                 }
             }
-        }
 
-        function updateBackButton() {
-            if (!tg) return;
-            
-            const hasHistory = navigationState.currentSection !== null;
-            if (hasHistory) {
-                tg.BackButton.show();
+            if (foundEndpoints.length > 0) {
+                let html = '<div class="bg-green-50 p-4 rounded border border-green-200"><h3 class="font-semibold text-green-800 mb-2">Найдены эндпоинты:</h3>';
+                foundEndpoints.forEach(item => {
+                    html += `
+                        <div class="mb-3 p-3 bg-white rounded border">
+                            <div class="font-mono text-sm bg-green-100 p-1 rounded">${item.endpoint}</div>
+                            <div class="text-sm mt-1">Записей: ${item.count}</div>
+                            <div class="text-xs mt-1 text-gray-600">${item.sample}...</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                results.innerHTML = html;
             } else {
-                tg.BackButton.hide();
+                results.innerHTML = '<div class="bg-red-50 p-4 rounded border border-red-200 text-red-800">❌ Эндпоинты товаров не найдены</div>';
             }
         }
 
-        function openInBot() {
-            if (tg) {
-                tg.openTelegramLink('https://t.me/SSERVICE72_bot');
-            } else {
-                window.open('https://t.me/SSERVICE72_bot', '_blank');
-            }
-        }
-
-        function contactAboutProduct(productInfo) {
-            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+        async function testCommonEndpoints() {
+            debugLog('\n=== ТЕСТ РАСПРОСТРАНЕННЫХ ЭНДПОИНТОВ ===');
             
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SSERVICE72_bot?start=product_${encodeURIComponent(productInfo)}`);
+            // Тестируем различные варианты эндпоинтов товаров
+            const testCases = [
+                // Базовые эндпоинты
+                { endpoint: '/products', description: 'Все товары' },
+                { endpoint: '/items', description: 'Все items' },
+                
+                // Эндпоинты с фильтрацией по ID
+                { endpoint: '/products/section/dcb1364bebe64073', description: 'Товары по разделу' },
+                { endpoint: '/items/section/dcb1364bebe64073', description: 'Items по разделу' },
+                { endpoint: '/products/category/3d13eaa317c84d8c', description: 'Товары по категории' },
+                { endpoint: '/items/category/3d13eaa317c84d8c', description: 'Items по категории' },
+                
+                // Альтернативные форматы
+                { endpoint: '/section/dcb1364bebe64073/products', description: 'Товары раздела (альтернативный формат)' },
+                { endpoint: '/category/3d13eaa317c84d8c/products', description: 'Товары категории (альтернативный формат)' },
+                
+                // Эндпоинты с множественными параметрами
+                { endpoint: '/products/dcb1364bebe64073/3d13eaa317c84d8c', description: 'Товары раздела и категории' },
+                { endpoint: '/items/dcb1364bebe64073/3d13eaa317c84d8c', description: 'Items раздела и категории' }
+            ];
+
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="text-center py-4">Тестирование...</div>';
+
+            let workingEndpoints = [];
+
+            for (const test of testCases) {
+                const data = await apiFetch(test.endpoint);
+                if (data) {
+                    const count = Object.values(data)[0]?.length || 0;
+                    if (count > 0) {
+                        workingEndpoints.push({
+                            ...test,
+                            count: count
+                        });
+                    }
+                }
+            }
+
+            if (workingEndpoints.length > 0) {
+                let html = '<div class="bg-green-50 p-4 rounded border border-green-200"><h3 class="font-semibold text-green-800 mb-2">Работающие эндпоинты:</h3>';
+                workingEndpoints.forEach(item => {
+                    html += `
+                        <div class="mb-3 p-3 bg-white rounded border">
+                            <div class="font-semibold">${item.description}</div>
+                            <div class="font-mono text-sm bg-green-100 p-1 rounded mt-1">${item.endpoint}</div>
+                            <div class="text-sm mt-1">Найдено записей: ${item.count}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                results.innerHTML = html;
             } else {
-                window.open(`https://t.me/SSERVICE72_bot?start=product_${encodeURIComponent(productInfo)}`, '_blank');
+                results.innerHTML = '<div class="bg-red-50 p-4 rounded border border-red-200 text-red-800">❌ Ни один эндпоинт не вернул товары</div>';
             }
         }
 
         async function loadSections() {
-            debugLog('Загрузка разделов');
-            let data = await apiFetch('/sections');
+            debugLog('\n=== ЗАГРУЗКА РАЗДЕЛОВ ДЛЯ ТЕСТА ===');
             
-            if (!data || !data.sections || data.sections.length === 0) {
-                showEmptyState('Нет доступных разделов');
+            const data = await apiFetch('/sections');
+            if (!data?.sections) {
+                debugLog('❌ Разделы не загружены');
                 return;
             }
+
+            const results = document.getElementById('results');
+            let html = '<div class="bg-blue-50 p-4 rounded border border-blue-200"><h3 class="font-semibold text-blue-800 mb-2">Разделы для тестирования:</h3>';
             
-            clearNavigation();
-            
-            let html = '';
             data.sections.forEach(section => {
                 html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-2">${section.name}</h3>
-                            <button onclick="checkNextLevel('${section.id}', '${section.name}', 'section')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть категории</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
+                    <div class="mb-3 p-3 bg-white rounded border">
+                        <div class="font-semibold">${section.name}</div>
+                        <div class="text-sm text-gray-600">ID: ${section.id}</div>
+                        <div class="flex space-x-2 mt-2">
+                            <button onclick="testSectionProducts('${section.id}', '${section.name}')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">
+                                Тест товаров
+                            </button>
+                            <button onclick="loadCategories('${section.id}', '${section.name}')" class="px-3 py-1 bg-green-500 text-white rounded text-sm">
+                                Тест категорий
                             </button>
                         </div>
                     </div>
                 `;
             });
             
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbs([{name: 'Главная', action: 'loadSections()'}]);
-            updateBackButton();
+            html += '</div>';
+            results.innerHTML = html;
         }
 
-        // ОСНОВНАЯ ЛОГИКА С ИСПРАВЛЕННЫМИ ЭНДПОИНТАМИ
-        async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
-            debugLog(`Проверка следующего уровня после: ${parentType}`, { parentHash, parentName, additionalData });
+        async function testSectionProducts(sectionId, sectionName) {
+            debugLog(`\n=== ТЕСТ ТОВАРОВ ДЛЯ РАЗДЕЛА ${sectionName} ===`);
             
-            updateNavigationState(parentType, { id: parentHash, name: parentName }, additionalData);
-            
-            try {
-                switch (parentType) {
-                    case 'section':
-                        // После раздела проверяем категории
-                        const categoriesData = await apiFetch(`/categories/${parentHash}`);
-                        if (categoriesData?.categories?.length > 0) {
-                            debugLog('Найдены категории (столбец B)');
-                            return showCategories(categoriesData, parentHash, parentName);
-                        } else {
-                            // Если категорий нет, используем эндпоинт товаров для раздела
-                            debugLog('Категории не найдены, ищем товары для раздела');
-                            const productsData = await apiFetch(`/products_by_section/${parentHash}`);
-                            if (productsData?.products?.length > 0) {
-                                return showProducts(productsData.products, {
-                                    section: { id: parentHash, name: parentName }
-                                });
-                            } else {
-                                showEmptyState('Для этого раздела нет товаров');
-                            }
-                        }
-                        break;
-                        
-                    case 'category':
-                        // После категории проверяем модели
-                        const modelsData = await apiFetch(`/models/${additionalData.sectionId}/${parentHash}`);
-                        if (modelsData?.models?.length > 0) {
-                            debugLog('Найдены модели (столбец C)');
-                            return showModels(modelsData, parentHash, parentName, additionalData);
-                        } else {
-                            // Если моделей нет, проверяем подмодели
-                            debugLog('Модели не найдены, проверяем подмодели (столбец D)');
-                            const submodelsData = await apiFetch(`/submodels/${additionalData.sectionId}/${parentHash}/null`);
-                            if (submodelsData?.submodels?.length > 0) {
-                                debugLog('Найдены подмодели (столбец D)');
-                                return showSubmodels(submodelsData, parentHash, parentName, additionalData);
-                            } else {
-                                // Если ничего не найдено, используем эндпоинт товаров для категории
-                                debugLog('Подмодели не найдены, ищем товары для категории');
-                                const productsData = await apiFetch(`/products_by_category/${additionalData.sectionId}/${parentHash}`);
-                                if (productsData?.products?.length > 0) {
-                                    return showProducts(productsData.products, {
-                                        section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                        category: { id: parentHash, name: parentName }
-                                    });
-                                } else {
-                                    showEmptyState('Для этой категории нет товаров');
-                                }
-                            }
-                        }
-                        break;
-                        
-                    case 'model':
-                        // После модели проверяем подмодели
-                        const submodelsData = await apiFetch(`/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
-                        if (submodelsData?.submodels?.length > 0) {
-                            debugLog('Найдены подмодели (столбец D)');
-                            return showSubmodels(submodelsData, parentHash, parentName, additionalData);
-                        } else {
-                            // Если подмоделей нет, используем эндпоинт товаров для модели
-                            debugLog('Подмодели не найдены, ищем товары для модели');
-                            const productsData = await apiFetch(`/products_by_model/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
-                            if (productsData?.products?.length > 0) {
-                                return showProducts(productsData.products, {
-                                    section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                    category: { id: additionalData.categoryId, name: additionalData.categoryName },
-                                    model: { id: parentHash, name: parentName }
-                                });
-                            } else {
-                                showEmptyState('Для этой модели нет товаров');
-                            }
-                        }
-                        break;
-                        
-                    case 'submodel':
-                        // После подмодели используем эндпоинт товаров для подмодели
-                        debugLog('Ищем товары для подмодели');
-                        const productsData = await apiFetch(`/products_by_submodel/${additionalData.sectionId}/${additionalData.categoryId}/${additionalData.modelId}/${parentHash}`);
-                        if (productsData?.products?.length > 0) {
-                            return showProducts(productsData.products, {
-                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                category: { id: additionalData.categoryId, name: additionalData.categoryName },
-                                model: { id: additionalData.modelId, name: additionalData.modelName },
-                                submodel: { id: parentHash, name: parentName }
-                            });
-                        } else {
-                            showEmptyState('Для этой подмодели нет товаров');
-                        }
-                        break;
-                }
-            } catch (error) {
-                debugLog('❌ Ошибка при проверке уровней', { error: error.message });
-                showEmptyState('Ошибка при загрузке данных');
+            // Тестируем различные варианты для раздела
+            const endpoints = [
+                `/products/section/${sectionId}`,
+                `/items/section/${sectionId}`,
+                `/section/${sectionId}/products`,
+                `/section/${sectionId}/items`,
+                `/catalog/${sectionId}`,
+                `/products?section_id=${sectionId}`,
+                `/items?section_id=${sectionId}`
+            ];
+
+            for (const endpoint of endpoints) {
+                await apiFetch(endpoint);
             }
         }
 
-        function showCategories(data, sectionHash, sectionName) {
-            let html = '';
+        async function loadCategories(sectionId, sectionName) {
+            debugLog(`\n=== КАТЕГОРИИ ДЛЯ РАЗДЕЛА ${sectionName} ===`);
+            
+            const data = await apiFetch(`/categories/${sectionId}`);
+            if (!data?.categories) {
+                debugLog('❌ Категории не найдены');
+                return;
+            }
+
+            const results = document.getElementById('results');
+            let html = `<div class="bg-green-50 p-4 rounded border border-green-200"><h3 class="font-semibold text-green-800 mb-2">Категории раздела "${sectionName}":</h3>`;
+            
             data.categories.forEach(category => {
-                const priceText = category.min_price ? formatPrice(category.min_price) : '';
                 html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${category.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="checkNextLevel('${category.id}', '${category.name}', 'category', {
-                                sectionId: '${sectionHash}',
-                                sectionName: '${sectionName}'
-                            })" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbsFromState();
-            updateBackButton();
-        }
-
-        function showModels(data, parentHash, parentName, additionalData = {}) {
-            let html = '';
-            const items = data.models || [];
-            
-            items.forEach(model => {
-                const priceText = model.min_price ? formatPrice(model.min_price) : '';
-                
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="checkNextLevel('${model.id}', '${model.name}', 'model', {
-                                sectionId: '${additionalData.sectionId}',
-                                sectionName: '${additionalData.sectionName}',
-                                categoryId: '${parentHash}',
-                                categoryName: '${parentName}'
-                            })" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbsFromState();
-            updateBackButton();
-        }
-
-        function showSubmodels(data, parentHash, parentName, additionalData = {}) {
-            let html = '';
-            const items = data.submodels || [];
-            
-            items.forEach(submodel => {
-                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
-                
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${submodel.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="checkNextLevel('${submodel.id}', '${submodel.name}', 'submodel', {
-                                sectionId: '${additionalData.sectionId}',
-                                sectionName: '${additionalData.sectionName}',
-                                categoryId: '${additionalData.categoryId || parentHash}',
-                                categoryName: '${additionalData.categoryName || parentName}',
-                                modelId: '${additionalData.modelId || parentHash}',
-                                modelName: '${additionalData.modelName || parentName}'
-                            })" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbsFromState();
-            updateBackButton();
-        }
-
-        async function showProducts(products, context = {}) {
-            debugLog('Показ товаров', { count: products.length, context });
-            
-            if (!products || products.length === 0) {
-                showEmptyState('Нет доступных товаров');
-                return;
-            }
-            
-            // Обновляем состояние навигации
-            if (context.section) navigationState.currentSection = context.section;
-            if (context.category) navigationState.currentCategory = context.category;
-            if (context.model) navigationState.currentModel = context.model;
-            if (context.submodel) navigationState.currentSubmodel = context.submodel;
-            
-            currentProducts = products;
-            currentProductIndex = 0;
-            await showCurrentProduct();
-        }
-
-        function updateNavigationState(levelType, currentItem, additionalData = {}) {
-            switch (levelType) {
-                case 'section':
-                    navigationState.currentSection = currentItem;
-                    navigationState.currentCategory = null;
-                    navigationState.currentModel = null;
-                    navigationState.currentSubmodel = null;
-                    break;
-                case 'category':
-                    navigationState.currentCategory = currentItem;
-                    navigationState.currentModel = null;
-                    navigationState.currentSubmodel = null;
-                    break;
-                case 'model':
-                    navigationState.currentModel = currentItem;
-                    navigationState.currentSubmodel = null;
-                    break;
-                case 'submodel':
-                    navigationState.currentSubmodel = currentItem;
-                    break;
-            }
-            
-            // Сохраняем дополнительные данные
-            if (additionalData.sectionId) {
-                navigationState.currentSection = { id: additionalData.sectionId, name: additionalData.sectionName };
-            }
-            if (additionalData.categoryId) {
-                navigationState.currentCategory = { id: additionalData.categoryId, name: additionalData.categoryName };
-            }
-            if (additionalData.modelId) {
-                navigationState.currentModel = { id: additionalData.modelId, name: additionalData.modelName };
-            }
-        }
-
-        async function showCurrentProduct() {
-            if (!currentProducts || currentProducts.length === 0) {
-                showEmptyState();
-                return;
-            }
-
-            const product = currentProducts[currentProductIndex];
-            const color = product.color || product.name || 'Без названия';
-            const price = product.price || product.min_price || 'Цена не указана';
-            const description = product.full_description || product.description || '';
-            const photoUrl = product.photo_url || product.image_url || '';
-            
-            const imageUrl = photoUrl ? `https://dmitrii2613.pythonanywhere.com${photoUrl}` : null;
-            
-            let html = `
-                <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    ${imageUrl ? `
-                        <img src="${imageUrl}" alt="${color}" 
-                             class="product-image bg-gray-100 w-full h-48 object-cover"
-                             onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'">
-                    ` : `
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                            <i data-feather="package" class="w-12 h-12 text-gray-400"></i>
-                        </div>
-                    `}
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-semibold text-lg">${color}</h3>
-                            ${price && price !== 'Цена не указана' ? `
-                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                    ${typeof price === 'number' ? formatPrice(price) : price}
-                                </span>
-                            ` : ''}
-                        </div>
-            `;
-            
-            if (description) {
-                html += `<p class="text-gray-600 mb-3">${description}</p>`;
-            }
-            
-            const showNavigation = currentProducts.length > 1;
-            if (showNavigation) {
-                const prevDisabled = currentProductIndex === 0;
-                const nextDisabled = currentProductIndex === currentProducts.length - 1;
-                
-                html += `
-                    <div class="flex justify-between items-center mb-4">
-                        <button onclick="showPreviousProduct()" 
-                                class="py-2 px-4 bg-gray-200 rounded-lg flex items-center ${prevDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
-                                ${prevDisabled ? 'disabled' : ''}>
-                            <i data-feather="chevron-left" class="mr-1"></i> Назад
-                        </button>
-                        <span class="text-sm text-gray-600">${currentProductIndex + 1} / ${currentProducts.length}</span>
-                        <button onclick="showNextProduct()" 
-                                class="py-2 px-4 bg-gray-200 rounded-lg flex items-center ${nextDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
-                                ${nextDisabled ? 'disabled' : ''}>
-                            Вперед <i data-feather="chevron-right" class="ml-1"></i>
+                    <div class="mb-3 p-3 bg-white rounded border">
+                        <div class="font-semibold">${category.name}</div>
+                        <div class="text-sm text-gray-600">ID: ${category.id}</div>
+                        <button onclick="testCategoryProducts('${sectionId}', '${sectionName}', '${category.id}', '${category.name}')" class="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm">
+                            Тест товаров категории
                         </button>
                     </div>
                 `;
-            }
-            
-            const productPath = [
-                navigationState.currentSection?.name,
-                navigationState.currentCategory?.name,
-                navigationState.currentModel?.name,
-                navigationState.currentSubmodel?.name,
-                color,
-                price !== 'Цена не указана' ? price : ''
-            ].filter(Boolean).join(' → ');
-            
-            html += `
-                        <div class="flex space-x-2">
-                            <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                    onclick="contactAboutProduct('${productPath.replace(/'/g, "\\'")}')">
-                                <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
-                            </button>
-                            ${showNavigation ? `
-                            <button class="w-12 flex items-center justify-center tg-theme-secondary-bg rounded-lg"
-                                    onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-                                <i data-feather="arrow-up"></i>
-                            </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbsFromState();
-            updateBackButton();
-        }
-
-        function showPreviousProduct() {
-            if (currentProductIndex > 0) {
-                currentProductIndex--;
-                showCurrentProduct();
-            }
-        }
-
-        function showNextProduct() {
-            if (currentProductIndex < currentProducts.length - 1) {
-                currentProductIndex++;
-                showCurrentProduct();
-            }
-        }
-
-        function updateBreadcrumbsFromState() {
-            const items = [{name: 'Главная', action: 'loadSections()'}];
-            
-            if (navigationState.currentSection) {
-                items.push({
-                    name: navigationState.currentSection.name,
-                    action: `checkNextLevel('${navigationState.currentSection.id}', '${navigationState.currentSection.name}', 'section')`
-                });
-            }
-            
-            if (navigationState.currentCategory) {
-                items.push({
-                    name: navigationState.currentCategory.name,
-                    action: `checkNextLevel('${navigationState.currentCategory.id}', '${navigationState.currentCategory.name}', 'category', {
-                        sectionId: '${navigationState.currentSection.id}',
-                        sectionName: '${navigationState.currentSection.name}'
-                    })`
-                });
-            }
-            
-            if (navigationState.currentModel) {
-                items.push({
-                    name: navigationState.currentModel.name,
-                    action: `checkNextLevel('${navigationState.currentModel.id}', '${navigationState.currentModel.name}', 'model', {
-                        sectionId: '${navigationState.currentSection.id}',
-                        sectionName: '${navigationState.currentSection.name}',
-                        categoryId: '${navigationState.currentCategory.id}',
-                        categoryName: '${navigationState.currentCategory.name}'
-                    })`
-                });
-            }
-            
-            if (navigationState.currentSubmodel) {
-                items.push({
-                    name: navigationState.currentSubmodel.name,
-                    action: `checkNextLevel('${navigationState.currentSubmodel.id}', '${navigationState.currentSubmodel.name}', 'submodel', {
-                        sectionId: '${navigationState.currentSection.id}',
-                        sectionName: '${navigationState.currentSection.name}',
-                        categoryId: '${navigationState.currentCategory.id}',
-                        categoryName: '${navigationState.currentCategory.name}',
-                        modelId: '${navigationState.currentModel.id}',
-                        modelName: '${navigationState.currentModel.name}'
-                    })`
-                });
-            }
-            
-            updateBreadcrumbs(items);
-        }
-
-        function updateBreadcrumbs(items) {
-            breadcrumbs.innerHTML = '';
-            
-            if (!items || items.length === 0) return;
-            
-            const displayItems = items.length > 4 
-                ? [...items.slice(0, 1), {name: '...'}, ...items.slice(-2)] 
-                : items;
-            
-            displayItems.forEach((item, index) => {
-                const crumb = document.createElement('span');
-                crumb.className = 'flex items-center whitespace-nowrap';
-                
-                if (index > 0) {
-                    const separator = document.createElement('span');
-                    separator.className = 'mx-1 tg-theme-hint';
-                    separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
-                    breadcrumbs.appendChild(separator);
-                }
-                
-                if (item.name === '...') {
-                    crumb.innerHTML = '<span class="text-sm tg-theme-hint">...</span>';
-                } else {
-                    const link = document.createElement('button');
-                    link.className = 'hover:text-blue-500 transition tg-theme-text text-sm truncate max-w-[120px]';
-                    link.textContent = item.name;
-                    link.title = item.name;
-                    if (item.action) {
-                        link.onclick = new Function(item.action);
-                    } else {
-                        link.className += ' cursor-default';
-                    }
-                    crumb.appendChild(link);
-                }
-                
-                breadcrumbs.appendChild(crumb);
             });
             
-            feather.replace();
+            html += '</div>';
+            results.innerHTML = html;
         }
 
-        function clearNavigation() {
-            navigationState = {
-                currentSection: null,
-                currentCategory: null,
-                currentModel: null,
-                currentSubmodel: null
-            };
-            currentProducts = [];
-            currentProductIndex = 0;
-        }
+        async function testCategoryProducts(sectionId, sectionName, categoryId, categoryName) {
+            debugLog(`\n=== ТЕСТ ТОВАРОВ ДЛЯ КАТЕГОРИИ ${categoryName} ===`);
+            
+            // Тестируем различные варианты для категории
+            const endpoints = [
+                `/products/category/${categoryId}`,
+                `/items/category/${categoryId}`,
+                `/category/${categoryId}/products`,
+                `/category/${categoryId}/items`,
+                `/products/${sectionId}/${categoryId}`,
+                `/items/${sectionId}/${categoryId}`,
+                `/products?section_id=${sectionId}&category_id=${categoryId}`,
+                `/items?section_id=${sectionId}&category_id=${categoryId}`
+            ];
 
-        function showLoading() {
-            loading.classList.remove('hidden');
-            content.classList.add('hidden');
-            emptyState.classList.add('hidden');
-        }
-
-        function hideLoading() {
-            loading.classList.add('hidden');
-            content.classList.remove('hidden');
-            emptyState.classList.add('hidden');
-        }
-
-        function showEmptyState(message = '') {
-            content.classList.add('hidden');
-            loading.classList.add('hidden');
-            emptyState.classList.remove('hidden');
-            document.getElementById('errorDetails').textContent = message || 'Данные не найдены';
-            updateBackButton();
+            for (const endpoint of endpoints) {
+                await apiFetch(endpoint);
+            }
         }
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
-            try {
-                initTelegramApp();
-                feather.replace();
-                
-                document.getElementById('toggleMenu').addEventListener('click', openSideMenu);
-                document.getElementById('closeMenu').addEventListener('click', closeSideMenu);
-                
-                setTimeout(() => {
-                    loadSections();
-                }, 100);
-                
-            } catch (error) {
-                console.error('Initialization error:', error);
-                showEmptyState('Критическая ошибка инициализации');
-            }
+            feather.replace();
+            debugLog('Готов к тестированию');
         });
 
-        // Глобальные функции
+        window.findProductsEndpoints = findProductsEndpoints;
+        window.testCommonEndpoints = testCommonEndpoints;
         window.loadSections = loadSections;
-        window.checkNextLevel = checkNextLevel;
-        window.showProducts = showProducts;
-        window.openInBot = openInBot;
-        window.contactAboutProduct = contactAboutProduct;
-        window.openSideMenu = openSideMenu;
-        window.closeSideMenu = closeSideMenu;
-        window.toggleDebug = toggleDebug;
-        window.showPreviousProduct = showPreviousProduct;
-        window.showNextProduct = showNextProduct;
-        window.goBack = goBack;
+        window.testSectionProducts = testSectionProducts;
+        window.loadCategories = loadCategories;
+        window.testCategoryProducts = testCategoryProducts;
     </script>
 </body>
 </html>
