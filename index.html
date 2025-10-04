@@ -317,11 +317,19 @@
             debugLog('Навигация назад', navigationState);
             
             if (currentSubmodel) {
-                loadSubmodels(currentSection.id, currentCategory.id, currentModel.id);
+                checkNextLevel(currentModel.id, currentModel.name, 'model', {
+                    sectionId: currentSection.id,
+                    sectionName: currentSection.name,
+                    categoryId: currentCategory.id,
+                    categoryName: currentCategory.name
+                });
             } else if (currentModel) {
-                loadModels(currentSection.id, currentCategory.id);
+                checkNextLevel(currentCategory.id, currentCategory.name, 'category', {
+                    sectionId: currentSection.id,
+                    sectionName: currentSection.name
+                });
             } else if (currentCategory) {
-                loadCategories(currentSection.id);
+                checkNextLevel(currentSection.id, currentSection.name, 'section');
             } else if (currentSection) {
                 loadSections();
             } else {
@@ -399,7 +407,7 @@
             updateBackButton();
         }
 
-        // Универсальная функция проверки следующего уровня
+        // Улучшенная универсальная функция проверки следующего уровня
         async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
             debugLog(`Проверка следующего уровня после: ${parentType}`, { parentHash, parentName, additionalData });
             
@@ -407,195 +415,177 @@
             updateNavigationState(parentType, { id: parentHash, name: parentName }, additionalData);
             
             let nextData = null;
-            let endpoint = '';
             
-            // Определяем какой уровень проверять следующим
-            switch (parentType) {
-                case 'section':
-                    // Сначала проверяем категории (столбец B)
-                    endpoint = `/categories/${parentHash}`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.categories && nextData.categories.length > 0) {
-                        debugLog('Найдены категории (столбец B)');
-                        return showCategories(nextData, parentHash, parentName);
-                    }
-                    
-                    // Если нет категорий, проверяем модели (столбец C)
-                    debugLog('Категории не найдены, проверяем модели (столбец C)');
-                    endpoint = `/models/${parentHash}/direct`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.models && nextData.models.length > 0) {
-                        debugLog('Найдены модели напрямую (столбец C)');
-                        return showModels(nextData, parentHash, parentName, 'direct');
-                    }
-                    
-                    // Если нет моделей, проверяем подмодели (столбец D)
-                    debugLog('Модели не найдены, проверяем подмодели (столбец D)');
-                    endpoint = `/submodels/${parentHash}/direct`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.submodels && nextData.submodels.length > 0) {
-                        debugLog('Найдены подмодели напрямую (столбец D)');
-                        return showSubmodels(nextData, parentHash, parentName, 'direct');
-                    }
-                    
-                    // Если нет подмоделей, проверяем товары напрямую (столбец E)
-                    debugLog('Подмодели не найдены, проверяем товары (столбец E)');
-                    endpoint = `/products/${parentHash}/direct`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.products && nextData.products.length > 0) {
-                        debugLog('Найдены товары напрямую (столбец E)');
-                        return showProducts(nextData.products, {
-                            section: { id: parentHash, name: parentName },
-                            ...nextData
-                        });
-                    } else {
-                        // ДОБАВЛЕНО: Создаем фиктивный товар если API не вернул данные
-                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных раздела');
-                        const fakeProduct = {
-                            name: parentName,
-                            color: parentName,
-                            description: `Товар раздела "${parentName}"`,
-                            price: null,
-                            photo_url: null
-                        };
-                        return showProducts([fakeProduct], {
-                            section: { id: parentHash, name: parentName }
-                        });
-                    }
-                    break;
-                    
-                case 'category':
-                    // Проверяем модели (столбец C)
-                    endpoint = `/models/${additionalData.sectionId}/${parentHash}`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.models && nextData.models.length > 0) {
-                        debugLog('Найдены модели (столбец C)');
-                        return showModels(nextData, parentHash, parentName, 'normal', additionalData);
-                    }
-                    
-                    // Если нет моделей, проверяем подмодели (столбец D)
-                    debugLog('Модели не найдены, проверяем подмодели (столбец D)');
-                    endpoint = `/submodels/${additionalData.sectionId}/${parentHash}/direct`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.submodels && nextData.submodels.length > 0) {
-                        debugLog('Найдены подмодели напрямую (столбец D)');
-                        return showSubmodels(nextData, parentHash, parentName, 'direct', additionalData);
-                    }
-                    
-                    // Если нет подмоделей, проверяем товары напрямую (столбец E)
-                    debugLog('Подмодели не найдены, проверяем товары (столбец E)');
-                    endpoint = `/products/${additionalData.sectionId}/${parentHash}/direct`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.products && nextData.products.length > 0) {
-                        debugLog('Найдены товары напрямую (столбец E)');
-                        return showProducts(nextData.products, {
-                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                            category: { id: parentHash, name: parentName },
-                            ...nextData
-                        });
-                    } else {
-                        // ДОБАВЛЕНО: Если API возвращает 404 для товаров, но у нас есть информация о цвете (столбец E),
-                        // создаем фиктивный товар на основе данных категории
-                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных категории');
-                        const fakeProduct = {
-                            name: parentName,
-                            color: parentName,
-                            description: `Товар категории "${parentName}"`,
-                            price: null,
-                            photo_url: null
-                        };
-                        return showProducts([fakeProduct], {
+            try {
+                switch (parentType) {
+                    case 'section':
+                        // Сначала проверяем категории (столбец B)
+                        nextData = await apiFetch(`/categories/${parentHash}`);
+                        
+                        if (nextData && nextData.categories && nextData.categories.length > 0) {
+                            debugLog('Найдены категории (столбец B)');
+                            return showCategories(nextData, parentHash, parentName);
+                        }
+                        
+                        // Если нет категорий, проверяем модели (столбец C)
+                        debugLog('Категории не найдены, проверяем модели (столбец C)');
+                        nextData = await apiFetch(`/models/${parentHash}/direct`);
+                        
+                        if (nextData && nextData.models && nextData.models.length > 0) {
+                            debugLog('Найдены модели напрямую (столбец C)');
+                            return showModels(nextData, parentHash, parentName, 'direct');
+                        }
+                        
+                        // Если нет моделей, проверяем подмодели (столбец D)
+                        debugLog('Модели не найдены, проверяем подмодели (столбец D)');
+                        nextData = await apiFetch(`/submodels/${parentHash}/direct`);
+                        
+                        if (nextData && nextData.submodels && nextData.submodels.length > 0) {
+                            debugLog('Найдены подмодели напрямую (столбец D)');
+                            return showSubmodels(nextData, parentHash, parentName, 'direct');
+                        }
+                        
+                        // Если нет подмоделей, проверяем товары напрямую (столбец E)
+                        debugLog('Подмодели не найдены, проверяем товары (столбец E)');
+                        nextData = await apiFetch(`/products/${parentHash}/direct`);
+                        
+                        if (nextData && nextData.products && nextData.products.length > 0) {
+                            debugLog('Найдены товары напрямую (столбец E)');
+                            return showProducts(nextData.products, {
+                                section: { id: parentHash, name: parentName },
+                                ...nextData
+                            });
+                        }
+                        
+                        // Если ничего не найдено, создаем фиктивный товар
+                        debugLog('⚠️ Ничего не найдено, создаем фиктивный товар из данных раздела');
+                        return createFallbackProduct(parentName, 'section', { section: { id: parentHash, name: parentName } });
+                        
+                    case 'category':
+                        // Проверяем модели (столбец C)
+                        nextData = await apiFetch(`/models/${additionalData.sectionId}/${parentHash}`);
+                        
+                        if (nextData && nextData.models && nextData.models.length > 0) {
+                            debugLog('Найдены модели (столбец C)');
+                            return showModels(nextData, parentHash, parentName, 'normal', additionalData);
+                        }
+                        
+                        // Если нет моделей, проверяем подмодели (столбец D)
+                        debugLog('Модели не найдены, проверяем подмодели (столбец D)');
+                        nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${parentHash}/direct`);
+                        
+                        if (nextData && nextData.submodels && nextData.submodels.length > 0) {
+                            debugLog('Найдены подмодели напрямую (столбец D)');
+                            return showSubmodels(nextData, parentHash, parentName, 'direct', additionalData);
+                        }
+                        
+                        // Если нет подмоделей, проверяем товары напрямую (столбец E)
+                        debugLog('Подмодели не найдены, проверяем товары (столбец E)');
+                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${parentHash}/direct`);
+                        
+                        if (nextData && nextData.products && nextData.products.length > 0) {
+                            debugLog('Найдены товары напрямую (столбец E)');
+                            return showProducts(nextData.products, {
+                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                                category: { id: parentHash, name: parentName },
+                                ...nextData
+                            });
+                        }
+                        
+                        // ВАЖНО: Если после категории нет моделей и подмоделей, создаем товар
+                        debugLog('⚠️ После категории нет моделей и подмоделей, создаем товар из категории');
+                        return createFallbackProduct(parentName, 'category', {
                             section: { id: additionalData.sectionId, name: additionalData.sectionName },
                             category: { id: parentHash, name: parentName }
                         });
-                    }
-                    break;
-                    
-                case 'model':
-                    // Проверяем подмодели (столбец D)
-                    endpoint = `/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.submodels && nextData.submodels.length > 0) {
-                        debugLog('Найдены подмодели (столбец D)');
-                        return showSubmodels(nextData, parentHash, parentName, 'normal', additionalData);
-                    }
-                    
-                    // Если нет подмоделей, проверяем товары напрямую (столбец E)
-                    debugLog('Подмодели не найдены, проверяем товары (столбец E)');
-                    endpoint = `/products/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}/direct`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.products && nextData.products.length > 0) {
-                        debugLog('Найдены товары напрямую (столбец E)');
-                        return showProducts(nextData.products, {
-                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                            category: { id: additionalData.categoryId, name: additionalData.categoryName },
-                            model: { id: parentHash, name: parentName },
-                            ...nextData
-                        });
-                    } else {
-                        // ДОБАВЛЕНО: Создаем фиктивный товар если API не вернул данные
-                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных модели');
-                        const fakeProduct = {
-                            name: parentName,
-                            color: parentName,
-                            description: `Товар модели "${parentName}"`,
-                            price: null,
-                            photo_url: null
-                        };
-                        return showProducts([fakeProduct], {
+                        
+                    case 'model':
+                        // Проверяем подмодели (столбец D)
+                        nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
+                        
+                        if (nextData && nextData.submodels && nextData.submodels.length > 0) {
+                            debugLog('Найдены подмодели (столбец D)');
+                            return showSubmodels(nextData, parentHash, parentName, 'normal', additionalData);
+                        }
+                        
+                        // Если нет подмоделей, проверяем товары напрямую (столбец E)
+                        debugLog('Подмодели не найдены, проверяем товары (столбец E)');
+                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}/direct`);
+                        
+                        if (nextData && nextData.products && nextData.products.length > 0) {
+                            debugLog('Найдены товары напрямую (столбец E)');
+                            return showProducts(nextData.products, {
+                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                                category: { id: additionalData.categoryId, name: additionalData.categoryName },
+                                model: { id: parentHash, name: parentName },
+                                ...nextData
+                            });
+                        }
+                        
+                        // Если ничего не найдено, создаем фиктивный товар
+                        debugLog('⚠️ Ничего не найдено, создаем фиктивный товар из данных модели');
+                        return createFallbackProduct(parentName, 'model', {
                             section: { id: additionalData.sectionId, name: additionalData.sectionName },
                             category: { id: additionalData.categoryId, name: additionalData.categoryName },
                             model: { id: parentHash, name: parentName }
                         });
-                    }
-                    break;
-                    
-                case 'submodel':
-                    // Проверяем товары (столбец E)
-                    endpoint = `/products/${additionalData.sectionId}/${additionalData.categoryId}/${additionalData.modelId}/${parentHash}`;
-                    nextData = await apiFetch(endpoint);
-                    
-                    if (nextData && nextData.products && nextData.products.length > 0) {
-                        debugLog('Найдены товары (столбец E)');
-                        return showProducts(nextData.products, {
-                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                            category: { id: additionalData.categoryId, name: additionalData.categoryName },
-                            model: { id: additionalData.modelId, name: additionalData.modelName },
-                            submodel: { id: parentHash, name: parentName },
-                            ...nextData
-                        });
-                    } else {
-                        // ДОБАВЛЕНО: Создаем фиктивный товар если API не вернул данные
-                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных подмодели');
-                        const fakeProduct = {
-                            name: parentName,
-                            color: parentName,
-                            description: `Товар подмодели "${parentName}"`,
-                            price: null,
-                            photo_url: null
-                        };
-                        return showProducts([fakeProduct], {
+                        
+                    case 'submodel':
+                        // Проверяем товары (столбец E)
+                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${additionalData.modelId}/${parentHash}`);
+                        
+                        if (nextData && nextData.products && nextData.products.length > 0) {
+                            debugLog('Найдены товары (столбец E)');
+                            return showProducts(nextData.products, {
+                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                                category: { id: additionalData.categoryId, name: additionalData.categoryName },
+                                model: { id: additionalData.modelId, name: additionalData.modelName },
+                                submodel: { id: parentHash, name: parentName },
+                                ...nextData
+                            });
+                        }
+                        
+                        // Если ничего не найдено, создаем фиктивный товар
+                        debugLog('⚠️ Ничего не найдено, создаем фиктивный товар из данных подмодели');
+                        return createFallbackProduct(parentName, 'submodel', {
                             section: { id: additionalData.sectionId, name: additionalData.sectionName },
                             category: { id: additionalData.categoryId, name: additionalData.categoryName },
                             model: { id: additionalData.modelId, name: additionalData.modelName },
                             submodel: { id: parentHash, name: parentName }
                         });
-                    }
-                    break;
+                }
+            } catch (error) {
+                debugLog('❌ Ошибка при проверке уровней', { error: error.message });
             }
             
-            // Если дошли сюда, значит товары не найдены (это резервный вариант)
+            // Если дошли сюда, значит товары не найдены
             debugLog('❌ Товары не найдены на всех уровнях');
             showEmptyState('Товары не найдены');
+        }
+
+        // Функция создания фиктивного товара
+        function createFallbackProduct(name, levelType, context) {
+            debugLog(`Создание фиктивного товара для уровня: ${levelType}`, { name, context });
+            
+            const fakeProduct = {
+                name: name,
+                color: name,
+                description: `Товар ${getLevelDescription(levelType)} "${name}"`,
+                price: null,
+                photo_url: null
+            };
+            
+            return showProducts([fakeProduct], context);
+        }
+
+        function getLevelDescription(levelType) {
+            switch(levelType) {
+                case 'section': return 'раздела';
+                case 'category': return 'категории';
+                case 'model': return 'модели';
+                case 'submodel': return 'подмодели';
+                default: return '';
+            }
         }
 
         // Функции отображения для каждого уровня
@@ -613,7 +603,7 @@
                                 sectionName: '${sectionName}'
                             })" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть модели</span>
+                                <span>Смотреть товары</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
                             </button>
                         </div>
@@ -630,11 +620,11 @@
         function showModels(data, parentHash, parentName, mode, additionalData = {}) {
             let html = '';
             const items = data.models || [];
-            const buttonText = mode === 'direct' ? 'Смотреть подмодели' : 'Смотреть подмодели';
+            const buttonText = 'Смотреть товары';
             
             items.forEach(model => {
                 const priceText = model.min_price ? formatPrice(model.min_price) : '';
-                const nextType = mode === 'direct' ? 'model' : 'model';
+                const nextType = 'model';
                 const nextAdditionalData = mode === 'direct' ? {
                     sectionId: additionalData.sectionId || parentHash,
                     sectionName: additionalData.sectionName || parentName
@@ -672,7 +662,7 @@
             items.forEach(submodel => {
                 const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
                 const productCount = submodel.product_count ? ` (${submodel.product_count} товаров)` : '';
-                const nextType = mode === 'direct' ? 'submodel' : 'submodel';
+                const nextType = 'submodel';
                 const nextAdditionalData = mode === 'direct' ? {
                     sectionId: additionalData.sectionId || parentHash,
                     sectionName: additionalData.sectionName || parentName
