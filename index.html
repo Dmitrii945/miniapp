@@ -302,7 +302,7 @@
             updateBackButton();
         }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ - ПОИСК ТОВАРОВ ИЗ СТОЛБЦА E ДЛЯ КАТЕГОРИИ
+        // УПРОЩЕННАЯ ЛОГИКА - ИСПОЛЬЗУЕМ ТОЛЬКО РАБОЧАЮЩИЕ ЭНДПОИНТЫ
         async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
             debugLog(`Проверка следующего уровня после: ${parentType}`, { parentHash, parentName, additionalData });
             
@@ -321,43 +321,32 @@
                         break;
                         
                     case 'category':
-                        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Сразу ищем товары для категории (столбец E)
-                        debugLog('Ищем товары для категории из столбца E');
-                        
-                        // Пробуем разные варианты эндпоинтов
-                        const endpoints = [
-                            `/products/${additionalData.sectionId}/${parentHash}`,
-                            `/products/${additionalData.sectionId}/${parentHash}/direct`,
-                            `/products/by_category/${parentHash}`
-                        ];
-                        
-                        for (let endpoint of endpoints) {
-                            debugLog(`Пробуем эндпоинт: ${endpoint}`);
-                            nextData = await apiFetch(endpoint);
-                            
-                            if (nextData?.products?.length > 0) {
-                                debugLog(`✅ Найдены товары через эндпоинт: ${endpoint}`, { 
-                                    count: nextData.products.length 
-                                });
-                                return showProducts(nextData.products, {
-                                    section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                    category: { id: parentHash, name: parentName }
-                                });
-                            }
-                        }
-                        
-                        // Если товары не найдены, проверяем есть ли модели и подмодели
-                        debugLog('Товары не найдены, проверяем модели и подмодели');
+                        // ПРОВЕРЯЕМ МОДЕЛИ
                         nextData = await apiFetch(`/models/${additionalData.sectionId}/${parentHash}`);
                         if (nextData?.models?.length > 0) {
                             debugLog('Найдены модели (столбец C)');
                             return showModels(nextData, parentHash, parentName, 'normal', additionalData);
                         }
                         
-                        nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${parentHash}/direct`);
-                        if (nextData?.submodels?.length > 0) {
-                            debugLog('Найдены подмодели (столбец D)');
-                            return showSubmodels(nextData, parentHash, parentName, 'direct', additionalData);
+                        // ЕСЛИ МОДЕЛЕЙ НЕТ, ИСПОЛЬЗУЕМ УНИВЕРСАЛЬНЫЙ ЭНДПОИНТ ДЛЯ ТОВАРОВ
+                        debugLog('Модели не найдены, используем универсальный эндпоинт для товаров');
+                        nextData = await apiFetch(`/all_products`);
+                        if (nextData?.products?.length > 0) {
+                            // ФИЛЬТРУЕМ ТОВАРЫ ПО СЕКЦИИ И КАТЕГОРИИ
+                            const filteredProducts = nextData.products.filter(product => 
+                                product.section_id === additionalData.sectionId && 
+                                product.category_id === parentHash
+                            );
+                            
+                            if (filteredProducts.length > 0) {
+                                debugLog(`✅ Найдены товары через универсальный эндпоинт`, { 
+                                    count: filteredProducts.length 
+                                });
+                                return showProducts(filteredProducts, {
+                                    section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                                    category: { id: parentHash, name: parentName }
+                                });
+                            }
                         }
                         
                         debugLog('❌ Товары не найдены для категории');
@@ -365,28 +354,31 @@
                         return;
                         
                     case 'model':
-                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
+                        // ДЛЯ МОДЕЛИ ИСПОЛЬЗУЕМ УНИВЕРСАЛЬНЫЙ ЭНДПОИНТ
+                        debugLog('Ищем товары для модели через универсальный эндпоинт');
+                        nextData = await apiFetch(`/all_products`);
                         if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары для модели (столбец E)');
-                            return showProducts(nextData.products, {
-                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                category: { id: additionalData.categoryId, name: additionalData.categoryName },
-                                model: { id: parentHash, name: parentName }
-                            });
+                            // ФИЛЬТРУЕМ ТОВАРЫ ПО СЕКЦИИ, КАТЕГОРИИ И МОДЕЛИ
+                            const filteredProducts = nextData.products.filter(product => 
+                                product.section_id === additionalData.sectionId && 
+                                product.category_id === additionalData.categoryId &&
+                                product.model_id === parentHash
+                            );
+                            
+                            if (filteredProducts.length > 0) {
+                                debugLog(`✅ Найдены товары для модели`, { 
+                                    count: filteredProducts.length 
+                                });
+                                return showProducts(filteredProducts, {
+                                    section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                                    category: { id: additionalData.categoryId, name: additionalData.categoryName },
+                                    model: { id: parentHash, name: parentName }
+                                });
+                            }
                         }
-                        break;
                         
-                    case 'submodel':
-                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${additionalData.modelId}/${parentHash}`);
-                        if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары для подмодели (столбец E)');
-                            return showProducts(nextData.products, {
-                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                category: { id: additionalData.categoryId, name: additionalData.categoryName },
-                                model: { id: additionalData.modelId, name: additionalData.modelName },
-                                submodel: { id: parentHash, name: parentName }
-                            });
-                        }
+                        debugLog('❌ Товары не найдены для модели');
+                        showEmptyState('Для этой модели нет товаров');
                         break;
                 }
                 
@@ -449,42 +441,6 @@
                             <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
                             <button onclick="checkNextLevel('${model.id}', '${model.name}', 'model', ${JSON.stringify(nextAdditionalData).replace(/\"/g, '&quot;')})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbsFromState();
-            updateBackButton();
-        }
-
-        function showSubmodels(data, parentHash, parentName, mode, additionalData = {}) {
-            let html = '';
-            const items = data.submodels || [];
-            
-            items.forEach(submodel => {
-                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
-                const nextAdditionalData = mode === 'direct' ? {
-                    sectionId: additionalData.sectionId || parentHash,
-                    sectionName: additionalData.sectionName || parentName
-                } : {
-                    ...additionalData,
-                    modelId: parentHash,
-                    modelName: parentName
-                };
-                
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${submodel.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="checkNextLevel('${submodel.id}', '${submodel.name}', 'submodel', ${JSON.stringify(nextAdditionalData).replace(/\"/g, '&quot;')})" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть товары</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -568,7 +524,7 @@
                     `}
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-semibold text-lg">${color}</h3>
+                            <h3 class="font-semibond text-lg">${color}</h3>
                             ${price && price !== 'Цена не указана' ? `
                                 <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                                     ${typeof price === 'number' ? formatPrice(price) : price}
@@ -665,6 +621,18 @@
                     action: `checkNextLevel('${navigationState.currentCategory.id}', '${navigationState.currentCategory.name}', 'category', {
                         sectionId: '${navigationState.currentSection.id}',
                         sectionName: '${navigationState.currentSection.name}'
+                    })`
+                });
+            }
+            
+            if (navigationState.currentModel) {
+                items.push({
+                    name: navigationState.currentModel.name,
+                    action: `checkNextLevel('${navigationState.currentModel.id}', '${navigationState.currentModel.name}', 'model', {
+                        sectionId: '${navigationState.currentSection.id}',
+                        sectionName: '${navigationState.currentSection.name}',
+                        categoryId: '${navigationState.currentCategory.id}',
+                        categoryName: '${navigationState.currentCategory.name}'
                     })`
                 });
             }
