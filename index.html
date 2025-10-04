@@ -443,26 +443,18 @@
             debugLog('Разделы загружены', { count: data.sections.length });
         }
 
-        // Enhanced loadCategories with flexible navigation
+        // Enhanced loadCategories with flexible navigation for missing C and D
         async function loadCategories(sectionHash) {
             debugLog('Загрузка категорий', { sectionHash });
             const data = await apiFetch(`/categories/${sectionHash}`);
             
             if (!data || !data.categories || data.categories.length === 0) {
-                debugLog('❌ Категории не найдены, пробуем прямой доступ к моделям', { sectionHash });
+                debugLog('❌ Категории не найдены, пробуем прямой доступ к товарам из раздела', { sectionHash });
                 
-                // Попробуем загрузить модели напрямую
-                const modelsData = await apiFetch(`/models/${sectionHash}/direct`);
-                if (modelsData && modelsData.models && modelsData.models.length > 0) {
-                    debugLog('✅ Найдены модели напрямую', { count: modelsData.models.length });
-                    await handleDirectModels(sectionHash, modelsData);
-                    return;
-                }
-                
-                // Если нет моделей, пробуем загрузить товары напрямую
+                // Пробуем загрузить товары напрямую из раздела (когда нет B, C, D)
                 const productsData = await apiFetch(`/products/${sectionHash}/direct`);
                 if (productsData && productsData.products && productsData.products.length > 0) {
-                    debugLog('✅ Найдены товары напрямую из раздела', { count: productsData.products.length });
+                    debugLog('✅ Найдены товары напрямую из раздела (нет B,C,D)', { count: productsData.products.length });
                     
                     navigationState.currentSection = {
                         name: productsData.section_name || 'Раздел',
@@ -493,9 +485,9 @@
                         <div class="p-4">
                             <h3 class="font-semibold text-lg mb-1">${category.name}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadModels('${sectionHash}', '${category.id}')" 
+                            <button onclick="loadNextLevel('${sectionHash}', '${category.id}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть модели</span>
+                                <span>Смотреть товары</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
                             </button>
                         </div>
@@ -517,72 +509,55 @@
             });
         }
 
-        // Handle direct models (when no categories)
-        async function handleDirectModels(sectionHash, modelsData) {
-            debugLog('Обработка прямых моделей', { sectionHash, modelsCount: modelsData.models.length });
+        // Умная функция для определения следующего уровня
+        async function loadNextLevel(sectionHash, categoryHash) {
+            debugLog('Определение следующего уровня навигации', { sectionHash, categoryHash });
             
-            navigationState.currentSection = {
-                name: modelsData.section_name,
-                id: sectionHash
-            };
+            // Сначала пробуем загрузить модели
+            const modelsData = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
             
-            let html = '';
-            modelsData.models.forEach(model => {
-                const priceText = model.min_price ? formatPrice(model.min_price) : '';
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadSubmodels('${sectionHash}', 'direct', '${model.id}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть подмодели</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
+            if (modelsData && modelsData.models && modelsData.models.length > 0) {
+                debugLog('✅ Найдены модели, загружаем их', { count: modelsData.models.length });
+                await loadModels(sectionHash, categoryHash);
+                return;
+            }
             
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbs([
-                {name: 'Главная', action: 'loadSections()'},
-                {name: modelsData.section_name, action: `loadCategories('${sectionHash}')`}
-            ]);
-            updateBackButton();
+            // Если моделей нет, пробуем загрузить товары напрямую из категории (когда есть B, но нет C и D)
+            debugLog('❌ Модели не найдены, пробуем загрузить товары напрямую из категории');
+            const productsData = await apiFetch(`/products/${sectionHash}/${categoryHash}/direct`);
+            
+            if (productsData && productsData.products && productsData.products.length > 0) {
+                debugLog('✅ Найдены товары напрямую из категории (нет C,D)', { count: productsData.products.length });
+                
+                navigationState.currentSection = {
+                    name: productsData.section_name,
+                    id: sectionHash
+                };
+                navigationState.currentCategory = {
+                    name: productsData.category_name,
+                    id: categoryHash
+                };
+                
+                currentProducts = productsData.products;
+                currentProductIndex = 0;
+                
+                await showCurrentProductDirect(productsData);
+                return;
+            }
+            
+            // Если ничего не найдено
+            debugLog('❌ Товары не найдены');
+            showEmptyState('В этой категории пока нет товаров');
         }
 
-        // Enhanced loadModels with flexible navigation
+        // Enhanced loadModels with flexible navigation for missing D
         async function loadModels(sectionHash, categoryHash) {
             debugLog('Загрузка моделей', { sectionHash, categoryHash });
             const data = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
             
             if (!data || !data.models || data.models.length === 0) {
                 debugLog('❌ Модели не найдены', { sectionHash, categoryHash });
-                
-                // Попробуем загрузить товары напрямую
-                const productsData = await apiFetch(`/products/${sectionHash}/${categoryHash}/direct`);
-                if (productsData && productsData.products && productsData.products.length > 0) {
-                    debugLog('✅ Найдены товары напрямую', { count: productsData.products.length });
-                    
-                    navigationState.currentSection = {
-                        name: productsData.section_name,
-                        id: sectionHash
-                    };
-                    navigationState.currentCategory = {
-                        name: productsData.category_name,
-                        id: categoryHash
-                    };
-                    
-                    currentProducts = productsData.products;
-                    currentProductIndex = 0;
-                    
-                    await showCurrentProductDirect(productsData);
-                    return;
-                }
-                
-                showEmptyState('В этой категории пока нет товаров');
+                showEmptyState('В этой категории пока нет моделей');
                 return;
             }
             
@@ -603,9 +578,9 @@
                         <div class="p-4">
                             <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadSubmodels('${sectionHash}', '${categoryHash}', '${model.id}')" 
+                            <button onclick="loadNextLevelFromModel('${sectionHash}', '${categoryHash}', '${model.id}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть подмодели</span>
+                                <span>Смотреть товары</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
                             </button>
                         </div>
@@ -629,78 +604,70 @@
             });
         }
 
-        // Enhanced loadSubmodels with flexible navigation
-        async function loadSubmodels(sectionHash, categoryHash, modelHash) {
-            debugLog('Загрузка подмоделей', { sectionHash, categoryHash, modelHash });
+        // Умная функция для определения следующего уровня из модели
+        async function loadNextLevelFromModel(sectionHash, categoryHash, modelHash) {
+            debugLog('Определение следующего уровня из модели', { sectionHash, categoryHash, modelHash });
             
-            // Определяем правильный endpoint в зависимости от типа навигации
-            let endpoint;
-            if (categoryHash === 'direct') {
-                // Прямой доступ из раздела к моделям
-                endpoint = `/submodels/${sectionHash}/direct/${modelHash}`;
-            } else {
-                // Стандартный доступ через категории
-                endpoint = `/submodels/${sectionHash}/${categoryHash}/${modelHash}`;
-            }
+            // Сначала пробуем загрузить подмодели
+            const submodelsData = await apiFetch(`/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
             
-            const data = await apiFetch(endpoint);
-            
-            if (!data || !data.submodels || data.submodels.length === 0) {
-                debugLog('❌ Подмодели не найдены', { sectionHash, categoryHash, modelHash });
-                
-                // Попробуем загрузить товары напрямую
-                let productsEndpoint;
-                if (categoryHash === 'direct') {
-                    productsEndpoint = `/products/${sectionHash}/direct/${modelHash}/direct`;
-                } else {
-                    productsEndpoint = `/products/${sectionHash}/${categoryHash}/${modelHash}/direct`;
-                }
-                
-                const productsData = await apiFetch(productsEndpoint);
-                if (productsData && productsData.products && productsData.products.length > 0) {
-                    debugLog('✅ Найдены товары напрямую', { count: productsData.products.length });
-                    
-                    navigationState.currentSection = {
-                        name: productsData.section_name,
-                        id: sectionHash
-                    };
-                    
-                    if (categoryHash !== 'direct') {
-                        navigationState.currentCategory = {
-                            name: productsData.category_name,
-                            id: categoryHash
-                        };
-                    }
-                    
-                    navigationState.currentModel = {
-                        name: productsData.model_name,
-                        id: modelHash
-                    };
-                    
-                    currentProducts = productsData.products;
-                    currentProductIndex = 0;
-                    
-                    await showCurrentProductDirect(productsData);
-                    return;
-                }
-                
-                showEmptyState('В этой модели пока нет товаров');
+            if (submodelsData && submodelsData.submodels && submodelsData.submodels.length > 0) {
+                debugLog('✅ Найдены подмодели, загружаем их', { count: submodelsData.submodels.length });
+                await loadSubmodels(sectionHash, categoryHash, modelHash);
                 return;
             }
             
-            // Обновляем состояние навигации
+            // Если подмоделей нет, пробуем загрузить товары напрямую из модели (когда есть A,B,C, но нет D)
+            debugLog('❌ Подмодели не найдены, пробуем загрузить товары напрямую из модели');
+            const productsData = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/direct`);
+            
+            if (productsData && productsData.products && productsData.products.length > 0) {
+                debugLog('✅ Найдены товары напрямую из модели (нет D)', { count: productsData.products.length });
+                
+                navigationState.currentSection = {
+                    name: productsData.section_name,
+                    id: sectionHash
+                };
+                navigationState.currentCategory = {
+                    name: productsData.category_name,
+                    id: categoryHash
+                };
+                navigationState.currentModel = {
+                    name: productsData.model_name,
+                    id: modelHash
+                };
+                
+                currentProducts = productsData.products;
+                currentProductIndex = 0;
+                
+                await showCurrentProductDirect(productsData);
+                return;
+            }
+            
+            // Если ничего не найдено
+            debugLog('❌ Товары не найдены');
+            showEmptyState('В этой модели пока нет товаров');
+        }
+
+        // Load submodels from API
+        async function loadSubmodels(sectionHash, categoryHash, modelHash) {
+            debugLog('Загрузка подмоделей', { sectionHash, categoryHash, modelHash });
+            const data = await apiFetch(`/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
+            
+            if (!data || !data.submodels || data.submodels.length === 0) {
+                debugLog('❌ Подмодели не найдены', { sectionHash, categoryHash, modelHash });
+                showEmptyState('В этой модели пока нет подмоделей');
+                return;
+            }
+            
             navigationState.currentSection = {
                 name: data.section_name,
                 id: sectionHash
             };
-            
-            if (categoryHash !== 'direct') {
-                navigationState.currentCategory = {
-                    name: data.category_name,
-                    id: categoryHash
-                };
-            }
-            
+            navigationState.currentCategory = {
+                name: data.category_name,
+                id: categoryHash
+            };
             navigationState.currentModel = {
                 name: data.model_name,
                 id: modelHash
@@ -728,20 +695,12 @@
             
             content.innerHTML = html;
             feather.replace();
-            
-            // Обновляем breadcrumbs в зависимости от типа навигации
-            const breadcrumbsItems = [
+            updateBreadcrumbs([
                 {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name, action: `loadCategories('${sectionHash}')`}
-            ];
-            
-            if (categoryHash !== 'direct' && data.category_name) {
-                breadcrumbsItems.push({name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`});
-            }
-            
-            breadcrumbsItems.push({name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`});
-            
-            updateBreadcrumbs(breadcrumbsItems);
+                {name: data.section_name, action: `loadCategories('${sectionHash}')`},
+                {name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`},
+                {name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`}
+            ]);
             updateBackButton();
             
             debugLog('Подмодели загружены', { 
@@ -752,21 +711,10 @@
             });
         }
 
-        // Enhanced loadProducts with flexible navigation
+        // Load products from API
         async function loadProducts(sectionHash, categoryHash, modelHash, submodelHash) {
             debugLog('Загрузка товаров', { sectionHash, categoryHash, modelHash, submodelHash });
-            
-            // Определяем правильный endpoint в зависимости от типа навигации
-            let endpoint;
-            if (categoryHash === 'direct') {
-                // Прямой доступ из раздела к подмоделям
-                endpoint = `/products/${sectionHash}/direct/${modelHash}/${submodelHash}`;
-            } else {
-                // Стандартный доступ
-                endpoint = `/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`;
-            }
-            
-            const data = await apiFetch(endpoint);
+            const data = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
             
             if (!data || !data.products || data.products.length === 0) {
                 debugLog('❌ Товары не найдены', { sectionHash, categoryHash, modelHash, submodelHash });
@@ -774,24 +722,18 @@
                 return;
             }
             
-            // Обновляем состояние навигации
             navigationState.currentSection = {
                 name: data.section_name,
                 id: sectionHash
             };
-            
-            if (categoryHash !== 'direct') {
-                navigationState.currentCategory = {
-                    name: data.category_name,
-                    id: categoryHash
-                };
-            }
-            
+            navigationState.currentCategory = {
+                name: data.category_name,
+                id: categoryHash
+            };
             navigationState.currentModel = {
                 name: data.model_name,
                 id: modelHash
             };
-            
             navigationState.currentSubmodel = {
                 name: data.submodel_name,
                 id: submodelHash
@@ -932,35 +874,20 @@
             }
             
             if (navigationState.currentModel) {
-                breadcrumbsItems.push({name: navigationState.currentModel.name, action: `loadSubmodels('${navigationState.currentSection.id}', '${navigationState.currentCategory ? navigationState.currentCategory.id : 'direct'}', '${navigationState.currentModel.id}')`});
+                breadcrumbsItems.push({name: navigationState.currentModel.name, action: `loadSubmodels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}')`});
             }
             
             if (navigationState.currentSubmodel) {
-                breadcrumbsItems.push({name: navigationState.currentSubmodel.name, action: `loadProducts('${navigationState.currentSection.id}', '${navigationState.currentCategory ? navigationState.currentCategory.id : 'direct'}', '${navigationState.currentModel.id}', '${navigationState.currentSubmodel.id}')`});
+                breadcrumbsItems.push({name: navigationState.currentSubmodel.name, action: `loadProducts('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}', '${navigationState.currentSubmodel.id}')`});
             }
             
             updateBreadcrumbs(breadcrumbsItems);
             updateBackButton();
         }
 
-        // Product navigation
-        function showPreviousProduct() {
-            if (currentProductIndex > 0) {
-                currentProductIndex--;
-                showCurrentProduct();
-            }
-        }
-
-        function showNextProduct() {
-            if (currentProductIndex < currentProducts.length - 1) {
-                currentProductIndex++;
-                showCurrentProduct();
-            }
-        }
-
-        // Enhanced direct product display (for cases without submodels)
+        // Enhanced direct product display for cases with missing C and D
         async function showCurrentProductDirect(data) {
-            debugLog('Прямой показ товара', { 
+            debugLog('Прямой показ товара (пропущены уровни)', { 
                 section: data.section_name,
                 category: data.category_name,
                 model: data.model_name,
@@ -1078,6 +1005,21 @@
             updateBackButton();
         }
 
+        // Product navigation
+        function showPreviousProduct() {
+            if (currentProductIndex > 0) {
+                currentProductIndex--;
+                showCurrentProduct();
+            }
+        }
+
+        function showNextProduct() {
+            if (currentProductIndex < currentProducts.length - 1) {
+                currentProductIndex++;
+                showCurrentProduct();
+            }
+        }
+
         // Direct product navigation
         function showPreviousProductDirect() {
             if (currentProductIndex > 0) {
@@ -1187,6 +1129,8 @@
         window.loadModels = loadModels;
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
+        window.loadNextLevel = loadNextLevel;
+        window.loadNextLevelFromModel = loadNextLevelFromModel;
         window.openInBot = openInBot;
         window.contactAboutProduct = contactAboutProduct;
         window.openSideMenu = openSideMenu;
