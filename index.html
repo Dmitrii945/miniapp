@@ -51,7 +51,9 @@
                     <i data-feather="menu"></i>
                 </button>
                 <h1 class="text-lg font-semibold tg-theme-text">Каталог товаров</h1>
-                <div class="w-10"></div>
+                <button onclick="debugAllProducts()" class="p-2 rounded-lg tg-theme-secondary-bg">
+                    <i data-feather="tool"></i>
+                </button>
             </div>
             
             <!-- Breadcrumbs -->
@@ -81,7 +83,12 @@
         </div>
 
         <!-- Main Content -->
-        <main id="content" class="p-4 space-y-4"></main>
+        <main id="content" class="p-4 space-y-4">
+            <!-- Кнопка диагностики -->
+            <button onclick="debugAllProducts()" class="w-full py-3 bg-red-500 text-white rounded-lg font-medium">
+                🔧 Диагностика товаров
+            </button>
+        </main>
 
         <!-- Side Menu -->
         <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
@@ -102,6 +109,10 @@
                         <button onclick="openInBot(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center">
                             <i data-feather="message-circle" class="mr-3"></i>
                             Открыть в боте
+                        </button>
+                        <button onclick="debugAllProducts(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center">
+                            <i data-feather="tool" class="mr-3"></i>
+                            Диагностика
                         </button>
                     </div>
                 </div>
@@ -191,6 +202,30 @@
                 hideLoading();
                 return null;
             }
+        }
+
+        // ФУНКЦИЯ ДИАГНОСТИКИ
+        async function debugAllProducts() {
+            debugLog('=== ДИАГНОСТИКА ВСЕХ ТОВАРОВ ===');
+            
+            // Проверим все возможные комбинации
+            const testEndpoints = [
+                '/products/dcb1364bebe64073/3d13eaa317c84d8c/null/null', // БЕТОН
+                '/products/dcb1364bebe64073/3dcb24188ee04541/null/null', // БРУСЧАТКА
+                '/products/dcb1364bebe64073/8cbd75d106294cb6/null/null', // ПЛИТЫ
+                '/products/dcb1364bebe64073/1ecc50013b764325/null/null', // ФБС
+                '/debug/catalog' // Отладочная информация о структуре
+            ];
+            
+            for (const endpoint of testEndpoints) {
+                const data = await apiFetch(endpoint);
+                debugLog(`🔍 ${endpoint}:`, data);
+            }
+            
+            // Также проверим структуру разделов
+            debugLog('=== СТРУКТУРА РАЗДЕЛОВ ===');
+            const sections = await apiFetch('/sections');
+            debugLog('Разделы:', sections);
         }
 
         function formatPrice(price) {
@@ -286,7 +321,7 @@
             updateBackButton();
         }
 
-        // ОСНОВНАЯ ЛОГИКА - ИСПОЛЬЗУЕМ СТАРЫЕ РАБОЧИЕ ЭНДПОИНТЫ
+        // ОСНОВНАЯ ЛОГИКА
         async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
             debugLog(`=== ПРОВЕРКА УРОВНЯ: ${parentType} ===`, { parentHash, parentName, additionalData });
             
@@ -297,33 +332,27 @@
                 
                 switch (parentType) {
                     case 'section':
-                        // Проверяем категории (столбец B)
                         nextData = await apiFetch(`/categories/${parentHash}`);
                         if (nextData?.categories?.length > 0) {
                             debugLog('✅ Найдены категории (B)');
                             return showCategories(nextData, parentHash, parentName);
                         } else {
-                            // Если категорий нет - это конечный уровень, показываем товары
                             debugLog('❌ Категории не найдены - показываем товары для раздела');
                             return await loadProductsForCurrentLevel();
                         }
                         break;
                         
                     case 'category':
-                        // Проверяем модели (столбец C)
                         nextData = await apiFetch(`/models/${additionalData.sectionId}/${parentHash}`);
                         if (nextData?.models?.length > 0) {
                             debugLog('✅ Найдены модели (C)');
                             return showModels(nextData, parentHash, parentName, additionalData);
                         } else {
-                            // Проверяем подмодели (столбец D)
-                            debugLog('❌ Модели не найдены, проверяем подмодели (D)');
                             nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${parentHash}/null`);
                             if (nextData?.submodels?.length > 0) {
                                 debugLog('✅ Найдены подмодели (D)');
                                 return showSubmodels(nextData, parentHash, parentName, additionalData);
                             } else {
-                                // Если ничего не найдено - это конечный уровень, показываем товары
                                 debugLog('❌ Подмодели не найдены - показываем товары для категории');
                                 return await loadProductsForCurrentLevel();
                             }
@@ -331,20 +360,17 @@
                         break;
                         
                     case 'model':
-                        // Проверяем подмодели (столбец D)
                         nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
                         if (nextData?.submodels?.length > 0) {
                             debugLog('✅ Найдены подмодели (D)');
                             return showSubmodels(nextData, parentHash, parentName, additionalData);
                         } else {
-                            // Если подмоделей нет - это конечный уровень, показываем товары
                             debugLog('❌ Подмодели не найдены - показываем товары для модели');
                             return await loadProductsForCurrentLevel();
                         }
                         break;
                         
                     case 'submodel':
-                        // Подмодель - это конечный уровень, показываем товары
                         debugLog('🎯 Достигнут уровень подмодели - показываем товары');
                         return await loadProductsForCurrentLevel();
                         break;
@@ -355,14 +381,13 @@
             }
         }
 
-        // ЗАГРУЗКА ТОВАРОВ ИЗ РАБОЧЕГО ЭНДПОИНТА /products/
+        // ЗАГРУЗКА ТОВАРОВ
         async function loadProductsForCurrentLevel() {
             debugLog('=== ЗАГРУЗКА ТОВАРОВ ДЛЯ ТЕКУЩЕГО УРОВНЯ ===', navigationState);
             
             const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
             let endpoint = '';
             
-            // Используем старый рабочий эндпоинт /products/
             if (currentSubmodel) {
                 endpoint = `/products/${currentSection.id}/${currentCategory.id}/${currentModel.id}/${currentSubmodel.id}`;
             } else if (currentModel) {
@@ -370,7 +395,6 @@
             } else if (currentCategory) {
                 endpoint = `/products/${currentSection.id}/${currentCategory.id}/null/null`;
             } else if (currentSection) {
-                // Для раздела используем первую категорию как пример
                 const categories = await apiFetch(`/categories/${currentSection.id}`);
                 if (categories?.categories?.length > 0) {
                     endpoint = `/products/${currentSection.id}/${categories.categories[0].id}/null/null`;
@@ -385,42 +409,13 @@
             debugLog('📊 Результат запроса товаров:', productsData);
             
             if (productsData && productsData.products && productsData.products.length > 0) {
-                debugLog(`✅ Найдены товары: ${productsData.products.length}`);
+                debugLog(`✅ Найдены РЕАЛЬНЫЕ товары: ${productsData.products.length}`);
                 return showProducts(productsData.products);
             } else {
-                debugLog('❌ Товары не найдены');
-                
-                // Создаем тестовые товары на основе текущего уровня
-                const testProducts = createTestProducts();
-                debugLog('🛠️ Показываем тестовые товары');
-                return showProducts(testProducts);
+                debugLog('❌ Реальные товары не найдены');
+                showEmptyState(`Товары не найдены в API\nЭндпоинт: ${endpoint}\nНажмите "Диагностика" для проверки`);
+                return;
             }
-        }
-
-        // СОЗДАНИЕ ТЕСТОВЫХ ТОВАРОВ НА ОСНОВЕ ТЕКУЩЕГО УРОВНЯ
-        function createTestProducts() {
-            const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
-            
-            let baseName = '';
-            if (currentSubmodel) baseName = currentSubmodel.name;
-            else if (currentModel) baseName = currentModel.name;
-            else if (currentCategory) baseName = currentCategory.name;
-            else if (currentSection) baseName = currentSection.name;
-            else baseName = 'Товар';
-            
-            return [{
-                name: `${baseName} - Основной`,
-                color: `${baseName}`,
-                price: '1000 р.',
-                description: `Товар "${baseName}". Уточняйте наличие и цены у менеджера.`,
-                photo_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'
-            }, {
-                name: `${baseName} - Премиум`,
-                color: `${baseName} Премиум`,
-                price: '2000 р.',
-                description: `Премиум версия товара "${baseName}". Уточняйте наличие и цены у менеджера.`,
-                photo_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'
-            }];
         }
 
         function showCategories(data, sectionHash, sectionName) {
@@ -517,23 +512,6 @@
             feather.replace();
             updateBreadcrumbsFromState();
             updateBackButton();
-        }
-        async function debugAllProducts() {
-            debugLog('=== ДИАГНОСТИКА ВСЕХ ТОВАРОВ ===');
-    
-            // Проверим все возможные комбинации
-            const testEndpoints = [
-                '/products/dcb1364bebe64073/3d13eaa317c84d8c/null/null', // БЕТОН
-                '/products/dcb1364bebe64073/3dcb24188ee04541/null/null', // БРУСЧАТКА
-                '/products/dcb1364bebe64073/8cbd75d106294cb6/null/null', // ПЛИТЫ
-                '/products/dcb1364bebe64073/1ecc50013b764325/null/null', // ФБС
-                '/debug/catalog' // Отладочная информация о структуре
-            ]; 
-    
-            for (const endpoint of testEndpoints) {
-                const data = await apiFetch(endpoint);
-                debugLog(`🔍 ${endpoint}:`, data);
-            }
         }
 
         async function showProducts(products) {
@@ -786,7 +764,7 @@
                 currentSection: null,
                 currentCategory: null,
                 currentModel: null,
-                currentSubmodel: null
+                currentSubmodel": null
             };
             currentProducts = [];
             currentProductIndex = 0;
@@ -842,6 +820,7 @@
         window.showPreviousProduct = showPreviousProduct;
         window.showNextProduct = showNextProduct;
         window.goBack = goBack;
+        window.debugAllProducts = debugAllProducts;
     </script>
 </body>
 </html>
