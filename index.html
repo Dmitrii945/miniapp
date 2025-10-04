@@ -33,6 +33,23 @@
         .tg-theme-secondary-bg {
             background-color: var(--tg-theme-secondary-bg-color);
         }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #f3f4f6;
+        }
+        
+        .skeleton {
+            animation: pulse 2s infinite;
+            background-color: #e5e7eb;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -67,6 +84,12 @@
             </button>
         </div>
 
+        <!-- Debug Info -->
+        <div id="debugInfo" class="hidden p-4 bg-yellow-50 border border-yellow-200 text-xs">
+            <h4 class="font-semibold mb-2">Отладочная информация:</h4>
+            <pre id="debugContent"></pre>
+        </div>
+
         <!-- Main Content -->
         <main id="content" class="p-4 space-y-4"></main>
 
@@ -90,6 +113,10 @@
                             <i data-feather="message-circle" class="mr-3"></i>
                             Открыть в боте
                         </button>
+                        <button onclick="toggleDebug(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center">
+                            <i data-feather="terminal" class="mr-3"></i>
+                            Отладка
+                        </button>
                     </div>
                 </div>
             </div>
@@ -109,6 +136,9 @@
             currentSubmodel: null
         };
 
+        // Debug mode
+        let debugMode = false;
+
         // DOM Elements
         const app = document.getElementById('app');
         const content = document.getElementById('content');
@@ -117,6 +147,8 @@
         const emptyState = document.getElementById('emptyState');
         const sideMenu = document.getElementById('sideMenu');
         const errorDetails = document.getElementById('errorDetails');
+        const debugInfo = document.getElementById('debugInfo');
+        const debugContent = document.getElementById('debugContent');
 
         // Initialize Telegram Web App
         function initTelegramApp() {
@@ -134,6 +166,33 @@
             }
         }
 
+        // Debug functions
+        function toggleDebug() {
+            debugMode = !debugMode;
+            if (debugMode) {
+                debugInfo.classList.remove('hidden');
+                debugLog('Режим отладки включен');
+            } else {
+                debugInfo.classList.add('hidden');
+            }
+        }
+
+        function debugLog(message, data = null) {
+            if (!debugMode) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            let logMessage = `[${timestamp}] ${message}`;
+            
+            if (data) {
+                logMessage += '\n' + JSON.stringify(data, null, 2);
+            }
+            
+            debugContent.textContent += logMessage + '\n\n';
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+            
+            console.log('🔧 DEBUG:', message, data);
+        }
+
         // Side menu functions
         function openSideMenu() {
             sideMenu.classList.remove('hidden');
@@ -149,6 +208,57 @@
             }, 300);
         }
 
+        // Photo URL processing
+        function extractPhotoFilenameFromUrl(url) {
+            if (!url || !typeof url === 'string') {
+                return null;
+            }
+
+            try {
+                url = url.trim();
+
+                // If it's already a direct image link
+                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/)) {
+                    return url.startsWith('http') ? url : null;
+                }
+
+                // Google Drive links
+                if (url.includes('drive.google.com')) {
+                    let fileId = null;
+
+                    // Various Google Drive URL formats
+                    if (url.includes('/file/d/')) {
+                        fileId = url.split('/file/d/')[1].split('/')[0];
+                    } else if (url.includes('id=')) {
+                        fileId = url.split('id=')[1].split('&')[0];
+                    } else if (url.includes('/open?id=')) {
+                        fileId = url.split('/open?id=')[1].split('&')[0];
+                    }
+
+                    if (fileId) {
+                        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+                    }
+                }
+
+                // Other HTTP URLs
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
+                }
+
+                return null;
+            } catch (error) {
+                debugLog('Ошибка обработки URL фото', { url, error: error.message });
+                return null;
+            }
+        }
+
+        function getProductImageUrl(photoUrl) {
+            const processedUrl = extractPhotoFilenameFromUrl(photoUrl);
+            const fallbackImage = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';
+            
+            return processedUrl || fallbackImage;
+        }
+
         // Fallback data for testing
         function getFallbackSections() {
             return {
@@ -162,26 +272,34 @@
             };
         }
 
-        // API functions with debug
+        // API functions with enhanced debug
         async function apiFetch(endpoint) {
             try {
-                console.log(`🔄 Запрос к API: ${API_BASE}${endpoint}`);
+                debugLog(`Запрос к API`, { endpoint });
                 showLoading();
                 
                 const response = await fetch(`${API_BASE}${endpoint}`);
-                console.log('📡 Статус ответа:', response.status);
+                debugLog(`Статус ответа`, { status: response.status, endpoint });
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log('✅ Данные получены:', data);
+                debugLog(`Данные получены`, { 
+                    endpoint, 
+                    hasData: !!data,
+                    sections: data?.sections?.length || 0,
+                    categories: data?.categories?.length || 0,
+                    models: data?.models?.length || 0,
+                    submodels: data?.submodels?.length || 0,
+                    products: data?.products?.length || 0
+                });
                 
                 hideLoading();
                 return data;
             } catch (error) {
-                console.error('❌ API Error:', error);
+                debugLog('❌ API Error', { endpoint, error: error.message });
                 hideLoading();
                 showError(`Ошибка загрузки: ${error.message}`);
                 return null;
@@ -200,6 +318,8 @@
         // Navigation functions
         function goBack() {
             const { currentSection, currentCategory, currentModel, currentSubmodel } = navigationState;
+            
+            debugLog('Навигация назад', navigationState);
             
             if (currentSubmodel) {
                 loadSubmodels(currentSection.id, currentCategory.id, currentModel.id);
@@ -247,15 +367,17 @@
 
         // Load sections from API
         async function loadSections() {
+            debugLog('Загрузка разделов');
             let data = await apiFetch('/sections');
             
             // Если API не отвечает, используем fallback данные
             if (!data || !data.sections || data.sections.length === 0) {
-                console.log('⚠️ Используем fallback данные');
+                debugLog('⚠️ Используем fallback данные для разделов');
                 data = getFallbackSections();
             }
             
             if (!data.sections || data.sections.length === 0) {
+                debugLog('❌ Разделы не найдены');
                 showEmptyState();
                 return;
             }
@@ -282,13 +404,27 @@
             feather.replace();
             updateBreadcrumbs([{name: 'Главная', action: 'loadSections()'}]);
             updateBackButton();
+            
+            debugLog('Разделы загружены', { count: data.sections.length });
         }
 
         // Load categories from API
         async function loadCategories(sectionHash) {
+            debugLog('Загрузка категорий', { sectionHash });
             const data = await apiFetch(`/categories/${sectionHash}`);
+            
             if (!data || !data.categories || data.categories.length === 0) {
-                showEmptyState();
+                debugLog('❌ Категории не найдены, пробуем прямой доступ к моделям', { sectionHash });
+                
+                // Попробуем загрузить модели напрямую
+                const modelsData = await apiFetch(`/models/${sectionHash}/direct`);
+                if (modelsData && modelsData.models && modelsData.models.length > 0) {
+                    debugLog('✅ Найдены модели напрямую', { count: modelsData.models.length });
+                    await handleDirectModels(sectionHash, modelsData);
+                    return;
+                }
+                
+                showEmptyState('В этом разделе пока нет товаров');
                 return;
             }
             
@@ -322,12 +458,125 @@
                 {name: data.section_name, action: `loadCategories('${sectionHash}')`}
             ]);
             updateBackButton();
+            
+            debugLog('Категории загружены', { 
+                section: data.section_name,
+                count: data.categories.length 
+            });
+        }
+
+        // Handle direct models (when no categories)
+        async function handleDirectModels(sectionHash, modelsData) {
+            debugLog('Обработка прямых моделей', { sectionHash, modelsCount: modelsData.models.length });
+            
+            navigationState.currentSection = {
+                name: modelsData.section_name,
+                id: sectionHash
+            };
+            
+            let html = '';
+            modelsData.models.forEach(model => {
+                const priceText = model.min_price ? formatPrice(model.min_price) : '';
+                html += `
+                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
+                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <button onclick="loadDirectSubmodels('${sectionHash}', '${model.id}')" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                                <span>Смотреть подмодели</span>
+                                <i data-feather="chevron-right" class="ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            feather.replace();
+            updateBreadcrumbs([
+                {name: 'Главная', action: 'loadSections()'},
+                {name: modelsData.section_name, action: `loadCategories('${sectionHash}')`}
+            ]);
+            updateBackButton();
+        }
+
+        // Load direct submodels
+        async function loadDirectSubmodels(sectionHash, modelHash) {
+            debugLog('Загрузка прямых подмоделей', { sectionHash, modelHash });
+            
+            // Используем специальный эндпоинт для прямого доступа
+            const data = await apiFetch(`/submodels/${sectionHash}/direct/${modelHash}`);
+            if (!data || !data.submodels || data.submodels.length === 0) {
+                debugLog('❌ Прямые подмодели не найдены');
+                showEmptyState();
+                return;
+            }
+            
+            navigationState.currentModel = {
+                name: data.model_name,
+                id: modelHash
+            };
+            
+            let html = '';
+            data.submodels.forEach(submodel => {
+                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
+                const productCount = submodel.product_count ? ` (${submodel.product_count} товаров)` : '';
+                
+                html += `
+                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-1">${submodel.name}${productCount}</h3>
+                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <button onclick="loadProducts('${sectionHash}', 'direct', '${modelHash}', '${submodel.id}')" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                                <span>Смотреть товары</span>
+                                <i data-feather="chevron-right" class="ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            feather.replace();
+            updateBreadcrumbs([
+                {name: 'Главная', action: 'loadSections()'},
+                {name: data.section_name, action: `loadCategories('${sectionHash}')`},
+                {name: data.model_name, action: `loadDirectSubmodels('${sectionHash}', '${modelHash}')`}
+            ]);
+            updateBackButton();
         }
 
         // Load models from API
         async function loadModels(sectionHash, categoryHash) {
+            debugLog('Загрузка моделей', { sectionHash, categoryHash });
             const data = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
+            
             if (!data || !data.models || data.models.length === 0) {
+                debugLog('❌ Модели не найдены', { sectionHash, categoryHash });
+                
+                // Попробуем загрузить товары напрямую
+                const productsData = await apiFetch(`/products/${sectionHash}/${categoryHash}/direct`);
+                if (productsData && productsData.products && productsData.products.length > 0) {
+                    debugLog('✅ Найдены товары напрямую', { count: productsData.products.length });
+                    
+                    navigationState.currentSection = {
+                        name: productsData.section_name,
+                        id: sectionHash
+                    };
+                    navigationState.currentCategory = {
+                        name: productsData.category_name,
+                        id: categoryHash
+                    };
+                    
+                    context.user_data['current_products'] = productsData.products;
+                    context.user_data['current_product_index'] = 0;
+                    
+                    await showCurrentProductDirect(productsData);
+                    return;
+                }
+                
                 showEmptyState();
                 return;
             }
@@ -367,12 +616,48 @@
                 {name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`}
             ]);
             updateBackButton();
+            
+            debugLog('Модели загружены', { 
+                section: data.section_name,
+                category: data.category_name,
+                count: data.models.length 
+            });
         }
 
         // Load submodels from API
         async function loadSubmodels(sectionHash, categoryHash, modelHash) {
+            debugLog('Загрузка подмоделей', { sectionHash, categoryHash, modelHash });
             const data = await apiFetch(`/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
+            
             if (!data || !data.submodels || data.submodels.length === 0) {
+                debugLog('❌ Подмодели не найдены', { sectionHash, categoryHash, modelHash });
+                
+                // Попробуем загрузить товары напрямую
+                const productsData = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/direct`);
+                if (productsData && productsData.products && productsData.products.length > 0) {
+                    debugLog('✅ Найдены товары напрямую', { count: productsData.products.length });
+                    
+                    navigationState.currentSection = {
+                        name: productsData.section_name,
+                        id: sectionHash
+                    };
+                    navigationState.currentCategory = {
+                        name: productsData.category_name,
+                        id: categoryHash
+                    };
+                    navigationState.currentModel = {
+                        name: productsData.model_name,
+                        id: modelHash
+                    };
+                    
+                    // Сохраняем товары для пагинации
+                    currentProducts = productsData.products;
+                    currentProductIndex = 0;
+                    
+                    await showCurrentProductDirect(productsData);
+                    return;
+                }
+                
                 showEmptyState();
                 return;
             }
@@ -419,12 +704,26 @@
                 {name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`}
             ]);
             updateBackButton();
+            
+            debugLog('Подмодели загружены', { 
+                section: data.section_name,
+                category: data.category_name,
+                model: data.model_name,
+                count: data.submodels.length 
+            });
         }
+
+        // Global variables for product pagination
+        let currentProducts = [];
+        let currentProductIndex = 0;
 
         // Load products from API
         async function loadProducts(sectionHash, categoryHash, modelHash, submodelHash) {
+            debugLog('Загрузка товаров', { sectionHash, categoryHash, modelHash, submodelHash });
             const data = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
+            
             if (!data || !data.products || data.products.length === 0) {
+                debugLog('❌ Товары не найдены', { sectionHash, categoryHash, modelHash, submodelHash });
                 showEmptyState();
                 return;
             }
@@ -446,59 +745,223 @@
                 id: submodelHash
             };
             
-            let html = '';
-            data.products.forEach((product, index) => {
-                const fallbackImage = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';
-                
+            // Сохраняем товары для пагинации
+            currentProducts = data.products;
+            currentProductIndex = 0;
+            
+            // Показываем первый товар
+            await showCurrentProduct();
+            
+            debugLog('Товары загружены', { 
+                section: data.section_name,
+                category: data.category_name,
+                model: data.model_name,
+                submodel: data.submodel_name,
+                count: data.products.length 
+            });
+        }
+
+        // Show current product with enhanced photo handling
+        async function showCurrentProduct() {
+            if (!currentProducts || currentProducts.length === 0) {
+                debugLog('❌ Нет товаров для отображения');
+                showEmptyState();
+                return;
+            }
+
+            const product = currentProducts[currentProductIndex];
+            debugLog('Показ товара', { 
+                index: currentProductIndex,
+                total: currentProducts.length,
+                product: {
+                    color: product.color,
+                    price: product.price,
+                    hasPhoto: !!product.photo_url
+                }
+            });
+
+            const color = product.color || 'Без названия';
+            const price = product.price || 'Цена не указана';
+            const photoDescription = product.photo_description || '';
+            const description = product.description || '';
+
+            // Обрабатываем фото
+            const imageUrl = getProductImageUrl(product.photo_url);
+            debugLog('Обработка фото', { 
+                original: product.photo_url,
+                processed: imageUrl 
+            });
+
+            let html = `
+                <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            `;
+
+            // Добавляем фото или заглушку
+            if (imageUrl) {
                 html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        ${product.photo_url ? `
-                            <img src="${product.photo_url}" alt="${product.color || 'Товар'}" 
-                                class="w-full h-48 object-cover bg-gray-100"
-                                onerror="this.src='${fallbackImage}'">
-                        ` : `
-                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                                <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
-                            </div>
-                        `}
-                        <div class="p-4">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-semibold text-lg">${product.color || 'Без названия'}</h3>
-                                ${product.price ? `
-                                    <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                        ${product.price}
-                                    </span>
-                                ` : ''}
-                            </div>
-                            
-                            ${product.photo_description ? `
-                                <p class="text-gray-600 mb-2">${product.photo_description}</p>
-                            ` : ''}
-                            
-                            ${product.description ? `
-                                <p class="text-gray-500 text-sm mb-3">${product.description}</p>
-                            ` : ''}
-                            
-                            <div class="flex space-x-2">
-                                <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                        onclick="contactAboutProduct('${data.section_name} → ${data.category_name} → ${data.model_name} → ${product.color || 'Товар'} - ${product.price || 'Цена не указана'}')">
-                                    <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
-                                </button>
-                            </div>
-                        </div>
+                    <img src="${imageUrl}" alt="${color}" 
+                         class="product-image bg-gray-100"
+                         onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'">
+                `;
+            } else {
+                html += `
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                        <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
                     </div>
                 `;
-            });
-            
+            }
+
+            html += `
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-lg">${color}</h3>
+                            ${price ? `
+                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                    ${price}
+                                </span>
+                            ` : ''}
+                        </div>
+            `;
+
+            // Добавляем описание под фото если есть
+            if (photoDescription) {
+                html += `<p class="text-gray-600 mb-2">${photoDescription}</p>`;
+            }
+
+            // Добавляем общее описание если есть
+            if (description) {
+                html += `<p class="text-gray-500 text-sm mb-3">${description}</p>`;
+            }
+
+            // Кнопки навигации по товарам
+            if (currentProducts.length > 1) {
+                html += `
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="showPreviousProduct()" 
+                                class="py-2 px-4 bg-gray-200 rounded-lg flex items-center ${currentProductIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
+                            <i data-feather="chevron-left" class="mr-1"></i> Назад
+                        </button>
+                        <span class="text-sm text-gray-600">${currentProductIndex + 1} / ${currentProducts.length}</span>
+                        <button onclick="showNextProduct()" 
+                                class="py-2 px-4 bg-gray-200 rounded-lg flex items-center ${currentProductIndex === currentProducts.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                            Вперед <i data-feather="chevron-right" class="ml-1"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Основная кнопка действия
+            html += `
+                        <div class="flex space-x-2">
+                            <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
+                                    onclick="contactAboutProduct('${navigationState.currentSection.name} → ${navigationState.currentCategory.name} → ${navigationState.currentModel.name} → ${color} - ${price}')">
+                                <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             content.innerHTML = html;
             feather.replace();
+            
             updateBreadcrumbs([
                 {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name, action: `loadCategories('${sectionHash}')`},
-                {name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`},
-                {name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`},
-                {name: data.submodel_name, action: `loadProducts('${sectionHash}', '${categoryHash}', '${modelHash}', '${submodelHash}')`}
+                {name: navigationState.currentSection.name, action: `loadCategories('${navigationState.currentSection.id}')`},
+                {name: navigationState.currentCategory.name, action: `loadModels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}')`},
+                {name: navigationState.currentModel.name, action: `loadSubmodels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}')`},
+                {name: navigationState.currentSubmodel.name, action: `loadProducts('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}', '${navigationState.currentSubmodel.id}')`}
             ]);
+            updateBackButton();
+        }
+
+        // Product navigation
+        function showPreviousProduct() {
+            if (currentProductIndex > 0) {
+                currentProductIndex--;
+                showCurrentProduct();
+            }
+        }
+
+        function showNextProduct() {
+            if (currentProductIndex < currentProducts.length - 1) {
+                currentProductIndex++;
+                showCurrentProduct();
+            }
+        }
+
+        // Direct product display (for cases without submodels)
+        async function showCurrentProductDirect(data) {
+            debugLog('Прямой показ товара', { 
+                section: data.section_name,
+                category: data.category_name,
+                count: data.products.length 
+            });
+
+            const product = data.products[0]; // Берем первый товар для примера
+            
+            const color = product.color || 'Без названия';
+            const price = product.price || 'Цена не указана';
+            const imageUrl = getProductImageUrl(product.photo_url);
+
+            let html = `
+                <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            `;
+
+            if (imageUrl) {
+                html += `
+                    <img src="${imageUrl}" alt="${color}" 
+                         class="product-image bg-gray-100"
+                         onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'">
+                `;
+            } else {
+                html += `
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                        <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
+                    </div>
+                `;
+            }
+
+            html += `
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-lg">${color}</h3>
+                            ${price ? `
+                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                    ${price}
+                                </span>
+                            ` : ''}
+                        </div>
+                        
+                        <p class="text-gray-600 mb-4">
+                            ${data.section_name} → ${data.category_name}
+                            ${data.model_name ? ` → ${data.model_name}` : ''}
+                        </p>
+
+                        <div class="flex space-x-2">
+                            <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
+                                    onclick="contactAboutProduct('${data.section_name} → ${data.category_name}${data.model_name ? ` → ${data.model_name}` : ''} → ${color} - ${price}')">
+                                <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            content.innerHTML = html;
+            feather.replace();
+            
+            // Упрощенные breadcrumbs для прямого доступа
+            const breadcrumbsItems = [
+                {name: 'Главная', action: 'loadSections()'},
+                {name: data.section_name, action: `loadCategories('${navigationState.currentSection.id}')`}
+            ];
+            
+            if (data.category_name) {
+                breadcrumbsItems.push({name: data.category_name, action: `loadModels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}')`});
+            }
+            
+            updateBreadcrumbs(breadcrumbsItems);
             updateBackButton();
         }
 
@@ -536,6 +999,8 @@
                 currentModel: null,
                 currentSubmodel: null
             };
+            currentProducts = [];
+            currentProductIndex = 0;
         }
 
         function showLoading() {
@@ -580,10 +1045,14 @@
         window.loadModels = loadModels;
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
+        window.loadDirectSubmodels = loadDirectSubmodels;
         window.openInBot = openInBot;
         window.contactAboutProduct = contactAboutProduct;
         window.openSideMenu = openSideMenu;
         window.closeSideMenu = closeSideMenu;
+        window.toggleDebug = toggleDebug;
+        window.showPreviousProduct = showPreviousProduct;
+        window.showNextProduct = showNextProduct;
     </script>
 </body>
 </html>
