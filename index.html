@@ -309,7 +309,7 @@
             updateBackButton();
         }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ - ОСНОВНОЕ ИЗМЕНЕНИЕ
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ - ПОИСК ТОВАРОВ ИЗ СТОЛБЦА E
         async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
             debugLog(`Проверка следующего уровня после: ${parentType}`, { parentHash, parentName, additionalData });
             
@@ -363,30 +363,38 @@
                             return showSubmodels(nextData, parentHash, parentName, 'direct', additionalData);
                         }
                         
-                        // Проверяем товары (столбец E)
-                        debugLog('Подмодели не найдены, проверяем товары (столбец E)');
-                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${parentHash}/direct`);
+                        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Ищем товары из столбца E для этой категории
+                        debugLog('Подмодели не найдены, проверяем товары из столбца E для категории');
+                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${parentHash}`);
+                        
                         if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары напрямую (столбец E)');
+                            debugLog('Найдены товары из столбца E для категории', { 
+                                count: nextData.products.length,
+                                sectionId: additionalData.sectionId,
+                                categoryId: parentHash
+                            });
                             return showProducts(nextData.products, {
                                 section: { id: additionalData.sectionId, name: additionalData.sectionName },
                                 category: { id: parentHash, name: parentName }
                             });
                         }
                         
-                        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Если товары не найдены через API, создаем фиктивный товар
-                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из категории');
-                        const fakeProduct = {
-                            name: parentName,
-                            color: parentName,
-                            description: `Товар категории "${parentName}"`,
-                            price: null,
-                            photo_url: null
-                        };
-                        return showProducts([fakeProduct], {
-                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                            category: { id: parentHash, name: parentName }
-                        });
+                        // Если товары не найдены, пробуем альтернативный эндпоинт
+                        debugLog('Пробуем альтернативный эндпоинт для товаров');
+                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${parentHash}/direct`);
+                        
+                        if (nextData?.products?.length > 0) {
+                            debugLog('Найдены товары через альтернативный эндпоинт', { 
+                                count: nextData.products.length 
+                            });
+                            return showProducts(nextData.products, {
+                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                                category: { id: parentHash, name: parentName }
+                            });
+                        }
+                        
+                        debugLog('❌ Товары из столбца E не найдены для категории');
+                        break;
                         
                     case 'model':
                         nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
@@ -395,9 +403,9 @@
                             return showSubmodels(nextData, parentHash, parentName, 'normal', additionalData);
                         }
                         
-                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}/direct`);
+                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
                         if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары напрямую (столбец E)');
+                            debugLog('Найдены товары для модели (столбец E)');
                             return showProducts(nextData.products, {
                                 section: { id: additionalData.sectionId, name: additionalData.sectionName },
                                 category: { id: additionalData.categoryId, name: additionalData.categoryName },
@@ -409,7 +417,7 @@
                     case 'submodel':
                         nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${additionalData.modelId}/${parentHash}`);
                         if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары (столбец E)');
+                            debugLog('Найдены товары для подмодели (столбец E)');
                             return showProducts(nextData.products, {
                                 section: { id: additionalData.sectionId, name: additionalData.sectionName },
                                 category: { id: additionalData.categoryId, name: additionalData.categoryName },
@@ -420,23 +428,8 @@
                         break;
                 }
                 
-                // Если дошли сюда и это категория, создаем фиктивный товар
-                if (parentType === 'category') {
-                    debugLog('⚠️ Создаем фиктивный товар для категории');
-                    const fakeProduct = {
-                        name: parentName,
-                        color: parentName,
-                        description: `Товар категории "${parentName}"`,
-                        price: null,
-                        photo_url: null
-                    };
-                    return showProducts([fakeProduct], {
-                        section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                        category: { id: parentHash, name: parentName }
-                    });
-                }
-                
-                debugLog('❌ Товары не найдены на всех уровнях');
+                // Если дошли сюда и ничего не найдено
+                debugLog('❌ Данные не найдены на всех уровнях');
                 showEmptyState('Товары не найдены');
                 
             } catch (error) {
@@ -596,12 +589,21 @@
             const color = product.color || product.name || 'Без названия';
             const price = product.price || product.min_price || 'Цена не указана';
             const description = product.full_description || product.description || '';
+            const photoUrl = product.photo_url || product.image_url || '';
+            
+            const imageUrl = photoUrl ? `https://dmitrii2613.pythonanywhere.com${photoUrl}` : null;
             
             let html = `
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                        <i data-feather="package" class="w-12 h-12 text-gray-400"></i>
-                    </div>
+                    ${imageUrl ? `
+                        <img src="${imageUrl}" alt="${color}" 
+                             class="product-image bg-gray-100 w-full h-48 object-cover"
+                             onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'">
+                    ` : `
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                            <i data-feather="package" class="w-12 h-12 text-gray-400"></i>
+                        </div>
+                    `}
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-semibold text-lg">${color}</h3>
