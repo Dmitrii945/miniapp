@@ -150,6 +150,10 @@
         const debugInfo = document.getElementById('debugInfo');
         const debugContent = document.getElementById('debugContent');
 
+        // Global variables for product pagination
+        let currentProducts = [];
+        let currentProductIndex = 0;
+
         // Initialize Telegram Web App
         function initTelegramApp() {
             if (tg) {
@@ -208,18 +212,20 @@
             }, 300);
         }
 
-        // Photo URL processing
+        // Enhanced photo URL processing
         function extractPhotoFilenameFromUrl(url) {
-            if (!url || !typeof url === 'string') {
+            if (!url || typeof url !== 'string') {
+                debugLog('❌ Некорректный URL фото', { url });
                 return null;
             }
 
             try {
                 url = url.trim();
-
-                // If it's already a direct image link
-                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/)) {
-                    return url.startsWith('http') ? url : null;
+                
+                // Если URL уже прямой путь к изображению
+                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i)) {
+                    debugLog('✅ Прямой URL изображения', { url });
+                    return url;
                 }
 
                 // Google Drive links
@@ -236,27 +242,56 @@
                     }
 
                     if (fileId) {
-                        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+                        const driveUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                        debugLog('✅ Обработан Google Drive URL', { original: url, processed: driveUrl });
+                        return driveUrl;
                     }
                 }
 
-                // Other HTTP URLs
+                // OneDrive and other cloud storage
+                if (url.includes('1drv.ms') || url.includes('onedrive.live.com')) {
+                    debugLog('⚠️ OneDrive URL - требуется ручная обработка', { url });
+                    return null;
+                }
+
+                // Dropbox links
+                if (url.includes('dropbox.com')) {
+                    if (url.includes('?dl=0')) {
+                        const dropboxUrl = url.replace('?dl=0', '?dl=1');
+                        debugLog('✅ Обработан Dropbox URL', { original: url, processed: dropboxUrl });
+                        return dropboxUrl;
+                    }
+                }
+
+                // Other HTTP URLs - возвращаем как есть для тестирования
                 if (url.startsWith('http://') || url.startsWith('https://')) {
+                    debugLog('⚠️ Неизвестный тип URL', { url });
                     return url;
                 }
 
+                debugLog('❌ URL не может быть обработан', { url });
                 return null;
             } catch (error) {
-                debugLog('Ошибка обработки URL фото', { url, error: error.message });
+                debugLog('❌ Ошибка обработки URL фото', { url, error: error.message });
                 return null;
             }
         }
 
         function getProductImageUrl(photoUrl) {
+            if (!photoUrl) {
+                debugLog('❌ Пустой photoUrl');
+                return 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';
+            }
+
             const processedUrl = extractPhotoFilenameFromUrl(photoUrl);
-            const fallbackImage = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';
             
-            return processedUrl || fallbackImage;
+            if (processedUrl) {
+                debugLog('✅ Используется обработанный URL', { original: photoUrl, processed: processedUrl });
+                return processedUrl;
+            } else {
+                debugLog('❌ Используется fallback изображение', { original: photoUrl });
+                return 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';
+            }
         }
 
         // Fallback data for testing
@@ -408,7 +443,7 @@
             debugLog('Разделы загружены', { count: data.sections.length });
         }
 
-        // Load categories from API
+        // Enhanced loadCategories with flexible navigation
         async function loadCategories(sectionHash) {
             debugLog('Загрузка категорий', { sectionHash });
             const data = await apiFetch(`/categories/${sectionHash}`);
@@ -421,6 +456,23 @@
                 if (modelsData && modelsData.models && modelsData.models.length > 0) {
                     debugLog('✅ Найдены модели напрямую', { count: modelsData.models.length });
                     await handleDirectModels(sectionHash, modelsData);
+                    return;
+                }
+                
+                // Если нет моделей, пробуем загрузить товары напрямую
+                const productsData = await apiFetch(`/products/${sectionHash}/direct`);
+                if (productsData && productsData.products && productsData.products.length > 0) {
+                    debugLog('✅ Найдены товары напрямую из раздела', { count: productsData.products.length });
+                    
+                    navigationState.currentSection = {
+                        name: productsData.section_name || 'Раздел',
+                        id: sectionHash
+                    };
+                    
+                    currentProducts = productsData.products;
+                    currentProductIndex = 0;
+                    
+                    await showCurrentProductDirect(productsData);
                     return;
                 }
                 
@@ -482,7 +534,7 @@
                         <div class="p-4">
                             <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadDirectSubmodels('${sectionHash}', '${model.id}')" 
+                            <button onclick="loadSubmodels('${sectionHash}', 'direct', '${model.id}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть подмодели</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -501,54 +553,7 @@
             updateBackButton();
         }
 
-        // Load direct submodels
-        async function loadDirectSubmodels(sectionHash, modelHash) {
-            debugLog('Загрузка прямых подмоделей', { sectionHash, modelHash });
-            
-            // Используем специальный эндпоинт для прямого доступа
-            const data = await apiFetch(`/submodels/${sectionHash}/direct/${modelHash}`);
-            if (!data || !data.submodels || data.submodels.length === 0) {
-                debugLog('❌ Прямые подмодели не найдены');
-                showEmptyState();
-                return;
-            }
-            
-            navigationState.currentModel = {
-                name: data.model_name,
-                id: modelHash
-            };
-            
-            let html = '';
-            data.submodels.forEach(submodel => {
-                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
-                const productCount = submodel.product_count ? ` (${submodel.product_count} товаров)` : '';
-                
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${submodel.name}${productCount}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadProducts('${sectionHash}', 'direct', '${modelHash}', '${submodel.id}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbs([
-                {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name, action: `loadCategories('${sectionHash}')`},
-                {name: data.model_name, action: `loadDirectSubmodels('${sectionHash}', '${modelHash}')`}
-            ]);
-            updateBackButton();
-        }
-
-        // Load models from API
+        // Enhanced loadModels with flexible navigation
         async function loadModels(sectionHash, categoryHash) {
             debugLog('Загрузка моделей', { sectionHash, categoryHash });
             const data = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
@@ -570,14 +575,14 @@
                         id: categoryHash
                     };
                     
-                    context.user_data['current_products'] = productsData.products;
-                    context.user_data['current_product_index'] = 0;
+                    currentProducts = productsData.products;
+                    currentProductIndex = 0;
                     
                     await showCurrentProductDirect(productsData);
                     return;
                 }
                 
-                showEmptyState();
+                showEmptyState('В этой категории пока нет товаров');
                 return;
             }
             
@@ -624,16 +629,34 @@
             });
         }
 
-        // Load submodels from API
+        // Enhanced loadSubmodels with flexible navigation
         async function loadSubmodels(sectionHash, categoryHash, modelHash) {
             debugLog('Загрузка подмоделей', { sectionHash, categoryHash, modelHash });
-            const data = await apiFetch(`/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
+            
+            // Определяем правильный endpoint в зависимости от типа навигации
+            let endpoint;
+            if (categoryHash === 'direct') {
+                // Прямой доступ из раздела к моделям
+                endpoint = `/submodels/${sectionHash}/direct/${modelHash}`;
+            } else {
+                // Стандартный доступ через категории
+                endpoint = `/submodels/${sectionHash}/${categoryHash}/${modelHash}`;
+            }
+            
+            const data = await apiFetch(endpoint);
             
             if (!data || !data.submodels || data.submodels.length === 0) {
                 debugLog('❌ Подмодели не найдены', { sectionHash, categoryHash, modelHash });
                 
                 // Попробуем загрузить товары напрямую
-                const productsData = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/direct`);
+                let productsEndpoint;
+                if (categoryHash === 'direct') {
+                    productsEndpoint = `/products/${sectionHash}/direct/${modelHash}/direct`;
+                } else {
+                    productsEndpoint = `/products/${sectionHash}/${categoryHash}/${modelHash}/direct`;
+                }
+                
+                const productsData = await apiFetch(productsEndpoint);
                 if (productsData && productsData.products && productsData.products.length > 0) {
                     debugLog('✅ Найдены товары напрямую', { count: productsData.products.length });
                     
@@ -641,16 +664,19 @@
                         name: productsData.section_name,
                         id: sectionHash
                     };
-                    navigationState.currentCategory = {
-                        name: productsData.category_name,
-                        id: categoryHash
-                    };
+                    
+                    if (categoryHash !== 'direct') {
+                        navigationState.currentCategory = {
+                            name: productsData.category_name,
+                            id: categoryHash
+                        };
+                    }
+                    
                     navigationState.currentModel = {
                         name: productsData.model_name,
                         id: modelHash
                     };
                     
-                    // Сохраняем товары для пагинации
                     currentProducts = productsData.products;
                     currentProductIndex = 0;
                     
@@ -658,18 +684,23 @@
                     return;
                 }
                 
-                showEmptyState();
+                showEmptyState('В этой модели пока нет товаров');
                 return;
             }
             
+            // Обновляем состояние навигации
             navigationState.currentSection = {
                 name: data.section_name,
                 id: sectionHash
             };
-            navigationState.currentCategory = {
-                name: data.category_name,
-                id: categoryHash
-            };
+            
+            if (categoryHash !== 'direct') {
+                navigationState.currentCategory = {
+                    name: data.category_name,
+                    id: categoryHash
+                };
+            }
+            
             navigationState.currentModel = {
                 name: data.model_name,
                 id: modelHash
@@ -697,12 +728,20 @@
             
             content.innerHTML = html;
             feather.replace();
-            updateBreadcrumbs([
+            
+            // Обновляем breadcrumbs в зависимости от типа навигации
+            const breadcrumbsItems = [
                 {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name, action: `loadCategories('${sectionHash}')`},
-                {name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`},
-                {name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`}
-            ]);
+                {name: data.section_name, action: `loadCategories('${sectionHash}')`}
+            ];
+            
+            if (categoryHash !== 'direct' && data.category_name) {
+                breadcrumbsItems.push({name: data.category_name, action: `loadModels('${sectionHash}', '${categoryHash}')`});
+            }
+            
+            breadcrumbsItems.push({name: data.model_name, action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`});
+            
+            updateBreadcrumbs(breadcrumbsItems);
             updateBackButton();
             
             debugLog('Подмодели загружены', { 
@@ -713,33 +752,46 @@
             });
         }
 
-        // Global variables for product pagination
-        let currentProducts = [];
-        let currentProductIndex = 0;
-
-        // Load products from API
+        // Enhanced loadProducts with flexible navigation
         async function loadProducts(sectionHash, categoryHash, modelHash, submodelHash) {
             debugLog('Загрузка товаров', { sectionHash, categoryHash, modelHash, submodelHash });
-            const data = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
+            
+            // Определяем правильный endpoint в зависимости от типа навигации
+            let endpoint;
+            if (categoryHash === 'direct') {
+                // Прямой доступ из раздела к подмоделям
+                endpoint = `/products/${sectionHash}/direct/${modelHash}/${submodelHash}`;
+            } else {
+                // Стандартный доступ
+                endpoint = `/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`;
+            }
+            
+            const data = await apiFetch(endpoint);
             
             if (!data || !data.products || data.products.length === 0) {
                 debugLog('❌ Товары не найдены', { sectionHash, categoryHash, modelHash, submodelHash });
-                showEmptyState();
+                showEmptyState('В этой подмодели пока нет товаров');
                 return;
             }
             
+            // Обновляем состояние навигации
             navigationState.currentSection = {
                 name: data.section_name,
                 id: sectionHash
             };
-            navigationState.currentCategory = {
-                name: data.category_name,
-                id: categoryHash
-            };
+            
+            if (categoryHash !== 'direct') {
+                navigationState.currentCategory = {
+                    name: data.category_name,
+                    id: categoryHash
+                };
+            }
+            
             navigationState.currentModel = {
                 name: data.model_name,
                 id: modelHash
             };
+            
             navigationState.currentSubmodel = {
                 name: data.submodel_name,
                 id: submodelHash
@@ -761,7 +813,7 @@
             });
         }
 
-        // Show current product with enhanced photo handling
+        // Enhanced showCurrentProduct with better photo handling
         async function showCurrentProduct() {
             if (!currentProducts || currentProducts.length === 0) {
                 debugLog('❌ Нет товаров для отображения');
@@ -776,7 +828,8 @@
                 product: {
                     color: product.color,
                     price: product.price,
-                    hasPhoto: !!product.photo_url
+                    hasPhoto: !!product.photo_url,
+                    photoUrl: product.photo_url
                 }
             });
 
@@ -785,9 +838,9 @@
             const photoDescription = product.photo_description || '';
             const description = product.description || '';
 
-            // Обрабатываем фото
+            // Обрабатываем фото с улучшенной логикой
             const imageUrl = getProductImageUrl(product.photo_url);
-            debugLog('Обработка фото', { 
+            debugLog('Обработка фото для товара', { 
                 original: product.photo_url,
                 processed: imageUrl 
             });
@@ -797,11 +850,12 @@
             `;
 
             // Добавляем фото или заглушку
-            if (imageUrl) {
+            if (imageUrl && !imageUrl.includes('unsplash.com')) {
                 html += `
                     <img src="${imageUrl}" alt="${color}" 
                          class="product-image bg-gray-100"
-                         onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'">
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';"
+                         loading="lazy">
                 `;
             } else {
                 html += `
@@ -851,10 +905,12 @@
             }
 
             // Основная кнопка действия
+            const productInfo = `${navigationState.currentSection.name}${navigationState.currentCategory ? ' → ' + navigationState.currentCategory.name : ''}${navigationState.currentModel ? ' → ' + navigationState.currentModel.name : ''}${navigationState.currentSubmodel ? ' → ' + navigationState.currentSubmodel.name : ''} → ${color} - ${price}`;
+            
             html += `
                         <div class="flex space-x-2">
                             <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                    onclick="contactAboutProduct('${navigationState.currentSection.name} → ${navigationState.currentCategory.name} → ${navigationState.currentModel.name} → ${color} - ${price}')">
+                                    onclick="contactAboutProduct('${productInfo.replace(/'/g, "\\'")}')">
                                 <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
                             </button>
                         </div>
@@ -865,13 +921,25 @@
             content.innerHTML = html;
             feather.replace();
             
-            updateBreadcrumbs([
+            // Обновляем breadcrumbs с учетом возможных отсутствующих уровней
+            const breadcrumbsItems = [
                 {name: 'Главная', action: 'loadSections()'},
-                {name: navigationState.currentSection.name, action: `loadCategories('${navigationState.currentSection.id}')`},
-                {name: navigationState.currentCategory.name, action: `loadModels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}')`},
-                {name: navigationState.currentModel.name, action: `loadSubmodels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}')`},
-                {name: navigationState.currentSubmodel.name, action: `loadProducts('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}', '${navigationState.currentSubmodel.id}')`}
-            ]);
+                {name: navigationState.currentSection.name, action: `loadCategories('${navigationState.currentSection.id}')`}
+            ];
+            
+            if (navigationState.currentCategory) {
+                breadcrumbsItems.push({name: navigationState.currentCategory.name, action: `loadModels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}')`});
+            }
+            
+            if (navigationState.currentModel) {
+                breadcrumbsItems.push({name: navigationState.currentModel.name, action: `loadSubmodels('${navigationState.currentSection.id}', '${navigationState.currentCategory ? navigationState.currentCategory.id : 'direct'}', '${navigationState.currentModel.id}')`});
+            }
+            
+            if (navigationState.currentSubmodel) {
+                breadcrumbsItems.push({name: navigationState.currentSubmodel.name, action: `loadProducts('${navigationState.currentSection.id}', '${navigationState.currentCategory ? navigationState.currentCategory.id : 'direct'}', '${navigationState.currentModel.id}', '${navigationState.currentSubmodel.id}')`});
+            }
+            
+            updateBreadcrumbs(breadcrumbsItems);
             updateBackButton();
         }
 
@@ -890,29 +958,39 @@
             }
         }
 
-        // Direct product display (for cases without submodels)
+        // Enhanced direct product display (for cases without submodels)
         async function showCurrentProductDirect(data) {
             debugLog('Прямой показ товара', { 
                 section: data.section_name,
                 category: data.category_name,
+                model: data.model_name,
                 count: data.products.length 
             });
 
-            const product = data.products[0]; // Берем первый товар для примера
+            const product = data.products[currentProductIndex];
             
             const color = product.color || 'Без названия';
             const price = product.price || 'Цена не указана';
+            const photoDescription = product.photo_description || '';
+            const description = product.description || '';
+            
+            // Обрабатываем фото
             const imageUrl = getProductImageUrl(product.photo_url);
+            debugLog('Обработка фото для прямого товара', { 
+                original: product.photo_url,
+                processed: imageUrl 
+            });
 
             let html = `
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             `;
 
-            if (imageUrl) {
+            if (imageUrl && !imageUrl.includes('unsplash.com')) {
                 html += `
                     <img src="${imageUrl}" alt="${color}" 
                          class="product-image bg-gray-100"
-                         onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'">
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop';"
+                         loading="lazy">
                 `;
             } else {
                 html += `
@@ -933,14 +1011,45 @@
                             ` : ''}
                         </div>
                         
-                        <p class="text-gray-600 mb-4">
-                            ${data.section_name} → ${data.category_name}
-                            ${data.model_name ? ` → ${data.model_name}` : ''}
+                        <p class="text-gray-600 mb-2">
+                            ${data.section_name}${data.category_name ? ' → ' + data.category_name : ''}${data.model_name ? ' → ' + data.model_name : ''}
                         </p>
+            `;
 
+            // Добавляем описание под фото если есть
+            if (photoDescription) {
+                html += `<p class="text-gray-600 mb-2">${photoDescription}</p>`;
+            }
+
+            // Добавляем общее описание если есть
+            if (description) {
+                html += `<p class="text-gray-500 text-sm mb-3">${description}</p>`;
+            }
+
+            // Кнопки навигации по товарам
+            if (data.products.length > 1) {
+                html += `
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="showPreviousProductDirect()" 
+                                class="py-2 px-4 bg-gray-200 rounded-lg flex items-center ${currentProductIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
+                            <i data-feather="chevron-left" class="mr-1"></i> Назад
+                        </button>
+                        <span class="text-sm text-gray-600">${currentProductIndex + 1} / ${data.products.length}</span>
+                        <button onclick="showNextProductDirect(${data.products.length})" 
+                                class="py-2 px-4 bg-gray-200 rounded-lg flex items-center ${currentProductIndex === data.products.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                            Вперед <i data-feather="chevron-right" class="ml-1"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Основная кнопка действия
+            const productInfo = `${data.section_name}${data.category_name ? ' → ' + data.category_name : ''}${data.model_name ? ' → ' + data.model_name : ''} → ${color} - ${price}`;
+            
+            html += `
                         <div class="flex space-x-2">
                             <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                    onclick="contactAboutProduct('${data.section_name} → ${data.category_name}${data.model_name ? ` → ${data.model_name}` : ''} → ${color} - ${price}')">
+                                    onclick="contactAboutProduct('${productInfo.replace(/'/g, "\\'")}')">
                                 <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
                             </button>
                         </div>
@@ -961,8 +1070,41 @@
                 breadcrumbsItems.push({name: data.category_name, action: `loadModels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}')`});
             }
             
+            if (data.model_name) {
+                breadcrumbsItems.push({name: data.model_name, action: `loadSubmodels('${navigationState.currentSection.id}', '${navigationState.currentCategory ? navigationState.currentCategory.id : 'direct'}', '${navigationState.currentModel.id}')`});
+            }
+            
             updateBreadcrumbs(breadcrumbsItems);
             updateBackButton();
+        }
+
+        // Direct product navigation
+        function showPreviousProductDirect() {
+            if (currentProductIndex > 0) {
+                currentProductIndex--;
+                // Перезагружаем данные для прямого отображения
+                const data = {
+                    section_name: navigationState.currentSection.name,
+                    category_name: navigationState.currentCategory?.name,
+                    model_name: navigationState.currentModel?.name,
+                    products: currentProducts
+                };
+                showCurrentProductDirect(data);
+            }
+        }
+
+        function showNextProductDirect(totalProducts) {
+            if (currentProductIndex < totalProducts - 1) {
+                currentProductIndex++;
+                // Перезагружаем данные для прямого отображения
+                const data = {
+                    section_name: navigationState.currentSection.name,
+                    category_name: navigationState.currentCategory?.name,
+                    model_name: navigationState.currentModel?.name,
+                    products: currentProducts
+                };
+                showCurrentProductDirect(data);
+            }
         }
 
         // Utility functions
@@ -1045,7 +1187,6 @@
         window.loadModels = loadModels;
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
-        window.loadDirectSubmodels = loadDirectSubmodels;
         window.openInBot = openInBot;
         window.contactAboutProduct = contactAboutProduct;
         window.openSideMenu = openSideMenu;
@@ -1053,6 +1194,8 @@
         window.toggleDebug = toggleDebug;
         window.showPreviousProduct = showPreviousProduct;
         window.showNextProduct = showNextProduct;
+        window.showPreviousProductDirect = showPreviousProductDirect;
+        window.showNextProductDirect = showNextProductDirect;
     </script>
 </body>
 </html>
