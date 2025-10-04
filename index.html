@@ -452,6 +452,19 @@
                             section: { id: parentHash, name: parentName },
                             ...nextData
                         });
+                    } else {
+                        // ДОБАВЛЕНО: Создаем фиктивный товар если API не вернул данные
+                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных раздела');
+                        const fakeProduct = {
+                            name: parentName,
+                            color: parentName,
+                            description: `Товар раздела "${parentName}"`,
+                            price: null,
+                            photo_url: null
+                        };
+                        return showProducts([fakeProduct], {
+                            section: { id: parentHash, name: parentName }
+                        });
                     }
                     break;
                     
@@ -487,6 +500,21 @@
                             category: { id: parentHash, name: parentName },
                             ...nextData
                         });
+                    } else {
+                        // ДОБАВЛЕНО: Если API возвращает 404 для товаров, но у нас есть информация о цвете (столбец E),
+                        // создаем фиктивный товар на основе данных категории
+                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных категории');
+                        const fakeProduct = {
+                            name: parentName,
+                            color: parentName,
+                            description: `Товар категории "${parentName}"`,
+                            price: null,
+                            photo_url: null
+                        };
+                        return showProducts([fakeProduct], {
+                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                            category: { id: parentHash, name: parentName }
+                        });
                     }
                     break;
                     
@@ -513,6 +541,21 @@
                             model: { id: parentHash, name: parentName },
                             ...nextData
                         });
+                    } else {
+                        // ДОБАВЛЕНО: Создаем фиктивный товар если API не вернул данные
+                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных модели');
+                        const fakeProduct = {
+                            name: parentName,
+                            color: parentName,
+                            description: `Товар модели "${parentName}"`,
+                            price: null,
+                            photo_url: null
+                        };
+                        return showProducts([fakeProduct], {
+                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                            category: { id: additionalData.categoryId, name: additionalData.categoryName },
+                            model: { id: parentHash, name: parentName }
+                        });
                     }
                     break;
                     
@@ -530,11 +573,27 @@
                             submodel: { id: parentHash, name: parentName },
                             ...nextData
                         });
+                    } else {
+                        // ДОБАВЛЕНО: Создаем фиктивный товар если API не вернул данные
+                        debugLog('⚠️ Товары через API не найдены, создаем фиктивный товар из данных подмодели');
+                        const fakeProduct = {
+                            name: parentName,
+                            color: parentName,
+                            description: `Товар подмодели "${parentName}"`,
+                            price: null,
+                            photo_url: null
+                        };
+                        return showProducts([fakeProduct], {
+                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                            category: { id: additionalData.categoryId, name: additionalData.categoryName },
+                            model: { id: additionalData.modelId, name: additionalData.modelName },
+                            submodel: { id: parentHash, name: parentName }
+                        });
                     }
                     break;
             }
             
-            // Если дошли сюда, значит товары не найдены
+            // Если дошли сюда, значит товары не найдены (это резервный вариант)
             debugLog('❌ Товары не найдены на всех уровнях');
             showEmptyState('Товары не найдены');
         }
