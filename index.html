@@ -518,6 +518,23 @@
             updateBreadcrumbsFromState();
             updateBackButton();
         }
+        async function debugAllProducts() {
+            debugLog('=== ДИАГНОСТИКА ВСЕХ ТОВАРОВ ===');
+    
+            // Проверим все возможные комбинации
+            const testEndpoints = [
+                '/products/dcb1364bebe64073/3d13eaa317c84d8c/null/null', // БЕТОН
+                '/products/dcb1364bebe64073/3dcb24188ee04541/null/null', // БРУСЧАТКА
+                '/products/dcb1364bebe64073/8cbd75d106294cb6/null/null', // ПЛИТЫ
+                '/products/dcb1364bebe64073/1ecc50013b764325/null/null', // ФБС
+                '/debug/catalog' // Отладочная информация о структуре
+            ]; 
+    
+            for (const endpoint of testEndpoints) {
+                const data = await apiFetch(endpoint);
+                debugLog(`🔍 ${endpoint}:`, data);
+            }
+        }
 
         async function showProducts(products) {
             debugLog('=== ПОКАЗ ТОВАРОВ ===', { count: products.length });
