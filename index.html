@@ -302,93 +302,121 @@
             updateBackButton();
         }
 
-        // УПРОЩЕННАЯ ЛОГИКА - ИСПОЛЬЗУЕМ ТОЛЬКО РАБОЧАЮЩИЕ ЭНДПОИНТЫ
+        // УЛУЧШЕННАЯ ЛОГИКА ПРОВЕРКИ УРОВНЕЙ
         async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
             debugLog(`Проверка следующего уровня после: ${parentType}`, { parentHash, parentName, additionalData });
             
             updateNavigationState(parentType, { id: parentHash, name: parentName }, additionalData);
             
-            let nextData = null;
-            
             try {
                 switch (parentType) {
                     case 'section':
-                        nextData = await apiFetch(`/categories/${parentHash}`);
-                        if (nextData?.categories?.length > 0) {
+                        // После раздела проверяем категории
+                        const categoriesData = await apiFetch(`/categories/${parentHash}`);
+                        if (categoriesData?.categories?.length > 0) {
                             debugLog('Найдены категории (столбец B)');
-                            return showCategories(nextData, parentHash, parentName);
+                            return showCategories(categoriesData, parentHash, parentName);
+                        } else {
+                            // Если категорий нет, сразу ищем товары для этого раздела
+                            debugLog('Категории не найдены, ищем товары для раздела');
+                            await findProductsForCurrentLevel();
                         }
                         break;
                         
                     case 'category':
-                        // ПРОВЕРЯЕМ МОДЕЛИ
-                        nextData = await apiFetch(`/models/${additionalData.sectionId}/${parentHash}`);
-                        if (nextData?.models?.length > 0) {
+                        // После категории проверяем модели (столбец C)
+                        const modelsData = await apiFetch(`/models/${additionalData.sectionId}/${parentHash}`);
+                        if (modelsData?.models?.length > 0) {
                             debugLog('Найдены модели (столбец C)');
-                            return showModels(nextData, parentHash, parentName, 'normal', additionalData);
-                        }
-                        
-                        // ЕСЛИ МОДЕЛЕЙ НЕТ, ИСПОЛЬЗУЕМ УНИВЕРСАЛЬНЫЙ ЭНДПОИНТ ДЛЯ ТОВАРОВ
-                        debugLog('Модели не найдены, используем универсальный эндпоинт для товаров');
-                        nextData = await apiFetch(`/all_products`);
-                        if (nextData?.products?.length > 0) {
-                            // ФИЛЬТРУЕМ ТОВАРЫ ПО СЕКЦИИ И КАТЕГОРИИ
-                            const filteredProducts = nextData.products.filter(product => 
-                                product.section_id === additionalData.sectionId && 
-                                product.category_id === parentHash
-                            );
-                            
-                            if (filteredProducts.length > 0) {
-                                debugLog(`✅ Найдены товары через универсальный эндпоинт`, { 
-                                    count: filteredProducts.length 
-                                });
-                                return showProducts(filteredProducts, {
-                                    section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                    category: { id: parentHash, name: parentName }
-                                });
+                            return showModels(modelsData, parentHash, parentName, additionalData);
+                        } else {
+                            // Если моделей нет, проверяем подмодели (столбец D)
+                            debugLog('Модели не найдены, проверяем подмодели (столбец D)');
+                            const submodelsData = await apiFetch(`/submodels/${additionalData.sectionId}/${parentHash}/null`);
+                            if (submodelsData?.submodels?.length > 0) {
+                                debugLog('Найдены подмодели (столбец D)');
+                                return showSubmodels(submodelsData, parentHash, parentName, additionalData);
+                            } else {
+                                // Если ничего не найдено, ищем товары
+                                debugLog('Подмодели не найдены, ищем товары');
+                                await findProductsForCurrentLevel();
                             }
                         }
-                        
-                        debugLog('❌ Товары не найдены для категории');
-                        showEmptyState('Для этой категории нет товаров');
-                        return;
+                        break;
                         
                     case 'model':
-                        // ДЛЯ МОДЕЛИ ИСПОЛЬЗУЕМ УНИВЕРСАЛЬНЫЙ ЭНДПОИНТ
-                        debugLog('Ищем товары для модели через универсальный эндпоинт');
-                        nextData = await apiFetch(`/all_products`);
-                        if (nextData?.products?.length > 0) {
-                            // ФИЛЬТРУЕМ ТОВАРЫ ПО СЕКЦИИ, КАТЕГОРИИ И МОДЕЛИ
-                            const filteredProducts = nextData.products.filter(product => 
-                                product.section_id === additionalData.sectionId && 
-                                product.category_id === additionalData.categoryId &&
-                                product.model_id === parentHash
-                            );
-                            
-                            if (filteredProducts.length > 0) {
-                                debugLog(`✅ Найдены товары для модели`, { 
-                                    count: filteredProducts.length 
-                                });
-                                return showProducts(filteredProducts, {
-                                    section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                    category: { id: additionalData.categoryId, name: additionalData.categoryName },
-                                    model: { id: parentHash, name: parentName }
-                                });
-                            }
+                        // После модели проверяем подмодели (столбец D)
+                        const submodelsData = await apiFetch(`/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
+                        if (submodelsData?.submodels?.length > 0) {
+                            debugLog('Найдены подмодели (столбец D)');
+                            return showSubmodels(submodelsData, parentHash, parentName, additionalData);
+                        } else {
+                            // Если подмоделей нет, ищем товары для модели
+                            debugLog('Подмодели не найдены, ищем товары для модели');
+                            await findProductsForCurrentLevel();
                         }
+                        break;
                         
-                        debugLog('❌ Товары не найдены для модели');
-                        showEmptyState('Для этой модели нет товаров');
+                    case 'submodel':
+                        // После подмодели сразу показываем товары
+                        debugLog('Достигнут уровень подмодели, ищем товары');
+                        await findProductsForCurrentLevel();
                         break;
                 }
-                
-                // Если дошли сюда и ничего не найдено
-                debugLog('❌ Данные не найдены на всех уровнях');
-                showEmptyState('Товары не найдены');
-                
             } catch (error) {
                 debugLog('❌ Ошибка при проверке уровней', { error: error.message });
                 showEmptyState('Ошибка при загрузке данных');
+            }
+        }
+
+        // ФУНКЦИЯ ПОИСКА ТОВАРОВ ДЛЯ ТЕКУЩЕГО УРОВНЯ
+        async function findProductsForCurrentLevel() {
+            debugLog('Поиск товаров для текущего уровня', navigationState);
+            
+            const allProducts = await apiFetch('/all_products');
+            if (!allProducts?.products?.length) {
+                debugLog('❌ Товары не найдены');
+                showEmptyState('Для этого раздела нет товаров');
+                return;
+            }
+
+            // Фильтруем товары по текущему уровню навигации
+            let filteredProducts = allProducts.products.filter(product => {
+                let match = true;
+                
+                if (navigationState.currentSection) {
+                    match = match && product.section_id === navigationState.currentSection.id;
+                }
+                if (navigationState.currentCategory) {
+                    match = match && product.category_id === navigationState.currentCategory.id;
+                }
+                if (navigationState.currentModel) {
+                    match = match && product.model_id === navigationState.currentModel.id;
+                }
+                if (navigationState.currentSubmodel) {
+                    match = match && product.submodel_id === navigationState.currentSubmodel.id;
+                }
+                
+                return match;
+            });
+
+            debugLog(`Результат фильтрации товаров`, { 
+                total: allProducts.products.length,
+                filtered: filteredProducts.length,
+                filters: {
+                    section: navigationState.currentSection?.id,
+                    category: navigationState.currentCategory?.id,
+                    model: navigationState.currentModel?.id,
+                    submodel: navigationState.currentSubmodel?.id
+                }
+            });
+
+            if (filteredProducts.length > 0) {
+                debugLog(`✅ Найдены товары`, { count: filteredProducts.length });
+                return showProducts(filteredProducts);
+            } else {
+                debugLog('❌ Товары не найдены после фильтрации');
+                showEmptyState('Для этого раздела нет товаров');
             }
         }
 
@@ -420,27 +448,59 @@
             updateBackButton();
         }
 
-        function showModels(data, parentHash, parentName, mode, additionalData = {}) {
+        function showModels(data, parentHash, parentName, additionalData = {}) {
             let html = '';
             const items = data.models || [];
             
             items.forEach(model => {
                 const priceText = model.min_price ? formatPrice(model.min_price) : '';
-                const nextAdditionalData = mode === 'direct' ? {
-                    sectionId: additionalData.sectionId || parentHash,
-                    sectionName: additionalData.sectionName || parentName
-                } : {
-                    ...additionalData,
-                    categoryId: parentHash,
-                    categoryName: parentName
-                };
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-4">
                             <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="checkNextLevel('${model.id}', '${model.name}', 'model', ${JSON.stringify(nextAdditionalData).replace(/\"/g, '&quot;')})" 
+                            <button onclick="checkNextLevel('${model.id}', '${model.name}', 'model', {
+                                sectionId: '${additionalData.sectionId}',
+                                sectionName: '${additionalData.sectionName}',
+                                categoryId: '${parentHash}',
+                                categoryName: '${parentName}'
+                            })" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                                <span>Смотреть товары</span>
+                                <i data-feather="chevron-right" class="ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            feather.replace();
+            updateBreadcrumbsFromState();
+            updateBackButton();
+        }
+
+        function showSubmodels(data, parentHash, parentName, additionalData = {}) {
+            let html = '';
+            const items = data.submodels || [];
+            
+            items.forEach(submodel => {
+                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
+                
+                html += `
+                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-1">${submodel.name}</h3>
+                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <button onclick="checkNextLevel('${submodel.id}', '${submodel.name}', 'submodel', {
+                                sectionId: '${additionalData.sectionId}',
+                                sectionName: '${additionalData.sectionName}',
+                                categoryId: '${additionalData.categoryId || parentHash}',
+                                categoryName: '${additionalData.categoryName || parentName}',
+                                modelId: '${additionalData.modelId || parentHash}',
+                                modelName: '${additionalData.modelName || parentName}'
+                            })" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть товары</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -495,6 +555,17 @@
                     navigationState.currentSubmodel = currentItem;
                     break;
             }
+            
+            // Сохраняем дополнительные данные
+            if (additionalData.sectionId) {
+                navigationState.currentSection = { id: additionalData.sectionId, name: additionalData.sectionName };
+            }
+            if (additionalData.categoryId) {
+                navigationState.currentCategory = { id: additionalData.categoryId, name: additionalData.categoryName };
+            }
+            if (additionalData.modelId) {
+                navigationState.currentModel = { id: additionalData.modelId, name: additionalData.modelName };
+            }
         }
 
         async function showCurrentProduct() {
@@ -524,7 +595,7 @@
                     `}
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-semibond text-lg">${color}</h3>
+                            <h3 class="font-semibold text-lg">${color}</h3>
                             ${price && price !== 'Цена не указана' ? `
                                 <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                                     ${typeof price === 'number' ? formatPrice(price) : price}
@@ -571,7 +642,7 @@
             html += `
                         <div class="flex space-x-2">
                             <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                    onclick="contactAboutProduct('${encodeURIComponent(productPath)}')">
+                                    onclick="contactAboutProduct('${productPath.replace(/'/g, "\\'")}')">
                                 <i data-feather="message-circle" class="mr-2"></i> Узнать подробнее
                             </button>
                             ${showNavigation ? `
@@ -633,6 +704,20 @@
                         sectionName: '${navigationState.currentSection.name}',
                         categoryId: '${navigationState.currentCategory.id}',
                         categoryName: '${navigationState.currentCategory.name}'
+                    })`
+                });
+            }
+            
+            if (navigationState.currentSubmodel) {
+                items.push({
+                    name: navigationState.currentSubmodel.name,
+                    action: `checkNextLevel('${navigationState.currentSubmodel.id}', '${navigationState.currentSubmodel.name}', 'submodel', {
+                        sectionId: '${navigationState.currentSection.id}',
+                        sectionName: '${navigationState.currentSection.name}',
+                        categoryId: '${navigationState.currentCategory.id}',
+                        categoryName: '${navigationState.currentCategory.name}',
+                        modelId: '${navigationState.currentModel.id}',
+                        modelName: '${navigationState.currentModel.name}'
                     })`
                 });
             }
