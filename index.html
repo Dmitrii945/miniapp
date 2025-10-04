@@ -150,6 +150,10 @@
         const debugInfo = document.getElementById('debugInfo');
         const debugContent = document.getElementById('debugContent');
 
+        // Global variables for product pagination
+        let currentProducts = [];
+        let currentProductIndex = 0;
+
         // Initialize Telegram Web App
         function initTelegramApp() {
             if (tg) {
@@ -255,13 +259,21 @@
                 ]
             };
         }
-// API functions with enhanced error handling
+
+        // API functions with enhanced error handling
         async function apiFetch(endpoint) {
             try {
                 debugLog(`Запрос к API`, { endpoint });
                 showLoading();
                 
                 const response = await fetch(`${API_BASE}${endpoint}`);
+                
+                // Обрабатываем 404 как нормальный случай
+                if (response.status === 404) {
+                    debugLog('⚠️ Эндпоинт не найден (404)', { endpoint });
+                    hideLoading();
+                    return null;
+                }
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -279,7 +291,12 @@
             } catch (error) {
                 debugLog('❌ API Error', { endpoint, error: error.message });
                 hideLoading();
-                showError(`Ошибка загрузки: ${error.message}`);
+                
+                // Не показываем ошибку для 404, только для других ошибок
+                if (!error.message.includes('404')) {
+                    showError(`Ошибка загрузки: ${error.message}`);
+                }
+                
                 return null;
             }
         }
@@ -343,7 +360,7 @@
             }
         }
 
-        // Flexible navigation functions that handle missing levels
+        // Enhanced navigation with step-by-step column checking
         async function loadSections() {
             debugLog('Загрузка разделов');
             let data = await apiFetch('/sections');
@@ -366,7 +383,7 @@
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-4">
                             <h3 class="font-semibold text-lg mb-2">${section.name}</h3>
-                            <button onclick="loadCategories('${section.id}')" 
+                            <button onclick="loadNextLevel('${section.id}', '${section.name}', 'section')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть категории</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -381,121 +398,185 @@
             updateBreadcrumbs([{name: 'Главная', action: 'loadSections()'}]);
             updateBackButton();
         }
-        async function loadCategories(sectionHash) {
-            debugLog('Загрузка категорий', { sectionHash });
-            const data = await apiFetch(`/categories/${sectionHash}`);
+
+        // Main function that checks each column step by step
+        async function loadNextLevel(parentHash, parentName, parentType, additionalHashes = {}) {
+            debugLog('Проверка следующего уровня', { parentHash, parentName, parentType, additionalHashes });
             
-            if (!data) {
-                showEmptyState('Ошибка загрузки');
-                return;
+            let endpoint = '';
+            let data = null;
+            
+            // Determine what to check next based on current level
+            switch (parentType) {
+                case 'section':
+                    // Check for categories (column B)
+                    endpoint = `/categories/${parentHash}`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.categories && data.categories.length > 0) {
+                        debugLog('Найдены категории (столбец B)');
+                        return showLevelItems(data.categories, parentHash, parentName, 'category', data);
+                    }
+                    
+                    // If no categories, check for models directly (column C)
+                    debugLog('Категории не найдены, проверяем модели (столбец C)');
+                    endpoint = `/models/${parentHash}/direct`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.models && data.models.length > 0) {
+                        debugLog('Найдены модели напрямую (столбец C)');
+                        return showLevelItems(data.models, parentHash, parentName, 'model', data);
+                    }
+                    
+                    // If no models, check for submodels directly (column D)
+                    debugLog('Модели не найдены, проверяем подмодели (столбец D)');
+                    endpoint = `/submodels/${parentHash}/direct`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.submodels && data.submodels.length > 0) {
+                        debugLog('Найдены подмодели напрямую (столбец D)');
+                        return showLevelItems(data.submodels, parentHash, parentName, 'submodel', data);
+                    }
+                    
+                    // If no submodels, check for products directly (column E)
+                    debugLog('Подмодели не найдены, проверяем товары напрямую (столбец E)');
+                    endpoint = `/products/${parentHash}/direct`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.products && data.products.length > 0) {
+                        debugLog('Найдены товары напрямую (столбец E)');
+                        return showProducts(data.products, {
+                            section: { id: parentHash, name: parentName },
+                            ...data
+                        });
+                    }
+                    
+                    break;
+                    
+                case 'category':
+                    // Check for models (column C)
+                    endpoint = `/models/${additionalHashes.sectionId}/${parentHash}`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.models && data.models.length > 0) {
+                        debugLog('Найдены модели (столбец C)');
+                        return showLevelItems(data.models, parentHash, parentName, 'model', data, {
+                            sectionId: additionalHashes.sectionId
+                        });
+                    }
+                    
+                    // If no models, check for submodels directly (column D)
+                    debugLog('Модели не найдены, проверяем подмодели (столбец D)');
+                    endpoint = `/submodels/${additionalHashes.sectionId}/${parentHash}/direct`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.submodels && data.submodels.length > 0) {
+                        debugLog('Найдены подмодели напрямую (столбец D)');
+                        return showLevelItems(data.submodels, parentHash, parentName, 'submodel', data, {
+                            sectionId: additionalHashes.sectionId
+                        });
+                    }
+                    
+                    // If no submodels, check for products directly (column E)
+                    debugLog('Подмодели не найдены, проверяем товары напрямую (столбец E)');
+                    endpoint = `/products/${additionalHashes.sectionId}/${parentHash}/direct`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.products && data.products.length > 0) {
+                        debugLog('Найдены товары напрямую (столбец E)');
+                        return showProducts(data.products, {
+                            section: { id: additionalHashes.sectionId, name: additionalHashes.sectionName },
+                            category: { id: parentHash, name: parentName },
+                            ...data
+                        });
+                    }
+                    
+                    break;
+                    
+                case 'model':
+                    // Check for submodels (column D)
+                    endpoint = `/submodels/${additionalHashes.sectionId}/${additionalHashes.categoryId}/${parentHash}`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.submodels && data.submodels.length > 0) {
+                        debugLog('Найдены подмодели (столбец D)');
+                        return showLevelItems(data.submodels, parentHash, parentName, 'submodel', data, {
+                            sectionId: additionalHashes.sectionId,
+                            categoryId: additionalHashes.categoryId
+                        });
+                    }
+                    
+                    // If no submodels, check for products directly (column E)
+                    debugLog('Подмодели не найдены, проверяем товары напрямую (столбец E)');
+                    endpoint = `/products/${additionalHashes.sectionId}/${additionalHashes.categoryId}/${parentHash}/direct`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.products && data.products.length > 0) {
+                        debugLog('Найдены товары напрямую (столбец E)');
+                        return showProducts(data.products, {
+                            section: { id: additionalHashes.sectionId, name: additionalHashes.sectionName },
+                            category: { id: additionalHashes.categoryId, name: additionalHashes.categoryName },
+                            model: { id: parentHash, name: parentName },
+                            ...data
+                        });
+                    }
+                    
+                    break;
+                    
+                case 'submodel':
+                    // Check for products (column E)
+                    endpoint = `/products/${additionalHashes.sectionId}/${additionalHashes.categoryId}/${additionalHashes.modelId}/${parentHash}`;
+                    data = await apiFetch(endpoint);
+                    
+                    if (data && data.products && data.products.length > 0) {
+                        debugLog('Найдены товары (столбец E)');
+                        return showProducts(data.products, {
+                            section: { id: additionalHashes.sectionId, name: additionalHashes.sectionName },
+                            category: { id: additionalHashes.categoryId, name: additionalHashes.categoryName },
+                            model: { id: additionalHashes.modelId, name: additionalHashes.modelName },
+                            submodel: { id: parentHash, name: parentName },
+                            ...data
+                        });
+                    }
+                    
+                    break;
             }
             
-            // Handle all possible missing column cases
-            const sectionName = data.section_name || 'Раздел';
-            const categories = data.categories || [];
-            const models = data.models || [];
-            
-            // Case 1: No categories but has models
-            if (categories.length === 0 && models.length > 0) {
-                debugLog('Обнаружены модели без категорий');
-                navigationState.currentSection = { name: sectionName, id: sectionHash };
-                return loadModelsDirect(sectionHash, data);
-            }
-            
-            // Case 2: No categories and no models
-            if (categories.length === 0) {
-                showEmptyState('Нет доступных категорий');
-                return;
-            }
-navigationState.currentSection = {
-                name: data.section_name || 'Раздел',
-                id: sectionHash
-            };
-            
-            let html = '';
-            data.categories.forEach(category => {
-                const priceText = category.min_price ? formatPrice(category.min_price) : '';
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${category.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadModels('${sectionHash}', '${category.id}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть модели</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbs([
-                {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name || 'Раздел', action: `loadCategories('${sectionHash}')`}
-            ]);
-            updateBackButton();
+            // If we reach here, no data was found at any level
+            debugLog('❌ Данные не найдены на всех уровнях');
+            showEmptyState('Товары не найдены');
         }
 
-        async function loadModelsDirect(sectionHash, data) {
-            debugLog('Прямая загрузка моделей без категорий', { sectionHash });
+        // Generic function to show items at any level
+        function showLevelItems(items, parentHash, parentName, itemType, data, additionalHashes = {}) {
+            debugLog(`Показ элементов уровня: ${itemType}`, { count: items.length, parentHash, parentName });
+            
+            // Update navigation state
+            updateNavigationState(itemType, { id: parentHash, name: parentName }, data, additionalHashes);
             
             let html = '';
-            data.models.forEach(model => {
-                const priceText = model.min_price ? formatPrice(model.min_price) : '';
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadSubmodelsDirect('${sectionHash}', '${model.id}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть подмодели</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbs([
-                {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name || 'Раздел', action: `loadCategories('${sectionHash}')`}
-            ]);
-            updateBackButton();
-        }
-
-        async function loadSubmodelsDirect(sectionHash, modelHash) {
-            debugLog('Прямая загрузка подмоделей без категорий', { sectionHash, modelHash });
-            
-            const data = await apiFetch(`/submodels/${sectionHash}/direct/${modelHash}`);
-            if (!data || !data.submodels || data.submodels.length === 0) {
-                showEmptyState('Нет доступных подмоделей');
-                return;
-            }
-            
-            navigationState.currentModel = {
-                name: data.model_name || 'Модель',
-                id: modelHash
+            const levelNames = {
+                'category': 'категории',
+                'model': 'модели', 
+                'submodel': 'подмодели'
             };
             
-            let html = '';
-            data.submodels.forEach(submodel => {
-                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
-                const productCount = submodel.product_count ? ` (${submodel.product_count} товаров)` : '';
+            items.forEach(item => {
+                const priceText = item.min_price ? formatPrice(item.min_price) : '';
+                const productCount = item.product_count ? ` (${item.product_count} товаров)` : '';
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${submodel.name}${productCount}</h3>
+                            <h3 class="font-semibold text-lg mb-1">${item.name}${productCount}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadProducts('${sectionHash}', 'direct', '${modelHash}', '${submodel.id}')" 
+                            <button onclick="loadNextLevel('${item.id}', '${item.name}', '${itemType}', ${JSON.stringify({
+                                ...additionalHashes,
+                                [`${itemType}Id`]: parentHash,
+                                [`${itemType}Name`]: parentName
+                            }).replace(/\"/g, '&quot;')})" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
+                                <span>Смотреть ${levelNames[itemType] || 'далее'}</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
                             </button>
                         </div>
@@ -505,213 +586,90 @@ navigationState.currentSection = {
             
             content.innerHTML = html;
             feather.replace();
-            updateBreadcrumbs([
-                {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name || 'Раздел', action: `loadCategories('${sectionHash}')`},
-                {name: data.model_name || 'Модель', action: `loadSubmodelsDirect('${sectionHash}', '${modelHash}')`}
-            ]);
-            updateBackButton();
-        }
-        async function loadModels(sectionHash, categoryHash) {
-            debugLog('Загрузка моделей', { sectionHash, categoryHash });
-            const data = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
-            
-            if (!data) {
-                showEmptyState('Ошибка загрузки');
-                return;
-            }
-            
-            const models = data.models || [];
-            const products = data.products || [];
-            
-            // Case 1: No models but has products
-            if (models.length === 0 && products.length > 0) {
-                return showProductsDirect(sectionHash, categoryHash, data);
-            }
-            
-            // Case 2: No models and no products
-            if (models.length === 0) {
-                showEmptyState('Нет доступных моделей');
-                return;
-            }
-navigationState.currentSection = {
-                name: data.section_name || 'Раздел',
-                id: sectionHash
-            };
-            navigationState.currentCategory = {
-                name: data.category_name || 'Категория',
-                id: categoryHash
-            };
-            
-            let html = '';
-            data.models.forEach(model => {
-                const priceText = model.min_price ? formatPrice(model.min_price) : '';
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadSubmodels('${sectionHash}', '${categoryHash}', '${model.id}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть подмодели</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbs([
-                {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name || 'Раздел', action: `loadCategories('${sectionHash}')`},
-                {name: data.category_name || 'Категория', action: `loadModels('${sectionHash}', '${categoryHash}')`}
-            ]);
-            updateBackButton();
-        }
-        async function loadSubmodels(sectionHash, categoryHash, modelHash) {
-            debugLog('Загрузка подмоделей', { sectionHash, categoryHash, modelHash });
-            const data = await apiFetch(`/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
-            
-            if (!data) {
-                showEmptyState('Ошибка загрузки');
-                return;
-            }
-            
-            const submodels = data.submodels || [];
-            const products = data.products || [];
-            
-            // Case 1: No submodels but has products
-            if (submodels.length === 0 && products.length > 0) {
-                return showProductsDirect(sectionHash, categoryHash, modelHash, data);
-            }
-            
-            // Case 2: No submodels and no products
-            if (submodels.length === 0) {
-                showEmptyState('Нет доступных подмоделей');
-                return;
-            }
-navigationState.currentSection = {
-                name: data.section_name || 'Раздел',
-                id: sectionHash
-            };
-            navigationState.currentCategory = {
-                name: data.category_name || 'Категория',
-                id: categoryHash
-            };
-            navigationState.currentModel = {
-                name: data.model_name || 'Модель',
-                id: modelHash
-            };
-            
-            let html = '';
-            data.submodels.forEach(submodel => {
-                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
-                const productCount = submodel.product_count ? ` (${submodel.product_count} товаров)` : '';
-                
-                html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${submodel.name}${productCount}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadProducts('${sectionHash}', '${categoryHash}', '${modelHash}', '${submodel.id}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-            feather.replace();
-            updateBreadcrumbs([
-                {name: 'Главная', action: 'loadSections()'},
-                {name: data.section_name || 'Раздел', action: `loadCategories('${sectionHash}')`},
-                {name: data.category_name || 'Категория', action: `loadModels('${sectionHash}', '${categoryHash}')`},
-                {name: data.model_name || 'Модель', action: `loadSubmodels('${sectionHash}', '${categoryHash}', '${modelHash}')`}
-            ]);
+            updateBreadcrumbsFromState();
             updateBackButton();
         }
 
-        // Global variables for product pagination
-        let currentProducts = [];
-        let currentProductIndex = 0;
-        async function loadProducts(sectionHash, categoryHash, modelHash, submodelHash) {
-            debugLog('Загрузка товаров', { sectionHash, categoryHash, modelHash, submodelHash });
-            const data = await apiFetch(`/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
-            
-            if (!data) {
-                showEmptyState('Ошибка загрузки');
-                return;
+        // Update navigation state based on current level
+        function updateNavigationState(levelType, currentItem, data, additionalHashes) {
+            switch (levelType) {
+                case 'section':
+                    navigationState.currentSection = currentItem;
+                    navigationState.currentCategory = null;
+                    navigationState.currentModel = null;
+                    navigationState.currentSubmodel = null;
+                    break;
+                    
+                case 'category':
+                    navigationState.currentCategory = currentItem;
+                    navigationState.currentModel = null;
+                    navigationState.currentSubmodel = null;
+                    break;
+                    
+                case 'model':
+                    navigationState.currentModel = currentItem;
+                    navigationState.currentSubmodel = null;
+                    break;
+                    
+                case 'submodel':
+                    navigationState.currentSubmodel = currentItem;
+                    break;
             }
             
-            const products = data.products || [];
-            
-            if (products.length === 0) {
-                showEmptyState('Нет доступных товаров');
-                return;
+            // Update names from data if available
+            if (data) {
+                if (data.section_name && !navigationState.currentSection) {
+                    navigationState.currentSection = { 
+                        id: additionalHashes.sectionId, 
+                        name: data.section_name 
+                    };
+                }
+                if (data.category_name && !navigationState.currentCategory) {
+                    navigationState.currentCategory = { 
+                        id: additionalHashes.categoryId, 
+                        name: data.category_name 
+                    };
+                }
+                if (data.model_name && !navigationState.currentModel) {
+                    navigationState.currentModel = { 
+                        id: additionalHashes.modelId, 
+                        name: data.model_name 
+                    };
+                }
+                if (data.submodel_name && !navigationState.currentSubmodel) {
+                    navigationState.currentSubmodel = { 
+                        id: additionalHashes.submodelId, 
+                        name: data.submodel_name 
+                    };
+                }
             }
-navigationState.currentSection = {
-                name: data.section_name || 'Раздел',
-                id: sectionHash
-            };
-            navigationState.currentCategory = {
-                name: data.category_name || 'Категория',
-                id: categoryHash
-            };
-            navigationState.currentModel = {
-                name: data.model_name || 'Модель',
-                id: modelHash
-            };
-            navigationState.currentSubmodel = {
-                name: data.submodel_name || 'Подмодель',
-                id: submodelHash
-            };
-            
-            // Save products for pagination
-            currentProducts = data.products;
-            currentProductIndex = 0;
-            
-            // Show first product
-            await showCurrentProduct();
         }
 
-        async function showProductsDirect(...args) {
-            const data = args[args.length - 1]; // Last argument is data
-            const hashes = args.slice(0, -1); // Other arguments are hashes
+        // Show products (final level - column E)
+        async function showProducts(products, context = {}) {
+            debugLog('Показ товаров', { count: products.length, context });
             
-            if (!data || !data.products || data.products.length === 0) {
+            if (!products || products.length === 0) {
                 showEmptyState('Нет доступных товаров');
                 return;
             }
             
-            // Update navigation state based on available data
-            if (data.section_name) {
-                navigationState.currentSection = {
-                    name: data.section_name,
-                    id: hashes[0]
-                };
+            // Update navigation state from context
+            if (context.section) {
+                navigationState.currentSection = context.section;
             }
-            
-            if (data.category_name && hashes.length > 1) {
-                navigationState.currentCategory = {
-                    name: data.category_name,
-                    id: hashes[1]
-                };
+            if (context.category) {
+                navigationState.currentCategory = context.category;
             }
-            
-            if (data.model_name && hashes.length > 2) {
-                navigationState.currentModel = {
-                    name: data.model_name,
-                    id: hashes[2]
-                };
+            if (context.model) {
+                navigationState.currentModel = context.model;
+            }
+            if (context.submodel) {
+                navigationState.currentSubmodel = context.submodel;
             }
             
             // Save products for pagination
-            currentProducts = data.products;
+            currentProducts = products;
             currentProductIndex = 0;
             
             // Show first product
@@ -728,14 +686,16 @@ navigationState.currentSection = {
             const product = currentProducts[currentProductIndex];
             
             // Handle all possible missing fields
-            const color = product.color || 'Без названия';
+            const color = product.color || product.name || 'Без названия';
             const price = product.price || product.min_price || 'Цена не указана';
             const photoDescription = product.photo_description || product.description || '';
             const description = product.full_description || product.description || '';
             const photoUrl = product.photo_url || product.image_url || product.img || '';
+            
             // Process photo URL with fallback
             const imageUrl = getProductImageUrl(photoUrl);
-debugLog('Фото товара', { original: product.photo_url, processed: imageUrl });
+            debugLog('Фото товара', { original: product.photo_url, processed: imageUrl });
+            
             let html = `
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     ${imageUrl ? `
@@ -747,7 +707,6 @@ debugLog('Фото товара', { original: product.photo_url, processed: imag
                             <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
                         </div>
                     `}
-            html += `
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-semibold text-lg">${color}</h3>
@@ -758,6 +717,7 @@ debugLog('Фото товара', { original: product.photo_url, processed: imag
                             ` : ''}
                         </div>
             `;
+            
             // Add descriptions with fallbacks
             if (photoDescription && photoDescription !== description) {
                 html += `<p class="text-gray-600 mb-2">${photoDescription}</p>`;
@@ -769,6 +729,7 @@ debugLog('Фото товара', { original: product.photo_url, processed: imag
                     : 'text-gray-600 mb-3';
                 html += `<p class="${descClass}">${description}</p>`;
             }
+            
             // Enhanced product navigation
             const showNavigation = currentProducts.length > 1;
             if (showNavigation) {
@@ -791,6 +752,7 @@ debugLog('Фото товара', { original: product.photo_url, processed: imag
                     </div>
                 `;
             }
+            
             // Enhanced product path with fallbacks
             const productPath = [
                 navigationState.currentSection?.name || 'Раздел',
@@ -800,6 +762,7 @@ debugLog('Фото товара', { original: product.photo_url, processed: imag
                 color,
                 price !== 'Цена не указана' ? price : ''
             ].filter(Boolean).join(' → ');
+            
             // Enhanced action button with product info
             html += `
                         <div class="flex space-x-2">
@@ -817,41 +780,10 @@ debugLog('Фото товара', { original: product.photo_url, processed: imag
                     </div>
                 </div>
             `;
-content.innerHTML = html;
+            
+            content.innerHTML = html;
             feather.replace();
-            
-            // Build breadcrumbs dynamically based on available navigation state
-            const breadcrumbsItems = [{name: 'Главная', action: 'loadSections()'}];
-            
-            if (navigationState.currentSection) {
-                breadcrumbsItems.push({
-                    name: navigationState.currentSection.name,
-                    action: `loadCategories('${navigationState.currentSection.id}')`
-                });
-            }
-            
-            if (navigationState.currentCategory) {
-                breadcrumbsItems.push({
-                    name: navigationState.currentCategory.name,
-                    action: `loadModels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}')`
-                });
-            }
-            
-            if (navigationState.currentModel) {
-                breadcrumbsItems.push({
-                    name: navigationState.currentModel.name,
-                    action: `loadSubmodels('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}')`
-                });
-            }
-            
-            if (navigationState.currentSubmodel) {
-                breadcrumbsItems.push({
-                    name: navigationState.currentSubmodel.name,
-                    action: `loadProducts('${navigationState.currentSection.id}', '${navigationState.currentCategory.id}', '${navigationState.currentModel.id}', '${navigationState.currentSubmodel.id}')`
-                });
-            }
-            
-            updateBreadcrumbs(breadcrumbsItems);
+            updateBreadcrumbsFromState();
             updateBackButton();
         }
 
@@ -868,6 +800,56 @@ content.innerHTML = html;
                 currentProductIndex++;
                 showCurrentProduct();
             }
+        }
+
+        // Update breadcrumbs from navigation state
+        function updateBreadcrumbsFromState() {
+            const items = [{name: 'Главная', action: 'loadSections()'}];
+            
+            if (navigationState.currentSection) {
+                items.push({
+                    name: navigationState.currentSection.name,
+                    action: `loadNextLevel('${navigationState.currentSection.id}', '${navigationState.currentSection.name}', 'section')`
+                });
+            }
+            
+            if (navigationState.currentCategory) {
+                items.push({
+                    name: navigationState.currentCategory.name,
+                    action: `loadNextLevel('${navigationState.currentCategory.id}', '${navigationState.currentCategory.name}', 'category', {
+                        sectionId: '${navigationState.currentSection.id}',
+                        sectionName: '${navigationState.currentSection.name}'
+                    })`
+                });
+            }
+            
+            if (navigationState.currentModel) {
+                items.push({
+                    name: navigationState.currentModel.name,
+                    action: `loadNextLevel('${navigationState.currentModel.id}', '${navigationState.currentModel.name}', 'model', {
+                        sectionId: '${navigationState.currentSection.id}',
+                        sectionName: '${navigationState.currentSection.name}',
+                        categoryId: '${navigationState.currentCategory.id}',
+                        categoryName: '${navigationState.currentCategory.name}'
+                    })`
+                });
+            }
+            
+            if (navigationState.currentSubmodel) {
+                items.push({
+                    name: navigationState.currentSubmodel.name,
+                    action: `loadNextLevel('${navigationState.currentSubmodel.id}', '${navigationState.currentSubmodel.name}', 'submodel', {
+                        sectionId: '${navigationState.currentSection.id}',
+                        sectionName: '${navigationState.currentSection.name}',
+                        categoryId: '${navigationState.currentCategory.id}',
+                        categoryName: '${navigationState.currentCategory.name}',
+                        modelId: '${navigationState.currentModel.id}',
+                        modelName: '${navigationState.currentModel.name}'
+                    })`
+                });
+            }
+            
+            updateBreadcrumbs(items);
         }
 
         // Utility functions
@@ -914,7 +896,8 @@ content.innerHTML = html;
             
             feather.replace();
         }
-function clearNavigation() {
+
+        function clearNavigation() {
             navigationState = {
                 currentSection: null,
                 currentCategory: null,
@@ -936,6 +919,7 @@ function clearNavigation() {
             content.classList.remove('hidden');
             emptyState.classList.add('hidden');
         }
+
         function showEmptyState(message = '') {
             content.classList.add('hidden');
             loading.classList.add('hidden');
@@ -948,6 +932,7 @@ function clearNavigation() {
             // Update back button based on navigation state
             updateBackButton();
         }
+
         function showError(message) {
             const errorMessage = message || 'Произошла ошибка при загрузке данных';
             showEmptyState(errorMessage);
@@ -955,6 +940,7 @@ function clearNavigation() {
             // Log error to debug if enabled
             debugLog('Ошибка', errorMessage);
         }
+
         // Enhanced initialization
         document.addEventListener('DOMContentLoaded', () => {
             try {
@@ -988,14 +974,11 @@ function clearNavigation() {
                 showError('Критическая ошибка инициализации');
             }
         });
-// Make functions global
+
+        // Make functions global
         window.loadSections = loadSections;
-        window.loadCategories = loadCategories;
-        window.loadModels = loadModels;
-        window.loadSubmodels = loadSubmodels;
-        window.loadProducts = loadProducts;
-        window.loadSubmodelsDirect = loadSubmodelsDirect;
-        window.showProductsDirect = showProductsDirect;
+        window.loadNextLevel = loadNextLevel;
+        window.showProducts = showProducts;
         window.openInBot = openInBot;
         window.contactAboutProduct = contactAboutProduct;
         window.openSideMenu = openSideMenu;
@@ -1003,6 +986,7 @@ function clearNavigation() {
         window.toggleDebug = toggleDebug;
         window.showPreviousProduct = showPreviousProduct;
         window.showNextProduct = showNextProduct;
+        window.goBack = goBack;
     </script>
 </body>
 </html>
