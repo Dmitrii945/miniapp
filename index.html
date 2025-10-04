@@ -141,13 +141,6 @@
                 tg.expand();
                 tg.enableClosingConfirmation();
                 tg.BackButton.onClick(goBack);
-                
-                document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-                document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-                document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#999999');
-                document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f4f4f5');
-                document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3B82F6');
-                document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
             }
         }
 
@@ -309,7 +302,7 @@
             updateBackButton();
         }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ - ПОИСК ТОВАРОВ ИЗ СТОЛБЦА E
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ - ПОИСК ТОВАРОВ ИЗ СТОЛБЦА E ДЛЯ КАТЕГОРИИ
         async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
             debugLog(`Проверка следующего уровня после: ${parentType}`, { parentHash, parentName, additionalData });
             
@@ -325,84 +318,53 @@
                             debugLog('Найдены категории (столбец B)');
                             return showCategories(nextData, parentHash, parentName);
                         }
-                        
-                        nextData = await apiFetch(`/models/${parentHash}/direct`);
-                        if (nextData?.models?.length > 0) {
-                            debugLog('Найдены модели напрямую (столбец C)');
-                            return showModels(nextData, parentHash, parentName, 'direct');
-                        }
-                        
-                        nextData = await apiFetch(`/submodels/${parentHash}/direct`);
-                        if (nextData?.submodels?.length > 0) {
-                            debugLog('Найдены подмодели напрямую (столбец D)');
-                            return showSubmodels(nextData, parentHash, parentName, 'direct');
-                        }
-                        
-                        nextData = await apiFetch(`/products/${parentHash}/direct`);
-                        if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары напрямую (столбец E)');
-                            return showProducts(nextData.products, {
-                                section: { id: parentHash, name: parentName }
-                            });
-                        }
                         break;
                         
                     case 'category':
-                        // Проверяем модели (столбец C)
+                        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Сразу ищем товары для категории (столбец E)
+                        debugLog('Ищем товары для категории из столбца E');
+                        
+                        // Пробуем разные варианты эндпоинтов
+                        const endpoints = [
+                            `/products/${additionalData.sectionId}/${parentHash}`,
+                            `/products/${additionalData.sectionId}/${parentHash}/direct`,
+                            `/products/by_category/${parentHash}`
+                        ];
+                        
+                        for (let endpoint of endpoints) {
+                            debugLog(`Пробуем эндпоинт: ${endpoint}`);
+                            nextData = await apiFetch(endpoint);
+                            
+                            if (nextData?.products?.length > 0) {
+                                debugLog(`✅ Найдены товары через эндпоинт: ${endpoint}`, { 
+                                    count: nextData.products.length 
+                                });
+                                return showProducts(nextData.products, {
+                                    section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                                    category: { id: parentHash, name: parentName }
+                                });
+                            }
+                        }
+                        
+                        // Если товары не найдены, проверяем есть ли модели и подмодели
+                        debugLog('Товары не найдены, проверяем модели и подмодели');
                         nextData = await apiFetch(`/models/${additionalData.sectionId}/${parentHash}`);
                         if (nextData?.models?.length > 0) {
                             debugLog('Найдены модели (столбец C)');
                             return showModels(nextData, parentHash, parentName, 'normal', additionalData);
                         }
                         
-                        // Проверяем подмодели (столбец D)
-                        debugLog('Модели не найдены, проверяем подмодели (столбец D)');
                         nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${parentHash}/direct`);
                         if (nextData?.submodels?.length > 0) {
-                            debugLog('Найдены подмодели напрямую (столбец D)');
+                            debugLog('Найдены подмодели (столбец D)');
                             return showSubmodels(nextData, parentHash, parentName, 'direct', additionalData);
                         }
                         
-                        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Ищем товары из столбца E для этой категории
-                        debugLog('Подмодели не найдены, проверяем товары из столбца E для категории');
-                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${parentHash}`);
-                        
-                        if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары из столбца E для категории', { 
-                                count: nextData.products.length,
-                                sectionId: additionalData.sectionId,
-                                categoryId: parentHash
-                            });
-                            return showProducts(nextData.products, {
-                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                category: { id: parentHash, name: parentName }
-                            });
-                        }
-                        
-                        // Если товары не найдены, пробуем альтернативный эндпоинт
-                        debugLog('Пробуем альтернативный эндпоинт для товаров');
-                        nextData = await apiFetch(`/products/${additionalData.sectionId}/${parentHash}/direct`);
-                        
-                        if (nextData?.products?.length > 0) {
-                            debugLog('Найдены товары через альтернативный эндпоинт', { 
-                                count: nextData.products.length 
-                            });
-                            return showProducts(nextData.products, {
-                                section: { id: additionalData.sectionId, name: additionalData.sectionName },
-                                category: { id: parentHash, name: parentName }
-                            });
-                        }
-                        
-                        debugLog('❌ Товары из столбца E не найдены для категории');
-                        break;
+                        debugLog('❌ Товары не найдены для категории');
+                        showEmptyState('Для этой категории нет товаров');
+                        return;
                         
                     case 'model':
-                        nextData = await apiFetch(`/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
-                        if (nextData?.submodels?.length > 0) {
-                            debugLog('Найдены подмодели (столбец D)');
-                            return showSubmodels(nextData, parentHash, parentName, 'normal', additionalData);
-                        }
-                        
                         nextData = await apiFetch(`/products/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`);
                         if (nextData?.products?.length > 0) {
                             debugLog('Найдены товары для модели (столбец E)');
