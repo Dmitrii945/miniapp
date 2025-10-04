@@ -360,7 +360,7 @@
             }
         }
 
-        // Enhanced navigation with step-by-step column checking
+        // Основная функция загрузки разделов
         async function loadSections() {
             debugLog('Загрузка разделов');
             let data = await apiFetch('/sections');
@@ -383,7 +383,7 @@
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-4">
                             <h3 class="font-semibold text-lg mb-2">${section.name}</h3>
-                            <button onclick="loadNextLevel('${section.id}', '${section.name}', 'section')" 
+                            <button onclick="checkNextLevel('${section.id}', '${section.name}', 'section')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть категории</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -399,184 +399,162 @@
             updateBackButton();
         }
 
-        // Main function that checks each column step by step
-        async function loadNextLevel(parentHash, parentName, parentType, additionalHashes = {}) {
-            debugLog('Проверка следующего уровня', { parentHash, parentName, parentType, additionalHashes });
+        // Универсальная функция проверки следующего уровня
+        async function checkNextLevel(parentHash, parentName, parentType, additionalData = {}) {
+            debugLog(`Проверка следующего уровня после: ${parentType}`, { parentHash, parentName, additionalData });
             
+            // Обновляем состояние навигации
+            updateNavigationState(parentType, { id: parentHash, name: parentName }, additionalData);
+            
+            let nextData = null;
             let endpoint = '';
-            let data = null;
             
-            // Determine what to check next based on current level
+            // Определяем какой уровень проверять следующим
             switch (parentType) {
                 case 'section':
-                    // Check for categories (column B)
+                    // Сначала проверяем категории (столбец B)
                     endpoint = `/categories/${parentHash}`;
-                    data = await apiFetch(endpoint);
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.categories && data.categories.length > 0) {
+                    if (nextData && nextData.categories && nextData.categories.length > 0) {
                         debugLog('Найдены категории (столбец B)');
-                        return showLevelItems(data.categories, parentHash, parentName, 'category', data);
+                        return showCategories(nextData, parentHash, parentName);
                     }
                     
-                    // If no categories, check for models directly (column C)
+                    // Если нет категорий, проверяем модели (столбец C)
                     debugLog('Категории не найдены, проверяем модели (столбец C)');
                     endpoint = `/models/${parentHash}/direct`;
-                    data = await apiFetch(endpoint);
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.models && data.models.length > 0) {
+                    if (nextData && nextData.models && nextData.models.length > 0) {
                         debugLog('Найдены модели напрямую (столбец C)');
-                        return showLevelItems(data.models, parentHash, parentName, 'model', data);
+                        return showModels(nextData, parentHash, parentName, 'direct');
                     }
                     
-                    // If no models, check for submodels directly (column D)
+                    // Если нет моделей, проверяем подмодели (столбец D)
                     debugLog('Модели не найдены, проверяем подмодели (столбец D)');
                     endpoint = `/submodels/${parentHash}/direct`;
-                    data = await apiFetch(endpoint);
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.submodels && data.submodels.length > 0) {
+                    if (nextData && nextData.submodels && nextData.submodels.length > 0) {
                         debugLog('Найдены подмодели напрямую (столбец D)');
-                        return showLevelItems(data.submodels, parentHash, parentName, 'submodel', data);
+                        return showSubmodels(nextData, parentHash, parentName, 'direct');
                     }
                     
-                    // If no submodels, check for products directly (column E)
-                    debugLog('Подмодели не найдены, проверяем товары напрямую (столбец E)');
+                    // Если нет подмоделей, проверяем товары напрямую (столбец E)
+                    debugLog('Подмодели не найдены, проверяем товары (столбец E)');
                     endpoint = `/products/${parentHash}/direct`;
-                    data = await apiFetch(endpoint);
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.products && data.products.length > 0) {
+                    if (nextData && nextData.products && nextData.products.length > 0) {
                         debugLog('Найдены товары напрямую (столбец E)');
-                        return showProducts(data.products, {
+                        return showProducts(nextData.products, {
                             section: { id: parentHash, name: parentName },
-                            ...data
+                            ...nextData
                         });
                     }
-                    
                     break;
                     
                 case 'category':
-                    // Check for models (column C)
-                    endpoint = `/models/${additionalHashes.sectionId}/${parentHash}`;
-                    data = await apiFetch(endpoint);
+                    // Проверяем модели (столбец C)
+                    endpoint = `/models/${additionalData.sectionId}/${parentHash}`;
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.models && data.models.length > 0) {
+                    if (nextData && nextData.models && nextData.models.length > 0) {
                         debugLog('Найдены модели (столбец C)');
-                        return showLevelItems(data.models, parentHash, parentName, 'model', data, {
-                            sectionId: additionalHashes.sectionId
-                        });
+                        return showModels(nextData, parentHash, parentName, 'normal', additionalData);
                     }
                     
-                    // If no models, check for submodels directly (column D)
+                    // Если нет моделей, проверяем подмодели (столбец D)
                     debugLog('Модели не найдены, проверяем подмодели (столбец D)');
-                    endpoint = `/submodels/${additionalHashes.sectionId}/${parentHash}/direct`;
-                    data = await apiFetch(endpoint);
+                    endpoint = `/submodels/${additionalData.sectionId}/${parentHash}/direct`;
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.submodels && data.submodels.length > 0) {
+                    if (nextData && nextData.submodels && nextData.submodels.length > 0) {
                         debugLog('Найдены подмодели напрямую (столбец D)');
-                        return showLevelItems(data.submodels, parentHash, parentName, 'submodel', data, {
-                            sectionId: additionalHashes.sectionId
-                        });
+                        return showSubmodels(nextData, parentHash, parentName, 'direct', additionalData);
                     }
                     
-                    // If no submodels, check for products directly (column E)
-                    debugLog('Подмодели не найдены, проверяем товары напрямую (столбец E)');
-                    endpoint = `/products/${additionalHashes.sectionId}/${parentHash}/direct`;
-                    data = await apiFetch(endpoint);
+                    // Если нет подмоделей, проверяем товары напрямую (столбец E)
+                    debugLog('Подмодели не найдены, проверяем товары (столбец E)');
+                    endpoint = `/products/${additionalData.sectionId}/${parentHash}/direct`;
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.products && data.products.length > 0) {
+                    if (nextData && nextData.products && nextData.products.length > 0) {
                         debugLog('Найдены товары напрямую (столбец E)');
-                        return showProducts(data.products, {
-                            section: { id: additionalHashes.sectionId, name: additionalHashes.sectionName },
+                        return showProducts(nextData.products, {
+                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
                             category: { id: parentHash, name: parentName },
-                            ...data
+                            ...nextData
                         });
                     }
-                    
                     break;
                     
                 case 'model':
-                    // Check for submodels (column D)
-                    endpoint = `/submodels/${additionalHashes.sectionId}/${additionalHashes.categoryId}/${parentHash}`;
-                    data = await apiFetch(endpoint);
+                    // Проверяем подмодели (столбец D)
+                    endpoint = `/submodels/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}`;
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.submodels && data.submodels.length > 0) {
+                    if (nextData && nextData.submodels && nextData.submodels.length > 0) {
                         debugLog('Найдены подмодели (столбец D)');
-                        return showLevelItems(data.submodels, parentHash, parentName, 'submodel', data, {
-                            sectionId: additionalHashes.sectionId,
-                            categoryId: additionalHashes.categoryId
-                        });
+                        return showSubmodels(nextData, parentHash, parentName, 'normal', additionalData);
                     }
                     
-                    // If no submodels, check for products directly (column E)
-                    debugLog('Подмодели не найдены, проверяем товары напрямую (столбец E)');
-                    endpoint = `/products/${additionalHashes.sectionId}/${additionalHashes.categoryId}/${parentHash}/direct`;
-                    data = await apiFetch(endpoint);
+                    // Если нет подмоделей, проверяем товары напрямую (столбец E)
+                    debugLog('Подмодели не найдены, проверяем товары (столбец E)');
+                    endpoint = `/products/${additionalData.sectionId}/${additionalData.categoryId}/${parentHash}/direct`;
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.products && data.products.length > 0) {
+                    if (nextData && nextData.products && nextData.products.length > 0) {
                         debugLog('Найдены товары напрямую (столбец E)');
-                        return showProducts(data.products, {
-                            section: { id: additionalHashes.sectionId, name: additionalHashes.sectionName },
-                            category: { id: additionalHashes.categoryId, name: additionalHashes.categoryName },
+                        return showProducts(nextData.products, {
+                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                            category: { id: additionalData.categoryId, name: additionalData.categoryName },
                             model: { id: parentHash, name: parentName },
-                            ...data
+                            ...nextData
                         });
                     }
-                    
                     break;
                     
                 case 'submodel':
-                    // Check for products (column E)
-                    endpoint = `/products/${additionalHashes.sectionId}/${additionalHashes.categoryId}/${additionalHashes.modelId}/${parentHash}`;
-                    data = await apiFetch(endpoint);
+                    // Проверяем товары (столбец E)
+                    endpoint = `/products/${additionalData.sectionId}/${additionalData.categoryId}/${additionalData.modelId}/${parentHash}`;
+                    nextData = await apiFetch(endpoint);
                     
-                    if (data && data.products && data.products.length > 0) {
+                    if (nextData && nextData.products && nextData.products.length > 0) {
                         debugLog('Найдены товары (столбец E)');
-                        return showProducts(data.products, {
-                            section: { id: additionalHashes.sectionId, name: additionalHashes.sectionName },
-                            category: { id: additionalHashes.categoryId, name: additionalHashes.categoryName },
-                            model: { id: additionalHashes.modelId, name: additionalHashes.modelName },
+                        return showProducts(nextData.products, {
+                            section: { id: additionalData.sectionId, name: additionalData.sectionName },
+                            category: { id: additionalData.categoryId, name: additionalData.categoryName },
+                            model: { id: additionalData.modelId, name: additionalData.modelName },
                             submodel: { id: parentHash, name: parentName },
-                            ...data
+                            ...nextData
                         });
                     }
-                    
                     break;
             }
             
-            // If we reach here, no data was found at any level
-            debugLog('❌ Данные не найдены на всех уровнях');
+            // Если дошли сюда, значит товары не найдены
+            debugLog('❌ Товары не найдены на всех уровнях');
             showEmptyState('Товары не найдены');
         }
 
-        // Generic function to show items at any level
-        function showLevelItems(items, parentHash, parentName, itemType, data, additionalHashes = {}) {
-            debugLog(`Показ элементов уровня: ${itemType}`, { count: items.length, parentHash, parentName });
-            
-            // Update navigation state
-            updateNavigationState(itemType, { id: parentHash, name: parentName }, data, additionalHashes);
-            
+        // Функции отображения для каждого уровня
+        function showCategories(data, sectionHash, sectionName) {
             let html = '';
-            const levelNames = {
-                'category': 'категории',
-                'model': 'модели', 
-                'submodel': 'подмодели'
-            };
-            
-            items.forEach(item => {
-                const priceText = item.min_price ? formatPrice(item.min_price) : '';
-                const productCount = item.product_count ? ` (${item.product_count} товаров)` : '';
-                
+            data.categories.forEach(category => {
+                const priceText = category.min_price ? formatPrice(category.min_price) : '';
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${item.name}${productCount}</h3>
+                            <h3 class="font-semibold text-lg mb-1">${category.name}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadNextLevel('${item.id}', '${item.name}', '${itemType}', ${JSON.stringify({
-                                ...additionalHashes,
-                                [`${itemType}Id`]: parentHash,
-                                [`${itemType}Name`]: parentName
-                            }).replace(/\"/g, '&quot;')})" 
+                            <button onclick="checkNextLevel('${category.id}', '${category.name}', 'category', {
+                                sectionId: '${sectionHash}',
+                                sectionName: '${sectionName}'
+                            })" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть ${levelNames[itemType] || 'далее'}</span>
+                                <span>Смотреть модели</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
                             </button>
                         </div>
@@ -590,59 +568,80 @@
             updateBackButton();
         }
 
-        // Update navigation state based on current level
-        function updateNavigationState(levelType, currentItem, data, additionalHashes) {
-            switch (levelType) {
-                case 'section':
-                    navigationState.currentSection = currentItem;
-                    navigationState.currentCategory = null;
-                    navigationState.currentModel = null;
-                    navigationState.currentSubmodel = null;
-                    break;
-                    
-                case 'category':
-                    navigationState.currentCategory = currentItem;
-                    navigationState.currentModel = null;
-                    navigationState.currentSubmodel = null;
-                    break;
-                    
-                case 'model':
-                    navigationState.currentModel = currentItem;
-                    navigationState.currentSubmodel = null;
-                    break;
-                    
-                case 'submodel':
-                    navigationState.currentSubmodel = currentItem;
-                    break;
-            }
+        function showModels(data, parentHash, parentName, mode, additionalData = {}) {
+            let html = '';
+            const items = data.models || [];
+            const buttonText = mode === 'direct' ? 'Смотреть подмодели' : 'Смотреть подмодели';
             
-            // Update names from data if available
-            if (data) {
-                if (data.section_name && !navigationState.currentSection) {
-                    navigationState.currentSection = { 
-                        id: additionalHashes.sectionId, 
-                        name: data.section_name 
-                    };
-                }
-                if (data.category_name && !navigationState.currentCategory) {
-                    navigationState.currentCategory = { 
-                        id: additionalHashes.categoryId, 
-                        name: data.category_name 
-                    };
-                }
-                if (data.model_name && !navigationState.currentModel) {
-                    navigationState.currentModel = { 
-                        id: additionalHashes.modelId, 
-                        name: data.model_name 
-                    };
-                }
-                if (data.submodel_name && !navigationState.currentSubmodel) {
-                    navigationState.currentSubmodel = { 
-                        id: additionalHashes.submodelId, 
-                        name: data.submodel_name 
-                    };
-                }
-            }
+            items.forEach(model => {
+                const priceText = model.min_price ? formatPrice(model.min_price) : '';
+                const nextType = mode === 'direct' ? 'model' : 'model';
+                const nextAdditionalData = mode === 'direct' ? {
+                    sectionId: additionalData.sectionId || parentHash,
+                    sectionName: additionalData.sectionName || parentName
+                } : {
+                    ...additionalData,
+                    categoryId: parentHash,
+                    categoryName: parentName
+                };
+                
+                html += `
+                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
+                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <button onclick="checkNextLevel('${model.id}', '${model.name}', '${nextType}', ${JSON.stringify(nextAdditionalData).replace(/\"/g, '&quot;')})" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                                <span>${buttonText}</span>
+                                <i data-feather="chevron-right" class="ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            feather.replace();
+            updateBreadcrumbsFromState();
+            updateBackButton();
+        }
+
+        function showSubmodels(data, parentHash, parentName, mode, additionalData = {}) {
+            let html = '';
+            const items = data.submodels || [];
+            
+            items.forEach(submodel => {
+                const priceText = submodel.min_price ? formatPrice(submodel.min_price) : '';
+                const productCount = submodel.product_count ? ` (${submodel.product_count} товаров)` : '';
+                const nextType = mode === 'direct' ? 'submodel' : 'submodel';
+                const nextAdditionalData = mode === 'direct' ? {
+                    sectionId: additionalData.sectionId || parentHash,
+                    sectionName: additionalData.sectionName || parentName
+                } : {
+                    ...additionalData,
+                    modelId: parentHash,
+                    modelName: parentName
+                };
+                
+                html += `
+                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-1">${submodel.name}${productCount}</h3>
+                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <button onclick="checkNextLevel('${submodel.id}', '${submodel.name}', '${nextType}', ${JSON.stringify(nextAdditionalData).replace(/\"/g, '&quot;')})" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
+                                <span>Смотреть товары</span>
+                                <i data-feather="chevron-right" class="ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            feather.replace();
+            updateBreadcrumbsFromState();
+            updateBackButton();
         }
 
         // Show products (final level - column E)
@@ -676,7 +675,31 @@
             await showCurrentProduct();
         }
 
-        // Show current product with enhanced photo handling
+        // Update navigation state
+        function updateNavigationState(levelType, currentItem, additionalData = {}) {
+            switch (levelType) {
+                case 'section':
+                    navigationState.currentSection = currentItem;
+                    navigationState.currentCategory = null;
+                    navigationState.currentModel = null;
+                    navigationState.currentSubmodel = null;
+                    break;
+                case 'category':
+                    navigationState.currentCategory = currentItem;
+                    navigationState.currentModel = null;
+                    navigationState.currentSubmodel = null;
+                    break;
+                case 'model':
+                    navigationState.currentModel = currentItem;
+                    navigationState.currentSubmodel = null;
+                    break;
+                case 'submodel':
+                    navigationState.currentSubmodel = currentItem;
+                    break;
+            }
+        }
+
+        // Show current product
         async function showCurrentProduct() {
             if (!currentProducts || currentProducts.length === 0) {
                 showEmptyState();
@@ -718,7 +741,7 @@
                         </div>
             `;
             
-            // Add descriptions with fallbacks
+            // Add descriptions
             if (photoDescription && photoDescription !== description) {
                 html += `<p class="text-gray-600 mb-2">${photoDescription}</p>`;
             }
@@ -730,7 +753,7 @@
                 html += `<p class="${descClass}">${description}</p>`;
             }
             
-            // Enhanced product navigation
+            // Product navigation
             const showNavigation = currentProducts.length > 1;
             if (showNavigation) {
                 const prevDisabled = currentProductIndex === 0;
@@ -753,7 +776,7 @@
                 `;
             }
             
-            // Enhanced product path with fallbacks
+            // Product path
             const productPath = [
                 navigationState.currentSection?.name || 'Раздел',
                 navigationState.currentCategory?.name || 'Категория',
@@ -763,7 +786,7 @@
                 price !== 'Цена не указана' ? price : ''
             ].filter(Boolean).join(' → ');
             
-            // Enhanced action button with product info
+            // Action button
             html += `
                         <div class="flex space-x-2">
                             <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
@@ -809,14 +832,14 @@
             if (navigationState.currentSection) {
                 items.push({
                     name: navigationState.currentSection.name,
-                    action: `loadNextLevel('${navigationState.currentSection.id}', '${navigationState.currentSection.name}', 'section')`
+                    action: `checkNextLevel('${navigationState.currentSection.id}', '${navigationState.currentSection.name}', 'section')`
                 });
             }
             
             if (navigationState.currentCategory) {
                 items.push({
                     name: navigationState.currentCategory.name,
-                    action: `loadNextLevel('${navigationState.currentCategory.id}', '${navigationState.currentCategory.name}', 'category', {
+                    action: `checkNextLevel('${navigationState.currentCategory.id}', '${navigationState.currentCategory.name}', 'category', {
                         sectionId: '${navigationState.currentSection.id}',
                         sectionName: '${navigationState.currentSection.name}'
                     })`
@@ -826,7 +849,7 @@
             if (navigationState.currentModel) {
                 items.push({
                     name: navigationState.currentModel.name,
-                    action: `loadNextLevel('${navigationState.currentModel.id}', '${navigationState.currentModel.name}', 'model', {
+                    action: `checkNextLevel('${navigationState.currentModel.id}', '${navigationState.currentModel.name}', 'model', {
                         sectionId: '${navigationState.currentSection.id}',
                         sectionName: '${navigationState.currentSection.name}',
                         categoryId: '${navigationState.currentCategory.id}',
@@ -838,7 +861,7 @@
             if (navigationState.currentSubmodel) {
                 items.push({
                     name: navigationState.currentSubmodel.name,
-                    action: `loadNextLevel('${navigationState.currentSubmodel.id}', '${navigationState.currentSubmodel.name}', 'submodel', {
+                    action: `checkNextLevel('${navigationState.currentSubmodel.id}', '${navigationState.currentSubmodel.name}', 'submodel', {
                         sectionId: '${navigationState.currentSection.id}',
                         sectionName: '${navigationState.currentSection.name}',
                         categoryId: '${navigationState.currentCategory.id}',
@@ -929,15 +952,12 @@
                 errorDetails.textContent = message || 'Данные не найдены';
             }
             
-            // Update back button based on navigation state
             updateBackButton();
         }
 
         function showError(message) {
             const errorMessage = message || 'Произошла ошибка при загрузке данных';
             showEmptyState(errorMessage);
-            
-            // Log error to debug if enabled
             debugLog('Ошибка', errorMessage);
         }
 
@@ -947,7 +967,7 @@
                 initTelegramApp();
                 feather.replace();
                 
-                // Event listeners with error handling
+                // Event listeners
                 const toggleMenu = document.getElementById('toggleMenu');
                 const closeMenu = document.getElementById('closeMenu');
                 
@@ -959,7 +979,7 @@
                     closeMenu.addEventListener('click', closeSideMenu);
                 }
                 
-                // Load initial content with fallback
+                // Load initial content
                 setTimeout(() => {
                     try {
                         loadSections();
@@ -977,7 +997,7 @@
 
         // Make functions global
         window.loadSections = loadSections;
-        window.loadNextLevel = loadNextLevel;
+        window.checkNextLevel = checkNextLevel;
         window.showProducts = showProducts;
         window.openInBot = openInBot;
         window.contactAboutProduct = contactAboutProduct;
