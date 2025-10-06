@@ -271,23 +271,31 @@
                 url = url.trim();
 
                 // Если это уже прямая ссылка на изображение
-                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)$/)) {
+                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
                     return url.startsWith('http') ? url : null;
                 }
 
-                // Для Google Drive ссылок
+                // Для Google Drive ссылок - ИСПРАВЛЕННАЯ ЛОГИКА
                 if (url.includes('drive.google.com')) {
                     let fileId = null;
 
+                    // Основной паттерн для ссылок вида /file/d/ID/view
                     if (url.includes('/file/d/')) {
-                        fileId = url.split('/file/d/')[1].split('/')[0];
-                    } else if (url.includes('id=')) {
+                        // Извлекаем ID между /file/d/ и /view
+                        const match = url.match(/\/file\/d\/([^\/]+)/);
+                        if (match && match[1]) {
+                            fileId = match[1];
+                        }
+                    } 
+                    // Дополнительные паттерны на случай других форматов
+                    else if (url.includes('id=')) {
                         fileId = url.split('id=')[1].split('&')[0];
                     } else if (url.includes('/open?id=')) {
                         fileId = url.split('/open?id=')[1].split('&')[0];
                     }
 
                     if (fileId) {
+                        // Возвращаем прямую ссылку для просмотра
                         return `https://drive.google.com/uc?export=view&id=${fileId}`;
                     }
                 }
@@ -302,6 +310,21 @@
                 debugLog('Ошибка извлечения фото из URL:', error);
                 return null;
             }
+        }
+
+        // Функции для отладки загрузки изображений
+        function handleImageError(imgElement) {
+            debugLog('Ошибка загрузки изображения:', imgElement.src);
+            imgElement.style.display = 'none';
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('image-placeholder')) {
+                placeholder.style.display = 'flex';
+            }
+            scheduleFeatherReplace();
+        }
+
+        function handleImageLoad(imgElement) {
+            debugLog('Изображение успешно загружено:', imgElement.src);
         }
 
         // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
@@ -716,8 +739,13 @@
             const photoUrl = safeString(product.photo_url);
             const photoDescription = safeString(product.photo_description);
             
+            // ОТЛАДКА: логируем процесс обработки фото
+            debugLog('Обработка фото:', {
+                originalUrl: photoUrl,
+                processedUrl: extractPhotoFilenameFromUrl(photoUrl)
+            });
+            
             const imageUrl = extractPhotoFilenameFromUrl(photoUrl);
-            debugLog('Фото URL:', { original: photoUrl, processed: imageUrl });
 
             // Получаем данные из навигации
             const navigation = getCurrentNavigation();
@@ -736,16 +764,25 @@
                 html += `
                     <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
                          class="product-image w-full h-48 object-cover"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                         onerror="handleImageError(this)"
+                         onload="handleImageLoad(this)"
                          loading="lazy">
-                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden">
-                        <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                        <div class="text-center text-gray-400">
+                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                            <div class="text-sm">Не удалось загрузить фото</div>
+                            <div class="text-xs mt-1">URL: ${escapeHtml(photoUrl?.substring(0, 50) + '...')}</div>
+                        </div>
                     </div>
                 `;
             } else {
                 html += `
                     <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                        <i data-feather="package" class="w-12 h-12 text-gray-400"></i>
+                        <div class="text-center text-gray-400">
+                            <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                            <div class="text-sm">Фото не доступно</div>
+                            ${photoUrl ? `<div class="text-xs mt-1">Исходный URL: ${escapeHtml(photoUrl.substring(0, 50) + '...')}</div>` : ''}
+                        </div>
                     </div>
                 `;
             }
@@ -1220,6 +1257,23 @@
             for (const endpoint of endpoints) {
                 const data = await apiFetch(endpoint);
                 debugLog(`Тест ${endpoint}:`, data);
+                
+                // Тестируем обработку фото для продуктов
+                if (endpoint.includes('/products/') && data && data.products) {
+                    debugLog('=== ТЕСТИРОВАНИЕ ОБРАБОТКИ ФОТО ===');
+                    data.products.forEach((product, index) => {
+                        if (product.photo_url) {
+                            const originalUrl = product.photo_url;
+                            const processedUrl = extractPhotoFilenameFromUrl(originalUrl);
+                            debugLog(`Фото товара ${index + 1}:`, {
+                                original: originalUrl,
+                                processed: processedUrl,
+                                fileId: originalUrl.match(/\/file\/d\/([^\/]+)/)?.[1]
+                            });
+                        }
+                    });
+                }
+                
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
             
@@ -1284,6 +1338,8 @@
         window.closeSideMenu = closeSideMenu;
         window.toggleDebug = toggleDebug;
         window.testAllEndpoints = testAllEndpoints;
+        window.handleImageError = handleImageError;
+        window.handleImageLoad = handleImageLoad;
     </script>
 </body>
 </html>
