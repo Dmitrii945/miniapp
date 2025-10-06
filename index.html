@@ -75,6 +75,22 @@
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
+        
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #3B82F6;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb-item:hover {
+            color: #1D4ED8;
+            text-decoration: underline;
+        }
+        
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: #6B7280;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -817,6 +833,64 @@
             scheduleFeatherReplace();
         }
 
+        // НОВАЯ ФУНКЦИЯ: Рендеринг хлебных крошек для товара
+        function renderProductBreadcrumbs(navigation) {
+            if (!navigation.section && !navigation.category && !navigation.model && !navigation.submodel) {
+                return '';
+            }
+
+            const breadcrumbs = [];
+            
+            // Добавляем раздел
+            if (navigation.section) {
+                breadcrumbs.push({
+                    name: navigation.section.name,
+                    action: `loadCategories('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            // Добавляем категорию
+            if (navigation.category) {
+                breadcrumbs.push({
+                    name: navigation.category.name,
+                    action: `loadModels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            // Добавляем модель
+            if (navigation.model) {
+                breadcrumbs.push({
+                    name: navigation.model.name,
+                    action: `loadSubmodels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            // Добавляем подмодель
+            if (navigation.submodel && navigation.submodel.name !== 'Без подмодели') {
+                breadcrumbs.push({
+                    name: navigation.submodel.name,
+                    action: `loadProducts('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}', '${navigation.submodel.id}', '${navigation.submodel.name.replace(/'/g, "\\'")}')`
+                });
+            }
+
+            if (breadcrumbs.length === 0) {
+                return '';
+            }
+
+            let html = '<div class="mb-4 p-3 bg-gray-50 rounded-lg">';
+            html += '<div class="flex items-center flex-wrap text-sm text-gray-600">';
+            
+            breadcrumbs.forEach((crumb, index) => {
+                if (index > 0) {
+                    html += '<span class="breadcrumb-separator">→</span>';
+                }
+                html += `<span class="breadcrumb-item" onclick="${crumb.action}">${escapeHtml(crumb.name)}</span>`;
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
         async function showCurrentProduct() {
             if (!currentProducts || currentProducts.length === 0) {
                 showEmptyState('Товары не найдены');
@@ -857,6 +931,9 @@
             let html = `
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
             `;
+
+            // Добавляем кликабельные хлебные крошки
+            html += renderProductBreadcrumbs(navigation);
 
             // Блок с фото - ИСПРАВЛЕННЫЙ КОД
             if (imageUrl || alternativeUrls.length > 0) {
@@ -900,13 +977,6 @@
                         
                         <div class="space-y-2 mb-4">
             `;
-
-            // Информация о пути
-            html += `<p class="text-gray-600"><strong>${escapeHtml(section)}</strong> → ${escapeHtml(category)} → ${escapeHtml(modelName)}</p>`;
-            
-            if (submodelName !== "Без подмодели") {
-                html += `<p class="text-gray-600"><strong>Подмодель:</strong> ${escapeHtml(submodelName)}</p>`;
-            }
 
             // Описание под фото
             if (photoDescription) {
