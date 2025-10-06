@@ -281,22 +281,23 @@
 
                     // Основной паттерн для ссылок вида /file/d/ID/view
                     if (url.includes('/file/d/')) {
-                        // Извлекаем ID между /file/d/ и /view
                         const match = url.match(/\/file\/d\/([^\/]+)/);
                         if (match && match[1]) {
                             fileId = match[1];
                         }
                     } 
-                    // Дополнительные паттерны на случай других форматов
+                    // Для ссылок вида uc?export=view&id=...
+                    else if (url.includes('uc?export=view&id=')) {
+                        fileId = url.split('uc?export=view&id=')[1];
+                    }
+                    // Для ссылок вида id=...
                     else if (url.includes('id=')) {
                         fileId = url.split('id=')[1].split('&')[0];
-                    } else if (url.includes('/open?id=')) {
-                        fileId = url.split('/open?id=')[1].split('&')[0];
                     }
 
                     if (fileId) {
-                        // Возвращаем прямую ссылку для просмотра
-                        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+                        // Используем Google Drive thumbnail API - наиболее стабильный метод
+                        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
                     }
                 }
 
@@ -313,8 +314,12 @@
         }
 
         // Функции для отладки загрузки изображений
-        function handleImageError(imgElement) {
-            debugLog('Ошибка загрузки изображения:', imgElement.src);
+        function handleImageError(imgElement, originalUrl = '') {
+            debugLog('Ошибка загрузки изображения:', {
+                src: imgElement.src,
+                original: originalUrl
+            });
+            
             imgElement.style.display = 'none';
             const placeholder = imgElement.nextElementSibling;
             if (placeholder && placeholder.classList.contains('image-placeholder')) {
@@ -745,7 +750,18 @@
                 processedUrl: extractPhotoFilenameFromUrl(photoUrl)
             });
             
-            const imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+            let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+            
+            // Если первый метод не сработал, пробуем альтернативные
+            if (!imageUrl && photoUrl) {
+                debugLog('Пробуем альтернативные методы загрузки фото');
+                // Пробуем создать thumbnail ссылку
+                const fileId = photoUrl.match(/id=([^&]+)/)?.[1];
+                if (fileId) {
+                    imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+                    debugLog('Альтернативная ссылка:', imageUrl);
+                }
+            }
 
             // Получаем данные из навигации
             const navigation = getCurrentNavigation();
@@ -764,14 +780,15 @@
                 html += `
                     <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
                          class="product-image w-full h-48 object-cover"
-                         onerror="handleImageError(this)"
+                         onerror="handleImageError(this, '${escapeHtml(photoUrl)}')"
                          onload="handleImageLoad(this)"
-                         loading="lazy">
+                         loading="lazy"
+                         crossorigin="anonymous">
                     <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
                         <div class="text-center text-gray-400">
                             <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                             <div class="text-sm">Не удалось загрузить фото</div>
-                            <div class="text-xs mt-1">URL: ${escapeHtml(photoUrl?.substring(0, 50) + '...')}</div>
+                            <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/id=([^&]+)/)?.[1] || 'неизвестен')}</div>
                         </div>
                     </div>
                 `;
@@ -781,7 +798,7 @@
                         <div class="text-center text-gray-400">
                             <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                             <div class="text-sm">Фото не доступно</div>
-                            ${photoUrl ? `<div class="text-xs mt-1">Исходный URL: ${escapeHtml(photoUrl.substring(0, 50) + '...')}</div>` : ''}
+                            ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -1268,7 +1285,7 @@
                             debugLog(`Фото товара ${index + 1}:`, {
                                 original: originalUrl,
                                 processed: processedUrl,
-                                fileId: originalUrl.match(/\/file\/d\/([^\/]+)/)?.[1]
+                                fileId: originalUrl.match(/id=([^&]+)/)?.[1]
                             });
                         }
                     });
