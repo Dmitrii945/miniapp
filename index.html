@@ -50,15 +50,19 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
+        .external-link {
+            color: #3B82F6;
+            text-decoration: underline;
+            cursor: pointer;
         }
         
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+        .price-badge {
+            background-color: #10B981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -156,7 +160,7 @@
         let debugMode = false;
         let featherTimeout;
 
-        // Состояние приложения (адаптировано из Python)
+        // Состояние приложения
         let navigationStack = [];
         let currentProducts = [];
         let currentProductIndex = 0;
@@ -218,8 +222,7 @@
         }
 
         function extractNumericPrice(priceStr) {
-            // Адаптировано из Python: extract_numeric_price
-            if (!priceStr || !typeof priceStr === 'string') {
+            if (!priceStr || typeof priceStr !== 'string') {
                 return Infinity;
             }
 
@@ -227,7 +230,7 @@
                 let cleanStr = priceStr.trim();
                 if (!cleanStr) return Infinity;
 
-                // Убираем валюту и другие символы
+                // Убираем валюту и другие символы, но сохраняем цифры, запятые и точки
                 cleanStr = cleanStr.replace(/[^\d,.]/g, '');
 
                 if (!cleanStr) return Infinity;
@@ -236,8 +239,8 @@
                 cleanStr = cleanStr.replace(',', '.');
 
                 // Убираем лишние точки
-                if (cleanStr.split('.').length > 2) {
-                    const parts = cleanStr.split('.');
+                const parts = cleanStr.split('.');
+                if (parts.length > 2) {
                     cleanStr = parts[0] + '.' + parts.slice(1).join('');
                 }
 
@@ -250,15 +253,20 @@
         }
 
         function formatPriceText(price) {
-            // Адаптировано из Python: format_price_text
-            if (price === null || price === Infinity) return "";
+            if (price === null || price === Infinity || price === 0) return "";
             return ` от ${Math.round(price)} р.`;
         }
 
+        function formatPriceForBadge(price) {
+            if (!price || price === 'Цена не указана') return '';
+            const numericPrice = extractNumericPrice(price);
+            if (numericPrice === Infinity) return '';
+            return `${Math.round(numericPrice)} р.`;
+        }
+
         function extractPhotoFilenameFromUrl(url) {
-            // Адаптировано из Python: extract_photo_filename_from_url
             try {
-                if (!url || !typeof url === 'string') return null;
+                if (!url || typeof url !== 'string') return null;
 
                 url = url.trim();
 
@@ -381,196 +389,7 @@
             }
         }
 
-        // ========== ПАРСИНГ ДАННЫХ (адаптировано из Python) ==========
-
-        function parseCatalogData(data) {
-            // Адаптировано из Python: parse_catalog_data
-            const catalog = {};
-            let currentSection = null;
-            let currentCategory = null;
-            let currentModel = null;
-            let currentSubmodel = null;
-
-            for (let i = 0; i < data.length; i++) {
-                const row = data[i];
-                
-                // Пропускаем пустые строки и заголовок
-                if (row.length < 3 || (row[0] === "Раздел" && row[1] === "Категория")) {
-                    continue;
-                }
-
-                // Обновляем текущие значения (адаптированная логика из Python)
-                if (row[0]) {
-                    currentSection = row[0].trim();
-                    currentCategory = null;
-                    currentModel = null;
-                    currentSubmodel = null;
-                }
-
-                if (row.length > 1 && row[1]) {
-                    currentCategory = row[1].trim();
-                    currentModel = null;
-                    currentSubmodel = null;
-                }
-
-                if (row.length > 2 && row[2]) {
-                    currentModel = row[2].trim();
-                    currentSubmodel = null;
-                }
-
-                if (row.length > 3 && row[3]) {
-                    currentSubmodel = row[3].trim();
-                }
-
-                // Пропускаем строки без раздела или категории
-                if (!currentSection || !currentCategory) {
-                    continue;
-                }
-
-                // Если нет модели, создаем фиктивную модель "Без модели"
-                if (!currentModel) {
-                    currentModel = "Без модели";
-                    currentSubmodel = "Без подмодели";
-                }
-
-                // Получаем данные товара (колонки A-I)
-                const color = row.length > 4 && row[4] ? row[4].trim() : null;
-                const price = row.length > 5 && row[5] ? row[5].trim() : null;
-                const photoUrl = row.length > 6 && row[6] ? row[6].trim() : null;
-                const description = row.length > 7 && row[7] ? row[7].trim() : null;
-                const photoDescription = row.length > 8 && row[8] ? row[8].trim() : null;
-
-                // Если нет подмодели, используем "Без подмодели"
-                const submodelKey = currentSubmodel || "Без подмодели";
-
-                // Создаем структуру каталога (аналогично Python)
-                if (!catalog[currentSection]) {
-                    catalog[currentSection] = {};
-                }
-
-                if (!catalog[currentSection][currentCategory]) {
-                    catalog[currentSection][currentCategory] = {};
-                }
-
-                if (!catalog[currentSection][currentCategory][currentModel]) {
-                    catalog[currentSection][currentCategory][currentModel] = {};
-                }
-
-                if (!catalog[currentSection][currentCategory][currentModel][submodelKey]) {
-                    catalog[currentSection][currentCategory][currentModel][submodelKey] = [];
-                }
-
-                // Добавляем вариант товара (если есть хоть одно поле)
-                if (color || price || photoUrl || description || photoDescription) {
-                    catalog[currentSection][currentCategory][currentModel][submodelKey].push({
-                        color: color,
-                        price: price,
-                        photo_url: photoUrl,
-                        row_index: i + 2, // +2 потому что Python считает с A2
-                        description: description,
-                        photo_description: photoDescription
-                    });
-                }
-            }
-
-            return catalog;
-        }
-
-        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ НАВИГАЦИИ ==========
-
-        function getMinPriceInCategory(catalog, section, category) {
-            // Адаптировано из Python: get_min_price_in_category
-            let minPrice = Infinity;
-
-            if (catalog[section] && catalog[section][category]) {
-                for (const model of Object.values(catalog[section][category])) {
-                    for (const submodel of Object.values(model)) {
-                        for (const product of submodel) {
-                            if (product.price) {
-                                const priceNum = extractNumericPrice(product.price);
-                                if (priceNum !== Infinity) {
-                                    minPrice = Math.min(minPrice, priceNum);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return minPrice !== Infinity ? minPrice : null;
-        }
-
-        function getMinPriceInModel(catalog, section, category, model) {
-            // Адаптировано из Python: get_min_price_in_model
-            let minPrice = Infinity;
-
-            if (catalog[section] && catalog[section][category] && catalog[section][category][model]) {
-                for (const submodel of Object.values(catalog[section][category][model])) {
-                    for (const product of submodel) {
-                        if (product.price) {
-                            const priceNum = extractNumericPrice(product.price);
-                            if (priceNum !== Infinity) {
-                                minPrice = Math.min(minPrice, priceNum);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return minPrice !== Infinity ? minPrice : null;
-        }
-
-        function checkAutoShowModel(catalog, section, category, model) {
-            // Адаптировано из Python: check_auto_show_model
-            if (catalog[section] && catalog[section][category] && catalog[section][category][model]) {
-                const submodels = catalog[section][category][model];
-                const realSubmodels = Object.keys(submodels).filter(submodel => submodel !== "Без подмодели");
-
-                // Можно автоматически показать, если только "Без подмодели" с товарами
-                if (realSubmodels.length === 0 && submodels["Без подмодели"] && submodels["Без подмодели"].length > 0) {
-                    return { canAutoShow: true, products: submodels["Без подмодели"] };
-                }
-            }
-
-            return { canAutoShow: false, products: [] };
-        }
-
-        function shouldShowVariantsButton(catalog, section, category, model, currentProduct) {
-            // Адаптировано из Python: should_show_variants_button
-            if (!section || !category || !model || !currentProduct) {
-                return false;
-            }
-
-            const currentColor = safeString(currentProduct.color, '').trim();
-            if (!currentColor) {
-                return false;
-            }
-
-            // Считаем количество товаров с ТЕМ ЖЕ ЦВЕТОМ в РАЗДЕЛЕ
-            let sameColorCount = 0;
-
-            if (catalog[section]) {
-                for (const cat of Object.keys(catalog[section])) {
-                    for (const mod of Object.keys(catalog[section][cat])) {
-                        for (const submodel of Object.keys(catalog[section][cat][mod])) {
-                            for (const product of catalog[section][cat][mod][submodel]) {
-                                const prodColor = safeString(product.color, '').trim();
-                                if (prodColor && prodColor === currentColor) {
-                                    sameColorCount++;
-                                    if (sameColorCount > 1) {
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return sameColorCount > 1;
-        }
-
-        // ========== НАВИГАЦИЯ (адаптированная логика из Python) ==========
+        // ========== НАВИГАЦИЯ ==========
 
         async function loadSections() {
             debugLog('=== ЗАГРУЗКА РАЗДЕЛОВ ===');
@@ -611,13 +430,11 @@
                 const data = await apiFetch(`/categories/${sectionId}`);
                 
                 if (data?.error) {
-                    // Если ошибка, пробуем загрузить товары напрямую
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
-                    // Если категорий нет, пробуем загрузить товары напрямую
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
                     return;
                 }
@@ -631,7 +448,7 @@
         }
 
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
-            debugLog(`=== ЗАГРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
+            debugLog(`=== ЗАГРРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
             
             try {
                 navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
@@ -650,68 +467,8 @@
                     return;
                 }
 
-                // Проверяем автоматический показ для каждой модели
-                const modelsToShow = [];
-                const autoShowModels = [];
-
-                for (const model of data.models) {
-                    const submodelsData = await apiFetch(`/submodels/${sectionId}/${categoryId}/${model.id}`);
-                    
-                    if (submodelsData?.submodels && Array.isArray(submodelsData.submodels)) {
-                        const realSubmodels = submodelsData.submodels.filter(submodel => 
-                            submodel.name !== "Без подмодели"
-                        );
-
-                        // Если только "Без подмодели" с товарами
-                        const withoutSubmodel = submodelsData.submodels.find(submodel => 
-                            submodel.name === "Без подмодели"
-                        );
-
-                        if (realSubmodels.length === 0 && withoutSubmodel) {
-                            autoShowModels.push({
-                                model: model,
-                                products: await getProductsForPath(sectionId, categoryId, model.id, "Без подмодели")
-                            });
-                        } else if (realSubmodels.length > 0) {
-                            modelsToShow.push(model);
-                        } else if (withoutSubmodel) {
-                            autoShowModels.push({
-                                model: model,
-                                products: await getProductsForPath(sectionId, categoryId, model.id, "Без подмодели")
-                            });
-                        }
-                    }
-                }
-
-                // Если есть модели для автоматического показа и нет обычных моделей
-                if (autoShowModels.length > 0 && modelsToShow.length === 0) {
-                    if (autoShowModels.length === 1) {
-                        // Автоматический показ для одной модели
-                        const autoModel = autoShowModels[0];
-                        if (autoModel.products && autoModel.products.length > 0) {
-                            navigationStack.push({ 
-                                type: 'models', 
-                                id: autoModel.model.id, 
-                                name: autoModel.model.name 
-                            });
-                            context.user_data = {
-                                section: sectionId,
-                                category: categoryId,
-                                model: autoModel.model.id,
-                                submodel: "Без подмодели"
-                            };
-                            currentProducts = autoModel.products;
-                            currentProductIndex = 0;
-                            await showCurrentProduct();
-                            return;
-                        }
-                    }
-                }
-
-                // Обычный вывод моделей
-                renderModels(modelsToShow, sectionId, sectionName, categoryId, categoryName);
+                renderModels(data.models, sectionId, sectionName, categoryId, categoryName);
                 updateBackButton();
-
             } catch (error) {
                 debugLog('Критическая ошибка в loadModels:', error);
                 showError('Не удалось загрузить модели');
@@ -738,41 +495,8 @@
                     return;
                 }
 
-                // Проверяем, есть ли реальные подмодели (кроме "Без подмодели")
-                const realSubmodels = data.submodels.filter(submodel => 
-                    submodel.name !== "Без подмодели"
-                );
-
-                // Получаем все товары для проверки
-                const allProducts = [];
-                for (const submodel of data.submodels) {
-                    const products = await getProductsForPath(sectionId, categoryId, modelId, submodel.id);
-                    allProducts.push(...products);
-                }
-
-                if (allProducts.length === 0) {
-                    showEmptyState(`В этой модели нет товаров`);
-                    return;
-                }
-
-                // Если есть только "Без подмодели" или нет реальных подмоделей
-                if (realSubmodels.length === 0) {
-                    // Сразу показываем товары
-                    context.user_data = {
-                        section: sectionId,
-                        category: categoryId,
-                        model: modelId,
-                        submodel: "Без подмодели"
-                    };
-                    currentProducts = allProducts;
-                    currentProductIndex = 0;
-                    await showCurrentProduct();
-                    return;
-                }
-
                 renderSubmodels(data.submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
                 updateBackButton();
-
             } catch (error) {
                 debugLog('Критическая ошибка в loadSubmodels:', error);
                 showError('Не удалось загрузить подмодели');
@@ -810,14 +534,6 @@
                 return;
             }
 
-            // Сохраняем контекст для навигации
-            context.user_data = {
-                section: sectionId,
-                category: categoryId,
-                model: modelId,
-                submodel: submodelId
-            };
-
             currentProducts = data.products.filter(product => product != null);
             currentProductIndex = 0;
             
@@ -828,12 +544,6 @@
 
             await showCurrentProduct();
             updateBackButton();
-        }
-
-        async function getProductsForPath(sectionId, categoryId, modelId, submodelId) {
-            const endpoint = `/products/${sectionId || 'null'}/${categoryId || 'null'}/${modelId || 'null'}/${submodelId || 'null'}`;
-            const data = await apiFetch(endpoint);
-            return data?.products || [];
         }
 
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
@@ -847,14 +557,15 @@
                 const safeId = escapeHtml(section.id);
                 const safeName = escapeHtml(section.name);
                 const minPrice = safeNumber(section.min_price);
-                const hasPrice = minPrice > 0;
-                const priceText = formatPriceText(hasPrice ? minPrice : null);
+                const priceText = formatPriceText(minPrice);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg">${safeName}</h3>
+                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            </div>
                             <button onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть категории</span>
@@ -883,14 +594,15 @@
                 const safeId = escapeHtml(category.id);
                 const safeName = escapeHtml(category.name);
                 const minPrice = safeNumber(category.min_price);
-                const hasPrice = minPrice > 0;
-                const priceText = formatPriceText(hasPrice ? minPrice : null);
+                const priceText = formatPriceText(minPrice);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg">${safeName}</h3>
+                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            </div>
                             <button onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть модели</span>
@@ -919,14 +631,15 @@
                 const safeId = escapeHtml(model.id);
                 const safeName = escapeHtml(model.name);
                 const minPrice = safeNumber(model.min_price);
-                const hasPrice = minPrice > 0;
-                const priceText = formatPriceText(hasPrice ? minPrice : null);
+                const priceText = formatPriceText(minPrice);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg">${safeName}</h3>
+                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            </div>
                             <button onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть подмодели</span>
@@ -955,14 +668,15 @@
                 const safeId = escapeHtml(submodel.id);
                 const safeName = escapeHtml(submodel.name);
                 const minPrice = safeNumber(submodel.min_price);
-                const hasPrice = minPrice > 0;
-                const priceText = formatPriceText(hasPrice ? minPrice : null);
+                const priceText = formatPriceText(minPrice);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
-                            ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg">${safeName}</h3>
+                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            </div>
                             <button onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть товары</span>
@@ -997,12 +711,13 @@
 
             // Безопасное извлечение данных
             const color = safeString(product.color, 'Не указан');
-            const price = product.price != null ? `${Math.round(safeNumber(product.price))} р.` : 'Цена не указана';
+            const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
             const description = safeString(product.description);
             const photoUrl = safeString(product.photo_url);
             const photoDescription = safeString(product.photo_description);
             
             const imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+            debugLog('Фото URL:', { original: photoUrl, processed: imageUrl });
 
             // Получаем данные из навигации
             const navigation = getCurrentNavigation();
@@ -1011,104 +726,119 @@
             const modelName = navigation.model?.name || 'Неизвестно';
             const submodelName = navigation.submodel?.name || 'Без подмодели';
 
-            // Формируем подпись (аналогично Python логике)
-            let caption = `📦 ${section} → ${category} → ${modelName}\n`;
-            if (submodelName !== "Без подмодели") {
-                caption += `📋 : ${submodelName}\n\n`;
-            } else {
-                caption += "\n";
-            }
-
-            caption += `🎨 Характеристики/Цвет: ${escapeHtml(color)}\n`;
-            caption += `💰 Цена: ${escapeHtml(price)}\n`;
-
-            // Добавляем описание под фото ТОЛЬКО если оно есть
-            if (photoDescription) {
-                caption += `\n📄 Описание:\n${escapeHtml(photoDescription)}`;
-            }
-
-            caption += "\n\n🗺 БАРАБИНСКАЯ 3а с4\n";
-            caption += "📍 <a href='https://2gis.ru/tyumen/search/ скидка%20сервис/firm/70000001048108193/65.610084%2C57.15728?m=65.61013%2C57.157229%2F20'>Посмотреть на 2GIS</a>";
-
-            // Создаем клавиатуру
-            let keyboard = [];
-
-            // Кнопки навигации по товарам
-            if (currentProducts.length > 1) {
-                keyboard.push([
-                    { text: "⬅️", callback: "product_prev" },
-                    { text: `${currentProductIndex + 1}/${currentProducts.length}`, callback: "product_info" },
-                    { text: "➡️", callback: "product_next" }
-                ]);
-            }
-
-            // Кнопка ВАРИАНТЫ (если нужно показать)
-            // Для этого нужно загрузить каталог и проверить
-            const showVariants = false; // Временно отключено, нужно реализовать проверку
-
-            if (showVariants) {
-                keyboard.push([
-                    { text: "🎨 ВАРИАНТЫ", callback: "show_color_variants" }
-                ]);
-            }
-
-            // Кнопки действий
-            keyboard.push([
-                { text: "💬 Спросить AI", callback: "ask_ai" },
-                { text: "📞 БАРАБИНСКАЯ 3а с4", callback: "show_phone_1" }
-            ]);
-
-            // Кнопка назад
-            const backButton = getBackButton();
-            keyboard.push([backButton]);
-
-            // Отображаем контент
+            // Формируем подпись
             let html = `
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
-                    ${imageUrl ? `
-                        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
-                             class="product-image w-full h-48 object-cover"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                             loading="lazy">
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden">
-                            <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
-                        </div>
-                    ` : `
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                            <i data-feather="package" class="w-12 h-12 text-gray-400"></i>
-                        </div>
-                    `}
-                    
+            `;
+
+            // Блок с фото
+            if (imageUrl) {
+                html += `
+                    <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
+                         class="product-image w-full h-48 object-cover"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                         loading="lazy">
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden">
+                        <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                        <i data-feather="package" class="w-12 h-12 text-gray-400"></i>
+                    </div>
+                `;
+            }
+
+            html += `
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-3">
                             <h3 class="font-semibold text-lg">${escapeHtml(color)}</h3>
-                            ${price !== 'Цена не указана' ? `
-                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                    ${escapeHtml(price)}
-                                </span>
+                            ${price && price !== 'Цена не указана' ? `
+                                <span class="price-badge">${escapeHtml(price)}</span>
                             ` : ''}
                         </div>
                         
-                        <div class="text-gray-600 whitespace-pre-line">${caption}</div>
+                        <div class="space-y-2 mb-4">
             `;
 
-            // Добавляем кнопки навигации
-            if (keyboard.length > 0) {
-                html += `<div class="mt-4 space-y-2">`;
-                keyboard.forEach(row => {
-                    html += `<div class="flex space-x-2">`;
-                    row.forEach(button => {
-                        html += `
-                            <button onclick="handleButtonClick('${button.callback}')" 
-                                    class="flex-1 py-2 px-3 bg-blue-500 text-white rounded-lg transition font-medium text-sm">
-                                ${button.text}
-                            </button>
-                        `;
-                    });
-                    html += `</div>`;
-                });
-                html += `</div>`;
+            // Информация о пути
+            html += `<p class="text-gray-600"><strong>${escapeHtml(section)}</strong> → ${escapeHtml(category)} → ${escapeHtml(modelName)}</p>`;
+            
+            if (submodelName !== "Без подмодели") {
+                html += `<p class="text-gray-600"><strong>Подмодель:</strong> ${escapeHtml(submodelName)}</p>`;
             }
+
+            // Описание под фото
+            if (photoDescription) {
+                html += `<p class="text-gray-700 mt-2">${escapeHtml(photoDescription)}</p>`;
+            }
+
+            // Описание товара
+            if (description) {
+                html += `<p class="text-gray-500 text-sm mt-2">${escapeHtml(description)}</p>`;
+            }
+
+            html += `</div>`;
+
+            // Кнопки навигации по товарам
+            if (currentProducts.length > 1) {
+                const prevDisabled = currentProductIndex === 0;
+                const nextDisabled = currentProductIndex === currentProducts.length - 1;
+                
+                html += `
+                    <div class="flex justify-between items-center mb-4 bg-gray-50 rounded-lg p-2">
+                        <button onclick="navigateProduct('prev')" 
+                                class="py-2 px-3 bg-white rounded-lg flex items-center ${prevDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
+                                ${prevDisabled ? 'disabled' : ''}>
+                            <i data-feather="chevron-left" class="w-4 h-4 mr-1"></i>
+                            <span class="text-sm">Назад</span>
+                        </button>
+                        
+                        <span class="text-sm text-gray-600 font-medium">
+                            ${currentProductIndex + 1} / ${currentProducts.length}
+                        </span>
+                        
+                        <button onclick="navigateProduct('next')" 
+                                class="py-2 px-3 bg-white rounded-lg flex items-center ${nextDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
+                                ${nextDisabled ? 'disabled' : ''}>
+                            <span class="text-sm">Вперед</span>
+                            <i data-feather="chevron-right" class="w-4 h-4 ml-1"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Кнопки действий
+            html += `
+                <div class="space-y-2">
+                    <button onclick="contactAboutProduct()" 
+                            class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                        <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                        Узнать подробнее
+                    </button>
+                    
+                    <div class="flex space-x-2">
+                        <button onclick="showPhone()" 
+                                class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg transition font-medium text-sm hover:bg-gray-200">
+                            📞 Позвонить
+                        </button>
+                        <button onclick="show2GISInfo()" 
+                                class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg transition font-medium text-sm hover:bg-gray-200">
+                            📍 2GIS
+                        </button>
+                    </div>
+            `;
+
+            // Кнопка назад
+            const backButton = getBackButton();
+            html += `
+                    <button onclick="${backButton.callback}" 
+                            class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg transition font-medium text-sm hover:bg-gray-200 mt-2">
+                        ${backButton.text}
+                    </button>
+                </div>
+            `;
 
             html += `</div></div>`;
             
@@ -1119,7 +849,6 @@
         // ========== УПРАВЛЕНИЕ НАВИГАЦИЕЙ ==========
 
         function getCurrentNavigation() {
-            // Восстанавливаем навигацию из стека
             const navigation = {
                 section: null,
                 category: null,
@@ -1149,21 +878,21 @@
 
         function getBackButton() {
             if (navigationStack.length === 0) {
-                return { text: "🔙 Назад", callback: "back_to_sections" };
+                return { text: "🔙 Назад к разделам", callback: "loadSections()" };
             }
 
             const lastItem = navigationStack[navigationStack.length - 1];
             switch (lastItem.type) {
                 case 'sections':
-                    return { text: "🔙 Назад к разделам", callback: "back_to_sections" };
+                    return { text: "🔙 Назад к разделам", callback: "loadSections()" };
                 case 'categories':
-                    return { text: "🔙 Назад к категориям", callback: "back_to_categories" };
+                    return { text: "🔙 Назад к категориям", callback: "handleBackToCategories()" };
                 case 'models':
-                    return { text: "🔙 Назад к моделям", callback: "back_to_models" };
+                    return { text: "🔙 Назад к моделям", callback: "handleBackToModels()" };
                 case 'submodels':
-                    return { text: "🔙 Назад к подмоделям", callback: "back_to_submodels" };
+                    return { text: "🔙 Назад к подмоделям", callback: "handleBackToSubmodels()" };
                 default:
-                    return { text: "🔙 Назад", callback: "back_to_sections" };
+                    return { text: "🔙 Назад", callback: "loadSections()" };
             }
         }
 
@@ -1292,86 +1021,121 @@
             }
         }
 
-        // ========== ОБРАБОТЧИКИ КНОПОК ==========
+        // ========== ОБРАБОТЧИКИ ДЕЙСТВИЙ ==========
 
-        async function handleButtonClick(callback) {
-            debugLog(`Обработка callback: ${callback}`);
+        function navigateProduct(direction) {
+            if (direction === 'prev' && currentProductIndex > 0) {
+                currentProductIndex--;
+            } else if (direction === 'next' && currentProductIndex < currentProducts.length - 1) {
+                currentProductIndex++;
+            } else {
+                return;
+            }
             
-            switch (callback) {
-                case 'product_prev':
-                    if (currentProductIndex > 0) {
-                        currentProductIndex--;
-                        await showCurrentProduct();
-                    }
-                    break;
-                    
-                case 'product_next':
-                    if (currentProductIndex < currentProducts.length - 1) {
-                        currentProductIndex++;
-                        await showCurrentProduct();
-                    }
-                    break;
-                    
-                case 'back_to_sections':
-                    navigationStack = [];
-                    await loadSections();
-                    break;
-                    
-                case 'back_to_categories':
-                    if (navigationStack.length > 0) {
-                        navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
-                        const section = navigationStack.find(item => item.type === 'sections');
-                        if (section) {
-                            await loadCategories(section.id, section.name);
-                        } else {
-                            await loadSections();
-                        }
-                    }
-                    break;
-                    
-                case 'back_to_models':
-                    if (navigationStack.length > 0) {
-                        navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
-                        const section = navigationStack.find(item => item.type === 'sections');
-                        const category = navigationStack.find(item => item.type === 'categories');
-                        if (section && category) {
-                            await loadModels(section.id, section.name, category.id, category.name);
-                        } else {
-                            await loadSections();
-                        }
-                    }
-                    break;
-                    
-                case 'back_to_submodels':
-                    if (navigationStack.length > 0) {
-                        navigationStack = navigationStack.filter(item => item.type !== 'submodels');
-                        const section = navigationStack.find(item => item.type === 'sections');
-                        const category = navigationStack.find(item => item.type === 'categories');
-                        const model = navigationStack.find(item => item.type === 'models');
-                        if (section && category && model) {
-                            await loadSubmodels(section.id, section.name, category.id, category.name, model.id, model.name);
-                        } else {
-                            await loadSections();
-                        }
-                    }
-                    break;
-                    
-                case 'show_phone_1':
-                    contactAboutProduct();
-                    break;
-                    
-                case 'ask_ai':
-                    // Реализация AI чата может быть добавлена позже
-                    alert('Функция AI чата будет реализована в будущем');
-                    break;
-                    
-                case 'show_color_variants':
-                    // Реализация показа вариантов цвета
-                    alert('Функция показа вариантов цвета будет реализована в будущем');
-                    break;
-                    
-                default:
-                    debugLog(`Неизвестный callback: ${callback}`);
+            showCurrentProduct();
+            // Прокрутка к верху
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function contactAboutProduct() {
+            const product = currentProducts[currentProductIndex];
+            const navigation = getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        function showPhone() {
+            const phoneNumber = "60-01-60";
+            if (tg) {
+                // В Mini App показываем номер в сообщении
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            } else {
+                // В браузере пытаемся позвонить
+                window.open(`tel:${phoneNumber}`);
+            }
+        }
+
+        function show2GISInfo() {
+            // Вместо открытия ссылки показываем информацию внутри Mini App
+            const html = `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 fade-in">
+                    <h3 class="font-semibold text-lg mb-3">📍 Наш адрес в 2GIS</h3>
+                    <p class="text-gray-600 mb-2"><strong>Адрес:</strong> г. Тюмень, ул. Барабинская, д. 3а, стр. 4</p>
+                    <p class="text-gray-600 mb-4"><strong>Телефон:</strong> 60-01-60</p>
+                    <div class="space-y-2">
+                        <button onclick="open2GISInBrowser()" class="w-full py-2 bg-blue-500 text-white rounded-lg font-medium">
+                            Открыть в браузере
+                        </button>
+                        <button onclick="showCurrentProduct()" class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">
+                            🔙 Назад к товару
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            elements.content.innerHTML = html;
+        }
+
+        function open2GISInBrowser() {
+            const url = 'https://2gis.ru/tyumen/search/скидка%20сервис/firm/70000001048108193/65.610084%2C57.15728?m=65.61013%2C57.157229%2F20';
+            if (tg) {
+                tg.openLink(url);
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+
+        function handleBackToCategories() {
+            if (navigationStack.length > 0) {
+                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
+                const section = navigationStack.find(item => item.type === 'sections');
+                if (section) {
+                    loadCategories(section.id, section.name);
+                } else {
+                    loadSections();
+                }
+            }
+        }
+
+        function handleBackToModels() {
+            if (navigationStack.length > 0) {
+                navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
+                const section = navigationStack.find(item => item.type === 'sections');
+                const category = navigationStack.find(item => item.type === 'categories');
+                if (section && category) {
+                    loadModels(section.id, section.name, category.id, category.name);
+                } else {
+                    loadSections();
+                }
+            }
+        }
+
+        function handleBackToSubmodels() {
+            if (navigationStack.length > 0) {
+                navigationStack = navigationStack.filter(item => item.type !== 'submodels');
+                const section = navigationStack.find(item => item.type === 'sections');
+                const category = navigationStack.find(item => item.type === 'categories');
+                const model = navigationStack.find(item => item.type === 'models');
+                if (section && category && model) {
+                    loadSubmodels(section.id, section.name, category.id, category.name, model.id, model.name);
+                } else {
+                    loadSections();
+                }
             }
         }
 
@@ -1407,28 +1171,6 @@
             elements.errorState.classList.remove('hidden');
             elements.errorMessage.textContent = message;
             updateBackButton();
-        }
-
-        function contactAboutProduct() {
-            const product = currentProducts[currentProductIndex];
-            const navigation = getCurrentNavigation();
-            
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price !== 'Цена не указана' ? product?.price : ''
-            ].filter(Boolean).join(' → ');
-
-            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
-            
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
-            } else {
-                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
-            }
         }
 
         function openSideMenu() {
@@ -1484,13 +1226,6 @@
             debugLog('=== ТЕСТИРОВАНИЕ ЗАВЕРШЕНО ===');
         }
 
-        // Контекст для хранения данных (аналог Python context.user_data)
-        const context = {
-            user_data: {},
-            current_product: null,
-            in_ai_chat_mode: false
-        };
-
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1534,10 +1269,17 @@
         window.loadModels = loadModels;
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
-        window.handleButtonClick = handleButtonClick;
+        window.navigateProduct = navigateProduct;
+        window.contactAboutProduct = contactAboutProduct;
+        window.showPhone = showPhone;
+        window.show2GISInfo = show2GISInfo;
+        window.open2GISInBrowser = open2GISInBrowser;
+        window.showCurrentProduct = showCurrentProduct;
+        window.handleBackToCategories = handleBackToCategories;
+        window.handleBackToModels = handleBackToModels;
+        window.handleBackToSubmodels = handleBackToSubmodels;
         window.goBack = goBack;
         window.openInBot = openInBot;
-        window.contactAboutProduct = contactAboutProduct;
         window.openSideMenu = openSideMenu;
         window.closeSideMenu = closeSideMenu;
         window.toggleDebug = toggleDebug;
