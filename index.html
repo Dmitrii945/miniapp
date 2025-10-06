@@ -64,6 +64,17 @@
             font-size: 0.875rem;
             font-weight: 600;
         }
+        
+        .image-loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -264,6 +275,7 @@
             return `${Math.round(numericPrice)} р.`;
         }
 
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ССЫЛОК НА ИЗОБРАЖЕНИЯ
         function extractPhotoFilenameFromUrl(url) {
             try {
                 if (!url || typeof url !== 'string') return null;
@@ -294,10 +306,15 @@
                     else if (url.includes('id=')) {
                         fileId = url.split('id=')[1].split('&')[0];
                     }
+                    // Дополнительные паттерны для разных форматов Google Drive ссылок
+                    else if (url.includes('/open?id=')) {
+                        fileId = url.split('/open?id=')[1];
+                    }
 
                     if (fileId) {
-                        // Используем Google Drive thumbnail API - наиболее стабильный метод
-                        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+                        // ИСПРАВЛЕНИЕ: используем прямое преобразование в ссылку для скачивания
+                        // Это более надежный метод, чем thumbnail API
+                        return `https://drive.google.com/uc?export=download&id=${fileId}`;
                     }
                 }
 
@@ -313,13 +330,84 @@
             }
         }
 
+        // НОВАЯ ФУНКЦИЯ: Альтернативные методы получения изображений
+        function getAlternativeImageUrls(originalUrl) {
+            const urls = [];
+            
+            if (!originalUrl || typeof originalUrl !== 'string') return urls;
+            
+            try {
+                // Извлекаем fileId из различных форматов Google Drive ссылок
+                let fileId = null;
+                
+                // Паттерн 1: /file/d/FILE_ID/view
+                const match1 = originalUrl.match(/\/file\/d\/([^\/]+)/);
+                if (match1 && match1[1]) {
+                    fileId = match1[1];
+                }
+                
+                // Паттерн 2: id=FILE_ID
+                if (!fileId) {
+                    const match2 = originalUrl.match(/[?&]id=([^&]+)/);
+                    if (match2 && match2[1]) {
+                        fileId = match2[1];
+                    }
+                }
+                
+                // Паттерн 3: /open?id=FILE_ID
+                if (!fileId) {
+                    const match3 = originalUrl.match(/\/open\?id=([^&]+)/);
+                    if (match3 && match3[1]) {
+                        fileId = match3[1];
+                    }
+                }
+                
+                if (fileId) {
+                    // Метод 1: Прямая ссылка для скачивания (наиболее надежный)
+                    urls.push(`https://drive.google.com/uc?export=download&id=${fileId}`);
+                    
+                    // Метод 2: Thumbnail API (может работать для некоторых файлов)
+                    urls.push(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`);
+                    
+                    // Метод 3: Просмотр через Google Docs
+                    urls.push(`https://docs.google.com/uc?id=${fileId}`);
+                    
+                    // Метод 4: Альтернативный формат thumbnail
+                    urls.push(`https://lh3.googleusercontent.com/d/${fileId}=w1000`);
+                }
+                
+                debugLog('Альтернативные URL для изображения:', {
+                    original: originalUrl,
+                    fileId: fileId,
+                    alternatives: urls
+                });
+                
+            } catch (error) {
+                debugLog('Ошибка генерации альтернативных URL:', error);
+            }
+            
+            return urls;
+        }
+
         // Функции для отладки загрузки изображений
-        function handleImageError(imgElement, originalUrl = '') {
+        function handleImageError(imgElement, originalUrl = '', alternativeUrls = []) {
             debugLog('Ошибка загрузки изображения:', {
                 src: imgElement.src,
-                original: originalUrl
+                original: originalUrl,
+                triedAlternative: imgElement.dataset.triedAlternative || '0'
             });
             
+            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
+            
+            // Пробуем следующую альтернативную ссылку
+            if (alternativeUrls.length > triedAlternative) {
+                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
+                imgElement.src = alternativeUrls[triedAlternative];
+                debugLog(`Пробуем альтернативную ссылку ${triedAlternative + 1}:`, alternativeUrls[triedAlternative]);
+                return;
+            }
+            
+            // Все ссылки не сработали, показываем placeholder
             imgElement.style.display = 'none';
             const placeholder = imgElement.nextElementSibling;
             if (placeholder && placeholder.classList.contains('image-placeholder')) {
@@ -330,6 +418,11 @@
 
         function handleImageLoad(imgElement) {
             debugLog('Изображение успешно загружено:', imgElement.src);
+            imgElement.style.display = 'block';
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('image-placeholder')) {
+                placeholder.style.display = 'none';
+            }
         }
 
         // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
@@ -751,18 +844,8 @@
             });
             
             let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+            const alternativeUrls = getAlternativeImageUrls(photoUrl);
             
-            // Если первый метод не сработал, пробуем альтернативные
-            if (!imageUrl && photoUrl) {
-                debugLog('Пробуем альтернативные методы загрузки фото');
-                // Пробуем создать thumbnail ссылку
-                const fileId = photoUrl.match(/id=([^&]+)/)?.[1];
-                if (fileId) {
-                    imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-                    debugLog('Альтернативная ссылка:', imageUrl);
-                }
-            }
-
             // Получаем данные из навигации
             const navigation = getCurrentNavigation();
             const section = navigation.section?.name || 'Неизвестно';
@@ -775,20 +858,22 @@
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
             `;
 
-            // Блок с фото
-            if (imageUrl) {
+            // Блок с фото - ИСПРАВЛЕННЫЙ КОД
+            if (imageUrl || alternativeUrls.length > 0) {
+                const finalImageUrl = imageUrl || alternativeUrls[0];
                 html += `
-                    <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
+                    <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
                          class="product-image w-full h-48 object-cover"
-                         onerror="handleImageError(this, '${escapeHtml(photoUrl)}')"
+                         onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
                          onload="handleImageLoad(this)"
                          loading="lazy"
-                         crossorigin="anonymous">
+                         crossorigin="anonymous"
+                         data-tried-alternative="0">
                     <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
                         <div class="text-center text-gray-400">
                             <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                             <div class="text-sm">Не удалось загрузить фото</div>
-                            <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                            <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
                         </div>
                     </div>
                 `;
@@ -798,7 +883,7 @@
                         <div class="text-center text-gray-400">
                             <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                             <div class="text-sm">Фото не доступно</div>
-                            ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                            ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -1282,10 +1367,12 @@
                         if (product.photo_url) {
                             const originalUrl = product.photo_url;
                             const processedUrl = extractPhotoFilenameFromUrl(originalUrl);
+                            const alternatives = getAlternativeImageUrls(originalUrl);
                             debugLog(`Фото товара ${index + 1}:`, {
                                 original: originalUrl,
                                 processed: processedUrl,
-                                fileId: originalUrl.match(/id=([^&]+)/)?.[1]
+                                alternatives: alternatives,
+                                fileId: originalUrl.match(/[?&]id=([^&]+)/)?.[1]
                             });
                         }
                     });
