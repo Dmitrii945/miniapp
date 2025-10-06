@@ -49,6 +49,17 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -81,6 +92,15 @@
             <p class="tg-theme-hint mb-4" id="emptyMessage">Товары не найдены</p>
             <button onclick="loadSections()" class="mt-4 py-2 px-4 tg-theme-button rounded-lg">
                 Вернуться в главную
+            </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden p-8 text-center">
+            <i data-feather="alert-triangle" class="w-16 h-16 mx-auto text-red-500 mb-4"></i>
+            <p class="text-red-600 mb-4" id="errorMessage">Произошла ошибка</p>
+            <button onclick="loadSections()" class="mt-4 py-2 px-4 tg-theme-button rounded-lg">
+                Попробовать снова
             </button>
         </div>
 
@@ -132,7 +152,9 @@
         // Конфигурация
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
+        const API_TIMEOUT = 15000;
         let debugMode = false;
+        let featherTimeout;
 
         // Состояние приложения
         let navigationStack = [];
@@ -146,20 +168,66 @@
             loading: document.getElementById('loading'),
             emptyState: document.getElementById('emptyState'),
             emptyMessage: document.getElementById('emptyMessage'),
+            errorState: document.getElementById('errorState'),
+            errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
             debugInfo: document.getElementById('debugInfo'),
             debugContent: document.getElementById('debugContent'),
             pageTitle: document.getElementById('pageTitle')
         };
 
+        // ========== УТИЛИТЫ ==========
+
+        function escapeHtml(unsafe) {
+            if (unsafe == null) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function safeGet(obj, path, defaultValue = '') {
+            if (!obj) return defaultValue;
+            return path.split('.').reduce((acc, key) => 
+                acc && acc[key] !== undefined && acc[key] !== null ? acc[key] : defaultValue, obj);
+        }
+
+        function safeString(value, defaultValue = '') {
+            if (value == null) return defaultValue;
+            return String(value);
+        }
+
+        function safeNumber(value, defaultValue = 0) {
+            if (value == null) return defaultValue;
+            const num = Number(value);
+            return isNaN(num) ? defaultValue : num;
+        }
+
+        function scheduleFeatherReplace() {
+            clearTimeout(featherTimeout);
+            featherTimeout = setTimeout(() => {
+                try {
+                    feather.replace();
+                } catch (error) {
+                    debugLog('Ошибка feather.replace:', error);
+                }
+            }, 100);
+        }
+
         // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
 
         function initTelegramApp() {
             if (tg) {
-                tg.expand();
-                tg.enableClosingConfirmation();
-                tg.BackButton.onClick(goBack);
-                debugLog('Telegram Web App инициализирован');
+                try {
+                    tg.expand();
+                    tg.enableClosingConfirmation();
+                    tg.BackButton.onClick(goBack);
+                    debugLog('Telegram Web App инициализирован');
+                } catch (error) {
+                    debugLog('Ошибка инициализации Telegram Web App:', error);
+                }
             }
         }
 
@@ -170,7 +238,11 @@
             let logMessage = `[${timestamp}] ${message}`;
             
             if (data) {
-                logMessage += '\n' + JSON.stringify(data, null, 2);
+                try {
+                    logMessage += '\n' + JSON.stringify(data, null, 2);
+                } catch (error) {
+                    logMessage += '\n [Несериализуемые данные]';
+                }
             }
             
             elements.debugContent.textContent += logMessage + '\n\n';
@@ -195,23 +267,39 @@
             
             showLoading();
             
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+            
             try {
-                const response = await fetch(url);
+                const response = await fetch(url, { 
+                    signal: controller.signal 
+                });
+                
+                clearTimeout(timeoutId);
+                
                 debugLog(`📊 Статус ответа: ${response.status}`);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
+                
+                // Проверка структуры ответа
+                if (!data) {
+                    throw new Error('Пустой ответ от сервера');
+                }
+                
                 debugLog(`✅ Успешный ответ`, data);
                 hideLoading();
                 return data;
                 
             } catch (error) {
+                clearTimeout(timeoutId);
                 debugLog(`❌ Ошибка API: ${error.message}`);
                 hideLoading();
-                return null;
+                showError(`Ошибка загрузки: ${error.message}`);
+                return { error: error.message };
             }
         }
 
@@ -219,82 +307,156 @@
 
         async function loadSections() {
             debugLog('=== ЗАГРУЗКА РАЗДЕЛОВ ===');
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Главная', action: null }]);
-            elements.pageTitle.textContent = 'Каталог товаров';
             
-            const data = await apiFetch('/sections');
-            
-            if (!data || !data.sections || data.sections.length === 0) {
-                showEmptyState('Разделы не найдены');
-                return;
-            }
+            try {
+                navigationStack = [];
+                updateBreadcrumbs([{ name: 'Главная', action: 'loadSections' }]);
+                elements.pageTitle.textContent = 'Каталог товаров';
+                
+                const data = await apiFetch('/sections');
+                
+                if (data?.error) {
+                    showEmptyState('Ошибка загрузки разделов');
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+                    showEmptyState('Разделы не найдены');
+                    return;
+                }
 
-            renderSections(data.sections);
-            updateBackButton();
+                renderSections(data.sections);
+                updateBackButton();
+            } catch (error) {
+                debugLog('Критическая ошибка в loadSections:', error);
+                showError('Не удалось загрузить разделы');
+            }
         }
 
         async function loadCategories(sectionId, sectionName) {
             debugLog(`=== ЗАГРУЗКА КАТЕГОРИЙ ДЛЯ РАЗДЕЛА: ${sectionName} ===`);
-            navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = sectionName;
             
-            const data = await apiFetch(`/categories/${sectionId}`);
-            
-            if (!data || !data.categories || data.categories.length === 0) {
-                // Если категорий нет, пробуем загрузить товары напрямую
-                await loadProductsDirect(sectionId, null, null, null, sectionName);
+            // Проверка входных параметров
+            if (!sectionId || !sectionName) {
+                debugLog('❌ Отсутствуют обязательные параметры для loadCategories');
+                showError('Ошибка загрузки категорий');
                 return;
             }
+            
+            try {
+                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = sectionName;
+                
+                const data = await apiFetch(`/categories/${sectionId}`);
+                
+                if (data?.error) {
+                    // Если ошибка, пробуем загрузить товары напрямую
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+                    // Если категорий нет, пробуем загрузить товары напрямую
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
 
-            renderCategories(data.categories, sectionId, sectionName);
-            updateBackButton();
+                renderCategories(data.categories, sectionId, sectionName);
+                updateBackButton();
+            } catch (error) {
+                debugLog('Критическая ошибка в loadCategories:', error);
+                showError('Не удалось загрузить категории');
+            }
         }
 
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
             debugLog(`=== ЗАГРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
-            navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = categoryName;
             
-            const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
-            
-            if (!data || !data.models || data.models.length === 0) {
-                // Если моделей нет, пробуем загрузить товары напрямую
-                await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+            if (!sectionId || !sectionName || !categoryId || !categoryName) {
+                debugLog('❌ Отсутствуют обязательные параметры для loadModels');
+                showError('Ошибка загрузки моделей');
                 return;
             }
+            
+            try {
+                navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = categoryName;
+                
+                const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.models) || data.models.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
 
-            renderModels(data.models, sectionId, sectionName, categoryId, categoryName);
-            updateBackButton();
+                renderModels(data.models, sectionId, sectionName, categoryId, categoryName);
+                updateBackButton();
+            } catch (error) {
+                debugLog('Критическая ошибка в loadModels:', error);
+                showError('Не удалось загрузить модели');
+            }
         }
 
         async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
             debugLog(`=== ЗАГРУЗКА ПОДМОДЕЛЕЙ ДЛЯ МОДЕЛИ: ${modelName} ===`);
-            navigationStack.push({ type: 'models', id: modelId, name: modelName });
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = modelName;
             
-            const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
-            
-            if (!data || !data.submodels || data.submodels.length === 0) {
-                // Если подмоделей нет, загружаем товары
-                await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+            if (!sectionId || !sectionName || !categoryId || !categoryName || !modelId || !modelName) {
+                debugLog('❌ Отсутствуют обязательные параметры для loadSubmodels');
+                showError('Ошибка загрузки подмоделей');
                 return;
             }
+            
+            try {
+                navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = modelName;
+                
+                const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
 
-            renderSubmodels(data.submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
-            updateBackButton();
+                renderSubmodels(data.submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                updateBackButton();
+            } catch (error) {
+                debugLog('Критическая ошибка в loadSubmodels:', error);
+                showError('Не удалось загрузить подмодели');
+            }
         }
 
         async function loadProducts(sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName) {
             debugLog(`=== ЗАГРУЗКА ТОВАРОВ ДЛЯ: ${submodelName} ===`);
-            navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = submodelName;
             
-            await loadProductsDirect(sectionId, categoryId, modelId, submodelId, submodelName);
+            if (!sectionId || !submodelId || !submodelName) {
+                debugLog('❌ Отсутствуют обязательные параметры для loadProducts');
+                showError('Ошибка загрузки товаров');
+                return;
+            }
+            
+            try {
+                navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = submodelName;
+                
+                await loadProductsDirect(sectionId, categoryId, modelId, submodelId, submodelName);
+            } catch (error) {
+                debugLog('Критическая ошибка в loadProducts:', error);
+                showError('Не удалось загрузить товары');
+            }
         }
 
         async function loadProductsDirect(sectionId, categoryId, modelId, submodelId, currentName) {
@@ -303,13 +465,24 @@
             
             const data = await apiFetch(endpoint);
             
-            if (!data || !data.products || data.products.length === 0) {
+            if (data?.error) {
+                showEmptyState(`Ошибка загрузки товаров для: ${currentName}`);
+                return;
+            }
+            
+            if (!data || !Array.isArray(data.products) || data.products.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
                 return;
             }
 
-            currentProducts = data.products;
+            currentProducts = data.products.filter(product => product != null);
             currentProductIndex = 0;
+            
+            if (currentProducts.length === 0) {
+                showEmptyState(`Товары не найдены для: ${currentName}`);
+                return;
+            }
+
             renderCurrentProduct();
             updateBackButton();
         }
@@ -318,14 +491,22 @@
 
         function renderSections(sections) {
             let html = '';
+            
             sections.forEach(section => {
-                const priceText = section.min_price ? ` от ${Math.round(section.min_price)} р.` : '';
+                if (!section) return;
+                
+                const safeId = escapeHtml(section.id);
+                const safeName = escapeHtml(section.name);
+                const minPrice = safeNumber(section.min_price);
+                const hasPrice = minPrice > 0;
+                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${section.name}</h3>
+                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadCategories('${section.id}', '${section.name}')" 
+                            <button onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть категории</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -335,20 +516,33 @@
                 `;
             });
             
+            if (!html) {
+                showEmptyState('Нет доступных разделов');
+                return;
+            }
+            
             elements.content.innerHTML = html;
-            feather.replace();
+            scheduleFeatherReplace();
         }
 
         function renderCategories(categories, sectionId, sectionName) {
             let html = '';
+            
             categories.forEach(category => {
-                const priceText = category.min_price ? ` от ${Math.round(category.min_price)} р.` : '';
+                if (!category) return;
+                
+                const safeId = escapeHtml(category.id);
+                const safeName = escapeHtml(category.name);
+                const minPrice = safeNumber(category.min_price);
+                const hasPrice = minPrice > 0;
+                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${category.name}</h3>
+                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadModels('${sectionId}', '${sectionName}', '${category.id}', '${category.name}')" 
+                            <button onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть модели</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -358,20 +552,33 @@
                 `;
             });
             
+            if (!html) {
+                showEmptyState('Нет доступных категорий');
+                return;
+            }
+            
             elements.content.innerHTML = html;
-            feather.replace();
+            scheduleFeatherReplace();
         }
 
         function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
             let html = '';
+            
             models.forEach(model => {
-                const priceText = model.min_price ? ` от ${Math.round(model.min_price)} р.` : '';
+                if (!model) return;
+                
+                const safeId = escapeHtml(model.id);
+                const safeName = escapeHtml(model.name);
+                const minPrice = safeNumber(model.min_price);
+                const hasPrice = minPrice > 0;
+                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${model.name}</h3>
+                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadSubmodels('${sectionId}', '${sectionName}', '${categoryId}', '${categoryName}', '${model.id}', '${model.name}')" 
+                            <button onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть подмодели</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -381,20 +588,33 @@
                 `;
             });
             
+            if (!html) {
+                showEmptyState('Нет доступных моделей');
+                return;
+            }
+            
             elements.content.innerHTML = html;
-            feather.replace();
+            scheduleFeatherReplace();
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
             let html = '';
+            
             submodels.forEach(submodel => {
-                const priceText = submodel.min_price ? ` от ${Math.round(submodel.min_price)} р.` : '';
+                if (!submodel) return;
+                
+                const safeId = escapeHtml(submodel.id);
+                const safeName = escapeHtml(submodel.name);
+                const minPrice = safeNumber(submodel.min_price);
+                const hasPrice = minPrice > 0;
+                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                         <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1">${submodel.name}</h3>
+                            <h3 class="font-semibold text-lg mb-1">${safeName}</h3>
                             ${priceText ? `<p class="text-green-600 font-medium mb-2">${priceText}</p>` : ''}
-                            <button onclick="loadProducts('${sectionId}', '${sectionName}', '${categoryId}', '${categoryName}', '${modelId}', '${modelName}', '${submodel.id}', '${submodel.name}')" 
+                            <button onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
                                 <span>Смотреть товары</span>
                                 <i data-feather="chevron-right" class="ml-2"></i>
@@ -404,8 +624,13 @@
                 `;
             });
             
+            if (!html) {
+                showEmptyState('Нет доступных подмоделей');
+                return;
+            }
+            
             elements.content.innerHTML = html;
-            feather.replace();
+            scheduleFeatherReplace();
         }
 
         function renderCurrentProduct() {
@@ -415,11 +640,18 @@
             }
 
             const product = currentProducts[currentProductIndex];
-            const color = product.color || 'Не указан';
-            const price = product.price || 'Цена не указана';
-            const description = product.description || '';
-            const photoUrl = product.photo_url || '';
-            const photoDescription = product.photo_description || '';
+            
+            if (!product) {
+                showEmptyState('Информация о товаре недоступна');
+                return;
+            }
+
+            // Безопасное извлечение данных
+            const color = safeString(product.color, 'Не указан');
+            const price = product.price != null ? `${Math.round(safeNumber(product.price))} р.` : 'Цена не указана';
+            const description = safeString(product.description);
+            const photoUrl = safeString(product.photo_url);
+            const photoDescription = safeString(product.photo_description);
             
             const imageUrl = photoUrl ? 
                 (photoUrl.includes('drive.google.com') ? 
@@ -430,9 +662,10 @@
             let html = `
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                     ${imageUrl ? `
-                        <img src="${imageUrl}" alt="${color}" 
+                        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
                              class="product-image w-full h-48 object-cover"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                             loading="lazy">
                         <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden">
                             <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
                         </div>
@@ -444,21 +677,21 @@
                     
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-semibold text-lg">${color}</h3>
+                            <h3 class="font-semibold text-lg">${escapeHtml(color)}</h3>
                             ${price !== 'Цена не указана' ? `
                                 <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                    ${price}
+                                    ${escapeHtml(price)}
                                 </span>
                             ` : ''}
                         </div>
             `;
 
             if (photoDescription) {
-                html += `<p class="text-gray-600 mb-3">${photoDescription}</p>`;
+                html += `<p class="text-gray-600 mb-3">${escapeHtml(photoDescription)}</p>`;
             }
 
             if (description) {
-                html += `<p class="text-gray-500 text-sm mb-3">${description}</p>`;
+                html += `<p class="text-gray-500 text-sm mb-3">${escapeHtml(description)}</p>`;
             }
 
             // Навигация по товарам
@@ -469,7 +702,7 @@
                 html += `
                     <div class="flex justify-between items-center mb-4 bg-gray-50 rounded-lg p-2">
                         <button onclick="showPreviousProduct()" 
-                                class="py-2 px-3 bg-white rounded-lg flex items-center ${prevDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm'}"
+                                class="py-2 px-3 bg-white rounded-lg flex items-center ${prevDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
                                 ${prevDisabled ? 'disabled' : ''}>
                             <i data-feather="chevron-left" class="w-4 h-4 mr-1"></i>
                             <span class="text-sm">Назад</span>
@@ -480,7 +713,7 @@
                         </span>
                         
                         <button onclick="showNextProduct()" 
-                                class="py-2 px-3 bg-white rounded-lg flex items-center ${nextDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm'}"
+                                class="py-2 px-3 bg-white rounded-lg flex items-center ${nextDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
                                 ${nextDisabled ? 'disabled' : ''}>
                             <span class="text-sm">Вперед</span>
                             <i data-feather="chevron-right" class="w-4 h-4 ml-1"></i>
@@ -491,10 +724,10 @@
 
             // Кнопки действий
             const productInfo = [
-                navigationStack.find(item => item.type === 'sections')?.name,
-                navigationStack.find(item => item.type === 'categories')?.name,
-                navigationStack.find(item => item.type === 'models')?.name,
-                navigationStack.find(item => item.type === 'submodels')?.name,
+                navigationStack.find(item => item?.type === 'sections')?.name,
+                navigationStack.find(item => item?.type === 'categories')?.name,
+                navigationStack.find(item => item?.type === 'models')?.name,
+                navigationStack.find(item => item?.type === 'submodels')?.name,
                 color,
                 price !== 'Цена не указана' ? price : ''
             ].filter(Boolean).join(' → ');
@@ -502,7 +735,7 @@
             html += `
                         <div class="flex space-x-2">
                             <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                    onclick="contactAboutProduct('${productInfo.replace(/'/g, "\\'")}')">
+                                    onclick="contactAboutProduct('${escapeHtml(productInfo).replace(/'/g, "\\'")}')">
                                 <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                 Узнать подробнее
                             </button>
@@ -512,7 +745,7 @@
             `;
             
             elements.content.innerHTML = html;
-            feather.replace();
+            scheduleFeatherReplace();
         }
 
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
@@ -534,57 +767,93 @@
         }
 
         function goBack() {
-            if (navigationStack.length > 0) {
-                navigationStack.pop();
-                
-                if (navigationStack.length === 0) {
-                    loadSections();
+            if (!navigationStack.length) {
+                if (tg) {
+                    tg.close();
                 } else {
-                    const current = navigationStack[navigationStack.length - 1];
-                    switch (current.type) {
-                        case 'sections':
-                            loadSections();
-                            break;
-                        case 'categories':
-                            const section = navigationStack.find(item => item.type === 'sections');
-                            loadCategories(section.id, section.name);
-                            break;
-                        case 'models':
-                            const sectionForModel = navigationStack.find(item => item.type === 'sections');
-                            const category = navigationStack.find(item => item.type === 'categories');
-                            loadModels(sectionForModel.id, sectionForModel.name, category.id, category.name);
-                            break;
-                        case 'submodels':
-                            const sectionForSubmodel = navigationStack.find(item => item.type === 'sections');
-                            const categoryForSubmodel = navigationStack.find(item => item.type === 'categories');
-                            const model = navigationStack.find(item => item.type === 'models');
-                            loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
-                            break;
-                    }
+                    loadSections();
                 }
-            } else if (tg) {
-                tg.close();
+                return;
+            }
+            
+            const current = navigationStack[navigationStack.length - 1];
+            if (!current) {
+                loadSections();
+                return;
+            }
+            
+            navigationStack.pop();
+            
+            if (navigationStack.length === 0) {
+                loadSections();
+            } else {
+                const prev = navigationStack[navigationStack.length - 1];
+                if (!prev) {
+                    loadSections();
+                    return;
+                }
+                
+                switch (prev.type) {
+                    case 'sections':
+                        loadSections();
+                        break;
+                    case 'categories':
+                        const section = navigationStack.find(item => item?.type === 'sections');
+                        if (section) {
+                            loadCategories(section.id, section.name);
+                        } else {
+                            loadSections();
+                        }
+                        break;
+                    case 'models':
+                        const sectionForModel = navigationStack.find(item => item?.type === 'sections');
+                        const category = navigationStack.find(item => item?.type === 'categories');
+                        if (sectionForModel && category) {
+                            loadModels(sectionForModel.id, sectionForModel.name, category.id, category.name);
+                        } else {
+                            loadSections();
+                        }
+                        break;
+                    case 'submodels':
+                        const sectionForSubmodel = navigationStack.find(item => item?.type === 'sections');
+                        const categoryForSubmodel = navigationStack.find(item => item?.type === 'categories');
+                        const model = navigationStack.find(item => item?.type === 'models');
+                        if (sectionForSubmodel && categoryForSubmodel && model) {
+                            loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
+                        } else {
+                            loadSections();
+                        }
+                        break;
+                    default:
+                        loadSections();
+                }
             }
         }
 
         function updateBackButton() {
             if (!tg) return;
             
-            if (navigationStack.length > 0) {
-                tg.BackButton.show();
-            } else {
-                tg.BackButton.hide();
+            try {
+                if (navigationStack.length > 0) {
+                    tg.BackButton.show();
+                } else {
+                    tg.BackButton.hide();
+                }
+            } catch (error) {
+                debugLog('Ошибка обновления кнопки назад:', error);
             }
         }
 
         function updateBreadcrumbsFromStack() {
-            const items = [{ name: 'Главная', action: 'loadSections()' }];
+            const items = [{ name: 'Главная', action: 'loadSections' }];
             
             navigationStack.forEach(item => {
-                items.push({
-                    name: item.name,
-                    action: null // Хлебные крошки только для отображения
-                });
+                if (item && item.name) {
+                    items.push({
+                        name: item.name,
+                        action: null
+                    });
+                }
             });
             
             updateBreadcrumbs(items);
@@ -594,6 +863,8 @@
             elements.breadcrumbs.innerHTML = '';
             
             items.forEach((item, index) => {
+                if (!item || !item.name) return;
+                
                 const crumb = document.createElement('span');
                 crumb.className = 'flex items-center whitespace-nowrap';
                 
@@ -609,9 +880,13 @@
                 link.textContent = item.name;
                 link.title = item.name;
                 
-                if (item.action && index === 0) { // Только главная кликабельна
+                if (item.action && index === 0) {
                     link.style.cursor = 'pointer';
-                    link.onclick = new Function(item.action);
+                    link.addEventListener('click', () => {
+                        if (item.action === 'loadSections') {
+                            loadSections();
+                        }
+                    });
                 } else {
                     link.style.cursor = 'default';
                 }
@@ -620,26 +895,38 @@
                 elements.breadcrumbs.appendChild(crumb);
             });
             
-            feather.replace();
+            scheduleFeatherReplace();
         }
 
         function showLoading() {
             elements.loading.classList.remove('hidden');
             elements.content.classList.add('hidden');
             elements.emptyState.classList.add('hidden');
+            elements.errorState.classList.add('hidden');
         }
 
         function hideLoading() {
             elements.loading.classList.add('hidden');
             elements.content.classList.remove('hidden');
             elements.emptyState.classList.add('hidden');
+            elements.errorState.classList.add('hidden');
         }
 
         function showEmptyState(message = 'Товары не найдены') {
             elements.content.classList.add('hidden');
             elements.loading.classList.add('hidden');
             elements.emptyState.classList.remove('hidden');
+            elements.errorState.classList.add('hidden');
             elements.emptyMessage.textContent = message;
+            updateBackButton();
+        }
+
+        function showError(message = 'Произошла ошибка') {
+            elements.content.classList.add('hidden');
+            elements.loading.classList.add('hidden');
+            elements.emptyState.classList.add('hidden');
+            elements.errorState.classList.remove('hidden');
+            elements.errorMessage.textContent = message;
             updateBackButton();
         }
 
@@ -648,32 +935,48 @@
         function openSideMenu() {
             elements.sideMenu.classList.remove('hidden');
             setTimeout(() => {
-                elements.sideMenu.querySelector('div').classList.remove('translate-x-full');
+                const menuPanel = elements.sideMenu.querySelector('div');
+                if (menuPanel) {
+                    menuPanel.classList.remove('translate-x-full');
+                }
             }, 10);
         }
 
         function closeSideMenu() {
-            elements.sideMenu.querySelector('div').classList.add('translate-x-full');
+            const menuPanel = elements.sideMenu.querySelector('div');
+            if (menuPanel) {
+                menuPanel.classList.add('translate-x-full');
+            }
             setTimeout(() => {
                 elements.sideMenu.classList.add('hidden');
             }, 300);
         }
 
         function openInBot() {
-            if (tg) {
-                tg.openTelegramLink('https://t.me/SSERVICE72_bot');
-            } else {
-                window.open('https://t.me/SSERVICE72_bot', '_blank');
+            const botUrl = 'https://t.me/SSERVICE72_bot';
+            try {
+                if (tg) {
+                    tg.openTelegramLink(botUrl);
+                } else {
+                    window.open(botUrl, '_blank');
+                }
+            } catch (error) {
+                window.open(botUrl, '_blank');
             }
         }
 
         function contactAboutProduct(productInfo) {
             const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+            const contactUrl = `https://t.me/SidkaService01?text=${encodeURIComponent(message)}`;
             
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
-            } else {
-                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            try {
+                if (tg) {
+                    tg.openTelegramLink(contactUrl);
+                } else {
+                    window.open(contactUrl, '_blank');
+                }
+            } catch (error) {
+                window.open(contactUrl, '_blank');
             }
         }
 
@@ -682,7 +985,7 @@
             
             const endpoints = [
                 '/sections',
-                '/categories/dcb1364bebe64073', // БЕТОН
+                '/categories/dcb1364bebe64073',
                 '/models/dcb1364bebe64073/3d13eaa317c84d8c',
                 '/submodels/dcb1364bebe64073/3d13eaa317c84d8c/null',
                 '/products/dcb1364bebe64073/3d13eaa317c84d8c/null/null'
@@ -691,7 +994,7 @@
             for (const endpoint of endpoints) {
                 const data = await apiFetch(endpoint);
                 debugLog(`Тест ${endpoint}:`, data);
-                await new Promise(resolve => setTimeout(resolve, 500)); // Задержка между запросами
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
             
             debugLog('=== ТЕСТИРОВАНИЕ ЗАВЕРШЕНО ===');
@@ -702,10 +1005,26 @@
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initTelegramApp();
-                feather.replace();
+                scheduleFeatherReplace();
                 
-                document.getElementById('toggleMenu').addEventListener('click', openSideMenu);
-                document.getElementById('closeMenu').addEventListener('click', closeSideMenu);
+                // Обработчики меню
+                const toggleMenuBtn = document.getElementById('toggleMenu');
+                const closeMenuBtn = document.getElementById('closeMenu');
+                
+                if (toggleMenuBtn) {
+                    toggleMenuBtn.addEventListener('click', openSideMenu);
+                }
+                
+                if (closeMenuBtn) {
+                    closeMenuBtn.addEventListener('click', closeSideMenu);
+                }
+                
+                // Закрытие меню по клику вне области
+                elements.sideMenu.addEventListener('click', (e) => {
+                    if (e.target === elements.sideMenu) {
+                        closeSideMenu();
+                    }
+                });
                 
                 // Загрузка начальных данных
                 setTimeout(() => {
@@ -714,7 +1033,7 @@
                 
             } catch (error) {
                 console.error('Ошибка инициализации:', error);
-                showEmptyState('Ошибка загрузки приложения');
+                showError('Ошибка загрузки приложения');
             }
         });
 
