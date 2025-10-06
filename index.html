@@ -101,6 +101,20 @@
         .navigation-card:hover {
             transform: translateY(-2px);
         }
+        
+        .test-button {
+            background-color: #8B5CF6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .test-button:hover {
+            background-color: #7C3AED;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -131,9 +145,14 @@
         <div id="emptyState" class="hidden p-8 text-center">
             <i data-feather="package" class="w-16 h-16 mx-auto tg-theme-hint mb-4"></i>
             <p class="tg-theme-hint mb-4" id="emptyMessage">Товары не найдены</p>
-            <button onclick="loadSections()" class="mt-4 py-2 px-4 tg-theme-button rounded-lg">
-                Вернуться в главную
-            </button>
+            <div class="space-y-2">
+                <button onclick="loadSections()" class="w-full py-2 px-4 tg-theme-button rounded-lg">
+                    Вернуться в главную
+                </button>
+                <button onclick="testCurrentCategory()" class="w-full py-2 px-4 bg-purple-500 text-white rounded-lg">
+                    Протестировать API
+                </button>
+            </div>
         </div>
 
         <!-- Error State -->
@@ -425,7 +444,7 @@
             }
         }
 
-        // ========== УПРОЩЕННАЯ НАВИГАЦИЯ ==========
+        // ========== НАВИГАЦИЯ ==========
 
         async function loadSections() {
             debugLog('=== ЗАГРУЗКА РАЗДЕЛОВ ===');
@@ -459,12 +478,10 @@
         async function loadNextLevel(currentType, currentId, currentName, nextType) {
             debugLog(`=== ЗАГРУЗКА ${nextType.toUpperCase()} ДЛЯ: ${currentName} ===`);
             
-            // Сохраняем текущий уровень в стек навигации
             navigationStack.push({ type: currentType, id: currentId, name: currentName });
             updateBreadcrumbsFromStack();
             elements.pageTitle.textContent = currentName;
             
-            // Определяем endpoint для следующего уровня
             let endpoint = '';
             switch (currentType) {
                 case 'section':
@@ -479,7 +496,6 @@
                     endpoint = `/submodels/${section.id}/${category.id}/${currentId}`;
                     break;
                 case 'submodel':
-                    // Если это подмодель, загружаем товары
                     await loadProductsForCurrentLevel();
                     return;
             }
@@ -495,9 +511,10 @@
                     return;
                 }
                 
-                // Получаем ключ данных из ответа
                 const dataKey = Object.keys(data).find(key => Array.isArray(data[key]));
                 const items = data[dataKey];
+                
+                debugLog(`Получены данные ${nextType}:`, items);
                 
                 if (!items || !Array.isArray(items) || items.length === 0) {
                     debugLog(`${nextType} не найдены, пробуем загрузить товары`);
@@ -516,7 +533,6 @@
         async function loadProductsForCurrentLevel() {
             debugLog('=== ЗАГРУЗКА ТОВАРОВ ДЛЯ ТЕКУЩЕГО УРОВНЯ ===');
             
-            // Собираем IDs из навигационного стека
             const section = navigationStack.find(s => s.type === 'section');
             const category = navigationStack.find(s => s.type === 'category');
             const model = navigationStack.find(s => s.type === 'model');
@@ -534,12 +550,16 @@
             
             debugLog(`Загрузка товаров по endpoint: ${endpoint}`);
             
+            lastAction = { type: 'loadProducts', endpoint, currentName };
+            
             const data = await apiFetch(endpoint);
             
             if (data?.error) {
                 showEmptyState(`Ошибка загрузки товаров для: ${currentName}`);
                 return;
             }
+            
+            debugLog(`Получены товары:`, data.products);
             
             if (!data || !Array.isArray(data.products) || data.products.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
@@ -548,7 +568,7 @@
 
             currentProducts = data.products.filter(product => product != null);
             
-            debugLog(`Загружено товаров: ${currentProducts.length}`);
+            debugLog(`Отфильтровано товаров: ${currentProducts.length}`);
             
             if (currentProducts.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
@@ -685,6 +705,9 @@
             html += `
                 <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
                     <h2 class="text-lg font-semibold">Найдено товаров: ${currentProducts.length}</h2>
+                    <button onclick="testCurrentCategory()" class="test-button mt-2">
+                        Тестировать API
+                    </button>
                 </div>
             `;
             
@@ -771,6 +794,118 @@
             scheduleFeatherReplace();
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ========== ТЕСТИРОВАНИЕ API ==========
+
+        async function testCurrentCategory() {
+            const section = navigationStack.find(s => s.type === 'section');
+            const category = navigationStack.find(s => s.type === 'category');
+            const model = navigationStack.find(s => s.type === 'model');
+            const submodel = navigationStack.find(s => s.type === 'submodel');
+            
+            debugLog('=== ТЕСТИРОВАНИЕ ТЕКУЩЕЙ КАТЕГОРИИ ===');
+            debugLog('Навигационный стек:', navigationStack);
+            
+            if (section) {
+                debugLog(`Раздел: ${section.name} (${section.id})`);
+                const categories = await apiFetch(`/categories/${section.id}`);
+                debugLog(`Категории для раздела:`, categories);
+            }
+            
+            if (category) {
+                debugLog(`Категория: ${category.name} (${category.id})`);
+                const models = await apiFetch(`/models/${section.id}/${category.id}`);
+                debugLog(`Модели для категории:`, models);
+            }
+            
+            if (model) {
+                debugLog(`Модель: ${model.name} (${model.id})`);
+                const submodels = await apiFetch(`/submodels/${section.id}/${category.id}/${model.id}`);
+                debugLog(`Подмодели для модели:`, submodels);
+            }
+            
+            // Тестируем все возможные комбинации endpoints для товаров
+            const endpoints = [
+                `/products/${section?.id || 'null'}/${category?.id || 'null'}/${model?.id || 'null'}/${submodel?.id || 'null'}`,
+                `/products/${section?.id || 'null'}/${category?.id || 'null'}/${model?.id || 'null'}/null`,
+                `/products/${section?.id || 'null'}/${category?.id || 'null'}/null/null`,
+                `/products/${section?.id || 'null'}/null/null/null`
+            ];
+            
+            for (const endpoint of endpoints) {
+                debugLog(`Тестируем endpoint: ${endpoint}`);
+                const products = await apiFetch(endpoint);
+                debugLog(`Результат для ${endpoint}:`, products);
+                if (products && products.products && products.products.length > 0) {
+                    debugLog(`✅ НАЙДЕНЫ ТОВАРЫ в ${endpoint}: ${products.products.length} шт.`);
+                    currentProducts = products.products;
+                    renderAllProducts();
+                    return;
+                }
+            }
+            
+            debugLog('❌ Товары не найдены ни в одном endpoint');
+        }
+
+        async function testAllEndpoints() {
+            debugLog('=== ПОЛНОЕ ТЕСТИРОВАНИЕ API ===');
+            
+            // Тестируем разделы
+            const sections = await apiFetch('/sections');
+            
+            if (sections && sections.sections) {
+                for (const section of sections.sections) {
+                    debugLog(`\n=== ТЕСТИРУЕМ РАЗДЕЛ: ${section.name} ===`);
+                    
+                    // Категории
+                    const categories = await apiFetch(`/categories/${section.id}`);
+                    
+                    if (categories && categories.categories) {
+                        for (const category of categories.categories) {
+                            debugLog(`\n--- Категория: ${category.name} ---`);
+                            
+                            // Модели
+                            const models = await apiFetch(`/models/${section.id}/${category.id}`);
+                            
+                            // Товары для категории
+                            const productsFromCategory = await apiFetch(`/products/${section.id}/${category.id}/null/null`);
+                            if (productsFromCategory && productsFromCategory.products && productsFromCategory.products.length > 0) {
+                                debugLog(`✅ ТОВАРЫ в категории: ${productsFromCategory.products.length} шт.`);
+                            }
+                            
+                            if (models && models.models) {
+                                for (const model of models.models) {
+                                    debugLog(`Модель: ${model.name}`);
+                                    
+                                    // Подмодели
+                                    const submodels = await apiFetch(`/submodels/${section.id}/${category.id}/${model.id}`);
+                                    
+                                    // Товары для модели
+                                    const productsFromModel = await apiFetch(`/products/${section.id}/${category.id}/${model.id}/null`);
+                                    if (productsFromModel && productsFromModel.products && productsFromModel.products.length > 0) {
+                                        debugLog(`✅ ТОВАРЫ в модели: ${productsFromModel.products.length} шт.`);
+                                    }
+                                    
+                                    if (submodels && submodels.submodels) {
+                                        for (const submodel of submodels.submodels) {
+                                            debugLog(`Подмодель: ${submodel.name}`);
+                                            
+                                            // Товары для подмодели
+                                            const productsFromSubmodel = await apiFetch(`/products/${section.id}/${category.id}/${model.id}/${submodel.id}`);
+                                            if (productsFromSubmodel && productsFromSubmodel.products && productsFromSubmodel.products.length > 0) {
+                                                debugLog(`✅ ТОВАРЫ в подмодели: ${productsFromSubmodel.products.length} шт.`);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            debugLog('=== ТЕСТИРОВАНИЕ ЗАВЕРШЕНО ===');
         }
 
         // ========== УПРАВЛЕНИЕ НАВИГАЦИЕЙ ==========
@@ -884,7 +1019,6 @@
                     loadSections();
                 } else {
                     const current = navigationStack[navigationStack.length - 1];
-                    // Возвращаемся к предыдущему уровню
                     switch (current.type) {
                         case 'section':
                             loadSections();
@@ -1067,6 +1201,9 @@
                 case 'loadNextLevel':
                     loadNextLevel(lastAction.currentType, lastAction.currentId, lastAction.currentName, lastAction.nextType);
                     break;
+                case 'loadProducts':
+                    loadProductsForCurrentLevel();
+                    break;
                 default:
                     loadSections();
             }
@@ -1121,6 +1258,8 @@
         window.closeSideMenu = closeSideMenu;
         window.toggleDebug = toggleDebug;
         window.retryLastAction = retryLastAction;
+        window.testCurrentCategory = testCurrentCategory;
+        window.testAllEndpoints = testAllEndpoints;
     </script>
 </body>
 </html>
