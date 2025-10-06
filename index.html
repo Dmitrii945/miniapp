@@ -91,6 +91,20 @@
             margin: 0 8px;
             color: #6B7280;
         }
+        
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -145,7 +159,7 @@
         </div>
 
         <!-- Main Content -->
-        <main id="content" class="p-4 space-y-4 fade-in">
+        <main id="content" class="p-4 fade-in">
             <!-- Контент загружается динамически -->
         </main>
 
@@ -190,7 +204,6 @@
         // Состояние приложения
         let navigationStack = [];
         let currentProducts = [];
-        let currentProductIndex = 0;
         let catalogData = null;
 
         // DOM элементы
@@ -567,11 +580,15 @@
                 const data = await apiFetch(`/categories/${sectionId}`);
                 
                 if (data?.error) {
+                    // ИСПРАВЛЕНИЕ: Если категории не загрузились, сразу переходим к товарам
+                    debugLog('Ошибка загрузки категорий, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+                    // ИСПРАВЛЕНИЕ: Если категорий нет, сразу переходим к товарам
+                    debugLog('Категории не найдены, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
                     return;
                 }
@@ -580,7 +597,8 @@
                 updateBackButton();
             } catch (error) {
                 debugLog('Критическая ошибка в loadCategories:', error);
-                showError('Не удалось загрузить категории');
+                // ИСПРАВЛЕНИЕ: При ошибке пробуем загрузить товары напрямую
+                await loadProductsDirect(sectionId, null, null, null, sectionName);
             }
         }
 
@@ -595,11 +613,15 @@
                 const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
                 
                 if (data?.error) {
+                    // ИСПРАВЛЕНИЕ: Если модели не загрузились, сразу переходим к товарам
+                    debugLog('Ошибка загрузки моделей, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.models) || data.models.length === 0) {
+                    // ИСПРАВЛЕНИЕ: Если моделей нет, сразу переходим к товарам
+                    debugLog('Модели не найдены, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
                     return;
                 }
@@ -608,7 +630,8 @@
                 updateBackButton();
             } catch (error) {
                 debugLog('Критическая ошибка в loadModels:', error);
-                showError('Не удалось загрузить модели');
+                // ИСПРАВЛЕНИЕ: При ошибке пробуем загрузить товары напрямую
+                await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
             }
         }
 
@@ -623,11 +646,15 @@
                 const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
                 
                 if (data?.error) {
+                    // ИСПРАВЛЕНИЕ: Если подмодели не загрузились, сразу переходим к товарам
+                    debugLog('Ошибка загрузки подмоделей, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
+                    // ИСПРАВЛЕНИЕ: Если подмоделей нет, сразу переходим к товарам
+                    debugLog('Подмодели не найдены, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
@@ -636,7 +663,8 @@
                 updateBackButton();
             } catch (error) {
                 debugLog('Критическая ошибка в loadSubmodels:', error);
-                showError('Не удалось загрузить подмодели');
+                // ИСПРАВЛЕНИЕ: При ошибке пробуем загрузить товары напрямую
+                await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
             }
         }
 
@@ -659,6 +687,8 @@
             const endpoint = `/products/${sectionId || 'null'}/${categoryId || 'null'}/${modelId || 'null'}/${submodelId || 'null'}`;
             elements.pageTitle.textContent = currentName;
             
+            debugLog(`Загрузка товаров по endpoint: ${endpoint}`);
+            
             const data = await apiFetch(endpoint);
             
             if (data?.error) {
@@ -672,14 +702,16 @@
             }
 
             currentProducts = data.products.filter(product => product != null);
-            currentProductIndex = 0;
+            
+            debugLog(`Загружено товаров: ${currentProducts.length}`);
             
             if (currentProducts.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
                 return;
             }
 
-            await showCurrentProduct();
+            // ИСПРАВЛЕНИЕ: Убираем пагинацию, показываем все товары списком
+            renderAllProducts();
             updateBackButton();
         }
 
@@ -891,168 +923,143 @@
             return html;
         }
 
-        async function showCurrentProduct() {
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Показ всех товаров списком (без пагинации)
+        function renderAllProducts() {
             if (!currentProducts || currentProducts.length === 0) {
                 showEmptyState('Товары не найдены');
                 return;
             }
 
-            const product = currentProducts[currentProductIndex];
-            
-            if (!product) {
-                showEmptyState('Информация о товаре недоступна');
-                return;
-            }
-
-            // Безопасное извлечение данных
-            const color = safeString(product.color, 'Не указан');
-            const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
-            const description = safeString(product.description);
-            const photoUrl = safeString(product.photo_url);
-            const photoDescription = safeString(product.photo_description);
-            
-            // ОТЛАДКА: логируем процесс обработки фото
-            debugLog('Обработка фото:', {
-                originalUrl: photoUrl,
-                processedUrl: extractPhotoFilenameFromUrl(photoUrl)
-            });
-            
-            let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
-            const alternativeUrls = getAlternativeImageUrls(photoUrl);
-            
-            // Получаем данные из навигации
             const navigation = getCurrentNavigation();
-            const section = navigation.section?.name || 'Неизвестно';
-            const category = navigation.category?.name || 'Неизвестно';
-            const modelName = navigation.model?.name || 'Неизвестно';
-            const submodelName = navigation.submodel?.name || 'Без подмодели';
-
-            // Формируем подпись
-            let html = `
-                <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
-            `;
-
-            // Добавляем кликабельные хлебные крошки
-            html += renderProductBreadcrumbs(navigation);
-
-            // Блок с фото - ИСПРАВЛЕННЫЙ КОД
-            if (imageUrl || alternativeUrls.length > 0) {
-                const finalImageUrl = imageUrl || alternativeUrls[0];
-                html += `
-                    <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
-                         class="product-image w-full h-48 object-cover"
-                         onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                         onload="handleImageLoad(this)"
-                         loading="lazy"
-                         crossorigin="anonymous"
-                         data-tried-alternative="0">
-                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                        <div class="text-center text-gray-400">
-                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                            <div class="text-sm">Не удалось загрузить фото</div>
-                            <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                        <div class="text-center text-gray-400">
-                            <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
-                            <div class="text-sm">Фото не доступно</div>
-                            ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
-                        </div>
-                    </div>
-                `;
-            }
-
+            let html = '<div class="product-list">';
+            
+            // Добавляем заголовок с количеством товаров
             html += `
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-semibold text-lg">${escapeHtml(color)}</h3>
-                            ${price && price !== 'Цена не указана' ? `
-                                <span class="price-badge">${escapeHtml(price)}</span>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="space-y-2 mb-4">
-            `;
-
-            // Описание под фото
-            if (photoDescription) {
-                html += `<p class="text-gray-700 mt-2">${escapeHtml(photoDescription)}</p>`;
-            }
-
-            // Описание товара
-            if (description) {
-                html += `<p class="text-gray-500 text-sm mt-2">${escapeHtml(description)}</p>`;
-            }
-
-            html += `</div>`;
-
-            // Кнопки навигации по товарам
-            if (currentProducts.length > 1) {
-                const prevDisabled = currentProductIndex === 0;
-                const nextDisabled = currentProductIndex === currentProducts.length - 1;
-                
-                html += `
-                    <div class="flex justify-between items-center mb-4 bg-gray-50 rounded-lg p-2">
-                        <button onclick="navigateProduct('prev')" 
-                                class="py-2 px-3 bg-white rounded-lg flex items-center ${prevDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
-                                ${prevDisabled ? 'disabled' : ''}>
-                            <i data-feather="chevron-left" class="w-4 h-4 mr-1"></i>
-                            <span class="text-sm">Назад</span>
-                        </button>
-                        
-                        <span class="text-sm text-gray-600 font-medium">
-                            ${currentProductIndex + 1} / ${currentProducts.length}
-                        </span>
-                        
-                        <button onclick="navigateProduct('next')" 
-                                class="py-2 px-3 bg-white rounded-lg flex items-center ${nextDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
-                                ${nextDisabled ? 'disabled' : ''}>
-                            <span class="text-sm">Вперед</span>
-                            <i data-feather="chevron-right" class="w-4 h-4 ml-1"></i>
-                        </button>
-                    </div>
-                `;
-            }
-
-            // Кнопки действий
-            html += `
-                <div class="space-y-2">
-                    <button onclick="contactAboutProduct()" 
-                            class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
-                        <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
-                        Узнать подробнее
-                    </button>
-                    
-                    <div class="flex space-x-2">
-                        <button onclick="showPhone()" 
-                                class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg transition font-medium text-sm hover:bg-gray-200">
-                            📞 Позвонить
-                        </button>
-                        <button onclick="show2GISInfo()" 
-                                class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg transition font-medium text-sm hover:bg-gray-200">
-                            📍 2GIS
-                        </button>
-                    </div>
-            `;
-
-            // Кнопка назад
-            const backButton = getBackButton();
-            html += `
-                    <button onclick="${backButton.callback}" 
-                            class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg transition font-medium text-sm hover:bg-gray-200 mt-2">
-                        ${backButton.text}
-                    </button>
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold">Найдено товаров: ${currentProducts.length}</h2>
                 </div>
             `;
+            
+            // Добавляем хлебные крошки
+            html += renderProductBreadcrumbs(navigation);
 
-            html += `</div></div>`;
+            // Рендерим все товары
+            currentProducts.forEach((product, index) => {
+                if (!product) return;
+                
+                // Безопасное извлечение данных
+                const color = safeString(product.color, 'Не указан');
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const description = safeString(product.description);
+                const photoUrl = safeString(product.photo_url);
+                const photoDescription = safeString(product.photo_description);
+                
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+
+                html += `
+                    <div class="product-card fade-in">
+                `;
+
+                // Блок с фото
+                if (imageUrl || alternativeUrls.length > 0) {
+                    const finalImageUrl = imageUrl || alternativeUrls[0];
+                    html += `
+                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
+                             class="product-image w-full h-48 object-cover"
+                             onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                             onload="handleImageLoad(this)"
+                             loading="lazy"
+                             crossorigin="anonymous"
+                             data-tried-alternative="0">
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Не удалось загрузить фото</div>
+                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Фото не доступно</div>
+                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg">${escapeHtml(color)}</h3>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="space-y-2 mb-4">
+                `;
+
+                // Описание под фото
+                if (photoDescription) {
+                    html += `<p class="text-gray-700">${escapeHtml(photoDescription)}</p>`;
+                }
+
+                // Описание товара
+                if (description) {
+                    html += `<p class="text-gray-500 text-sm">${escapeHtml(description)}</p>`;
+                }
+
+                html += `</div>`;
+
+                // Кнопки действий для каждого товара
+                html += `
+                    <div class="space-y-2">
+                        <button onclick="contactAboutSpecificProduct(${index})" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                            Узнать подробнее
+                        </button>
+                    </div>
+                `;
+
+                html += `</div></div>`;
+            });
+
+            html += '</div>'; // закрываем product-list
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            
+            // Прокручиваем к верху
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // НОВАЯ ФУНКЦИЯ: Контакт по конкретному товару
+        function contactAboutSpecificProduct(productIndex) {
+            const product = currentProducts[productIndex];
+            const navigation = getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
         }
 
         // ========== УПРАВЛЕНИЕ НАВИГАЦИЕЙ ==========
@@ -1232,42 +1239,6 @@
 
         // ========== ОБРАБОТЧИКИ ДЕЙСТВИЙ ==========
 
-        function navigateProduct(direction) {
-            if (direction === 'prev' && currentProductIndex > 0) {
-                currentProductIndex--;
-            } else if (direction === 'next' && currentProductIndex < currentProducts.length - 1) {
-                currentProductIndex++;
-            } else {
-                return;
-            }
-            
-            showCurrentProduct();
-            // Прокрутка к верху
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function contactAboutProduct() {
-            const product = currentProducts[currentProductIndex];
-            const navigation = getCurrentNavigation();
-            
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price && product.price !== 'Цена не указана' ? product.price : ''
-            ].filter(Boolean).join(' → ');
-
-            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
-            
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
-            } else {
-                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
-            }
-        }
-
         function showPhone() {
             const phoneNumber = "60-01-60";
             if (tg) {
@@ -1290,8 +1261,8 @@
                         <button onclick="open2GISInBrowser()" class="w-full py-2 bg-blue-500 text-white rounded-lg font-medium">
                             Открыть в браузере
                         </button>
-                        <button onclick="showCurrentProduct()" class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">
-                            🔙 Назад к товару
+                        <button onclick="renderAllProducts()" class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">
+                            🔙 Назад к товарам
                         </button>
                     </div>
                 </div>
@@ -1497,12 +1468,11 @@
         window.loadModels = loadModels;
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
-        window.navigateProduct = navigateProduct;
-        window.contactAboutProduct = contactAboutProduct;
+        window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.showPhone = showPhone;
         window.show2GISInfo = show2GISInfo;
         window.open2GISInBrowser = open2GISInBrowser;
-        window.showCurrentProduct = showCurrentProduct;
+        window.renderAllProducts = renderAllProducts;
         window.handleBackToCategories = handleBackToCategories;
         window.handleBackToModels = handleBackToModels;
         window.handleBackToSubmodels = handleBackToSubmodels;
