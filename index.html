@@ -156,10 +156,11 @@
         let debugMode = false;
         let featherTimeout;
 
-        // Состояние приложения
+        // Состояние приложения (адаптировано из Python)
         let navigationStack = [];
         let currentProducts = [];
         let currentProductIndex = 0;
+        let catalogData = null;
 
         // DOM элементы
         const elements = {
@@ -216,6 +217,85 @@
             }, 100);
         }
 
+        function extractNumericPrice(priceStr) {
+            // Адаптировано из Python: extract_numeric_price
+            if (!priceStr || !typeof priceStr === 'string') {
+                return Infinity;
+            }
+
+            try {
+                let cleanStr = priceStr.trim();
+                if (!cleanStr) return Infinity;
+
+                // Убираем валюту и другие символы
+                cleanStr = cleanStr.replace(/[^\d,.]/g, '');
+
+                if (!cleanStr) return Infinity;
+
+                // Заменяем запятую на точку (русский формат)
+                cleanStr = cleanStr.replace(',', '.');
+
+                // Убираем лишние точки
+                if (cleanStr.split('.').length > 2) {
+                    const parts = cleanStr.split('.');
+                    cleanStr = parts[0] + '.' + parts.slice(1).join('');
+                }
+
+                const result = parseFloat(cleanStr);
+                return isNaN(result) ? Infinity : result;
+            } catch (error) {
+                debugLog(`Ошибка преобразования цены '${priceStr}':`, error);
+                return Infinity;
+            }
+        }
+
+        function formatPriceText(price) {
+            // Адаптировано из Python: format_price_text
+            if (price === null || price === Infinity) return "";
+            return ` от ${Math.round(price)} р.`;
+        }
+
+        function extractPhotoFilenameFromUrl(url) {
+            // Адаптировано из Python: extract_photo_filename_from_url
+            try {
+                if (!url || !typeof url === 'string') return null;
+
+                url = url.trim();
+
+                // Если это уже прямая ссылка на изображение
+                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)$/)) {
+                    return url.startsWith('http') ? url : null;
+                }
+
+                // Для Google Drive ссылок
+                if (url.includes('drive.google.com')) {
+                    let fileId = null;
+
+                    if (url.includes('/file/d/')) {
+                        fileId = url.split('/file/d/')[1].split('/')[0];
+                    } else if (url.includes('id=')) {
+                        fileId = url.split('id=')[1].split('&')[0];
+                    } else if (url.includes('/open?id=')) {
+                        fileId = url.split('/open?id=')[1].split('&')[0];
+                    }
+
+                    if (fileId) {
+                        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+                    }
+                }
+
+                // Для других HTTP ссылок
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
+                }
+
+                return null;
+            } catch (error) {
+                debugLog('Ошибка извлечения фото из URL:', error);
+                return null;
+            }
+        }
+
         // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
 
         function initTelegramApp() {
@@ -223,7 +303,6 @@
                 try {
                     tg.expand();
                     tg.enableClosingConfirmation();
-                    tg.BackButton.onClick(goBack);
                     debugLog('Telegram Web App инициализирован');
                 } catch (error) {
                     debugLog('Ошибка инициализации Telegram Web App:', error);
@@ -285,7 +364,6 @@
                 
                 const data = await response.json();
                 
-                // Проверка структуры ответа
                 if (!data) {
                     throw new Error('Пустой ответ от сервера');
                 }
@@ -303,7 +381,196 @@
             }
         }
 
-        // ========== НАВИГАЦИЯ ==========
+        // ========== ПАРСИНГ ДАННЫХ (адаптировано из Python) ==========
+
+        function parseCatalogData(data) {
+            // Адаптировано из Python: parse_catalog_data
+            const catalog = {};
+            let currentSection = null;
+            let currentCategory = null;
+            let currentModel = null;
+            let currentSubmodel = null;
+
+            for (let i = 0; i < data.length; i++) {
+                const row = data[i];
+                
+                // Пропускаем пустые строки и заголовок
+                if (row.length < 3 || (row[0] === "Раздел" && row[1] === "Категория")) {
+                    continue;
+                }
+
+                // Обновляем текущие значения (адаптированная логика из Python)
+                if (row[0]) {
+                    currentSection = row[0].trim();
+                    currentCategory = null;
+                    currentModel = null;
+                    currentSubmodel = null;
+                }
+
+                if (row.length > 1 && row[1]) {
+                    currentCategory = row[1].trim();
+                    currentModel = null;
+                    currentSubmodel = null;
+                }
+
+                if (row.length > 2 && row[2]) {
+                    currentModel = row[2].trim();
+                    currentSubmodel = null;
+                }
+
+                if (row.length > 3 && row[3]) {
+                    currentSubmodel = row[3].trim();
+                }
+
+                // Пропускаем строки без раздела или категории
+                if (!currentSection || !currentCategory) {
+                    continue;
+                }
+
+                // Если нет модели, создаем фиктивную модель "Без модели"
+                if (!currentModel) {
+                    currentModel = "Без модели";
+                    currentSubmodel = "Без подмодели";
+                }
+
+                // Получаем данные товара (колонки A-I)
+                const color = row.length > 4 && row[4] ? row[4].trim() : null;
+                const price = row.length > 5 && row[5] ? row[5].trim() : null;
+                const photoUrl = row.length > 6 && row[6] ? row[6].trim() : null;
+                const description = row.length > 7 && row[7] ? row[7].trim() : null;
+                const photoDescription = row.length > 8 && row[8] ? row[8].trim() : null;
+
+                // Если нет подмодели, используем "Без подмодели"
+                const submodelKey = currentSubmodel || "Без подмодели";
+
+                // Создаем структуру каталога (аналогично Python)
+                if (!catalog[currentSection]) {
+                    catalog[currentSection] = {};
+                }
+
+                if (!catalog[currentSection][currentCategory]) {
+                    catalog[currentSection][currentCategory] = {};
+                }
+
+                if (!catalog[currentSection][currentCategory][currentModel]) {
+                    catalog[currentSection][currentCategory][currentModel] = {};
+                }
+
+                if (!catalog[currentSection][currentCategory][currentModel][submodelKey]) {
+                    catalog[currentSection][currentCategory][currentModel][submodelKey] = [];
+                }
+
+                // Добавляем вариант товара (если есть хоть одно поле)
+                if (color || price || photoUrl || description || photoDescription) {
+                    catalog[currentSection][currentCategory][currentModel][submodelKey].push({
+                        color: color,
+                        price: price,
+                        photo_url: photoUrl,
+                        row_index: i + 2, // +2 потому что Python считает с A2
+                        description: description,
+                        photo_description: photoDescription
+                    });
+                }
+            }
+
+            return catalog;
+        }
+
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ НАВИГАЦИИ ==========
+
+        function getMinPriceInCategory(catalog, section, category) {
+            // Адаптировано из Python: get_min_price_in_category
+            let minPrice = Infinity;
+
+            if (catalog[section] && catalog[section][category]) {
+                for (const model of Object.values(catalog[section][category])) {
+                    for (const submodel of Object.values(model)) {
+                        for (const product of submodel) {
+                            if (product.price) {
+                                const priceNum = extractNumericPrice(product.price);
+                                if (priceNum !== Infinity) {
+                                    minPrice = Math.min(minPrice, priceNum);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return minPrice !== Infinity ? minPrice : null;
+        }
+
+        function getMinPriceInModel(catalog, section, category, model) {
+            // Адаптировано из Python: get_min_price_in_model
+            let minPrice = Infinity;
+
+            if (catalog[section] && catalog[section][category] && catalog[section][category][model]) {
+                for (const submodel of Object.values(catalog[section][category][model])) {
+                    for (const product of submodel) {
+                        if (product.price) {
+                            const priceNum = extractNumericPrice(product.price);
+                            if (priceNum !== Infinity) {
+                                minPrice = Math.min(minPrice, priceNum);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return minPrice !== Infinity ? minPrice : null;
+        }
+
+        function checkAutoShowModel(catalog, section, category, model) {
+            // Адаптировано из Python: check_auto_show_model
+            if (catalog[section] && catalog[section][category] && catalog[section][category][model]) {
+                const submodels = catalog[section][category][model];
+                const realSubmodels = Object.keys(submodels).filter(submodel => submodel !== "Без подмодели");
+
+                // Можно автоматически показать, если только "Без подмодели" с товарами
+                if (realSubmodels.length === 0 && submodels["Без подмодели"] && submodels["Без подмодели"].length > 0) {
+                    return { canAutoShow: true, products: submodels["Без подмодели"] };
+                }
+            }
+
+            return { canAutoShow: false, products: [] };
+        }
+
+        function shouldShowVariantsButton(catalog, section, category, model, currentProduct) {
+            // Адаптировано из Python: should_show_variants_button
+            if (!section || !category || !model || !currentProduct) {
+                return false;
+            }
+
+            const currentColor = safeString(currentProduct.color, '').trim();
+            if (!currentColor) {
+                return false;
+            }
+
+            // Считаем количество товаров с ТЕМ ЖЕ ЦВЕТОМ в РАЗДЕЛЕ
+            let sameColorCount = 0;
+
+            if (catalog[section]) {
+                for (const cat of Object.keys(catalog[section])) {
+                    for (const mod of Object.keys(catalog[section][cat])) {
+                        for (const submodel of Object.keys(catalog[section][cat][mod])) {
+                            for (const product of catalog[section][cat][mod][submodel]) {
+                                const prodColor = safeString(product.color, '').trim();
+                                if (prodColor && prodColor === currentColor) {
+                                    sameColorCount++;
+                                    if (sameColorCount > 1) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return sameColorCount > 1;
+        }
+
+        // ========== НАВИГАЦИЯ (адаптированная логика из Python) ==========
 
         async function loadSections() {
             debugLog('=== ЗАГРУЗКА РАЗДЕЛОВ ===');
@@ -336,13 +603,6 @@
         async function loadCategories(sectionId, sectionName) {
             debugLog(`=== ЗАГРУЗКА КАТЕГОРИЙ ДЛЯ РАЗДЕЛА: ${sectionName} ===`);
             
-            // Проверка входных параметров
-            if (!sectionId || !sectionName) {
-                debugLog('❌ Отсутствуют обязательные параметры для loadCategories');
-                showError('Ошибка загрузки категорий');
-                return;
-            }
-            
             try {
                 navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
                 updateBreadcrumbsFromStack();
@@ -373,12 +633,6 @@
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
             debugLog(`=== ЗАГРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
             
-            if (!sectionId || !sectionName || !categoryId || !categoryName) {
-                debugLog('❌ Отсутствуют обязательные параметры для loadModels');
-                showError('Ошибка загрузки моделей');
-                return;
-            }
-            
             try {
                 navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
                 updateBreadcrumbsFromStack();
@@ -396,8 +650,68 @@
                     return;
                 }
 
-                renderModels(data.models, sectionId, sectionName, categoryId, categoryName);
+                // Проверяем автоматический показ для каждой модели
+                const modelsToShow = [];
+                const autoShowModels = [];
+
+                for (const model of data.models) {
+                    const submodelsData = await apiFetch(`/submodels/${sectionId}/${categoryId}/${model.id}`);
+                    
+                    if (submodelsData?.submodels && Array.isArray(submodelsData.submodels)) {
+                        const realSubmodels = submodelsData.submodels.filter(submodel => 
+                            submodel.name !== "Без подмодели"
+                        );
+
+                        // Если только "Без подмодели" с товарами
+                        const withoutSubmodel = submodelsData.submodels.find(submodel => 
+                            submodel.name === "Без подмодели"
+                        );
+
+                        if (realSubmodels.length === 0 && withoutSubmodel) {
+                            autoShowModels.push({
+                                model: model,
+                                products: await getProductsForPath(sectionId, categoryId, model.id, "Без подмодели")
+                            });
+                        } else if (realSubmodels.length > 0) {
+                            modelsToShow.push(model);
+                        } else if (withoutSubmodel) {
+                            autoShowModels.push({
+                                model: model,
+                                products: await getProductsForPath(sectionId, categoryId, model.id, "Без подмодели")
+                            });
+                        }
+                    }
+                }
+
+                // Если есть модели для автоматического показа и нет обычных моделей
+                if (autoShowModels.length > 0 && modelsToShow.length === 0) {
+                    if (autoShowModels.length === 1) {
+                        // Автоматический показ для одной модели
+                        const autoModel = autoShowModels[0];
+                        if (autoModel.products && autoModel.products.length > 0) {
+                            navigationStack.push({ 
+                                type: 'models', 
+                                id: autoModel.model.id, 
+                                name: autoModel.model.name 
+                            });
+                            context.user_data = {
+                                section: sectionId,
+                                category: categoryId,
+                                model: autoModel.model.id,
+                                submodel: "Без подмодели"
+                            };
+                            currentProducts = autoModel.products;
+                            currentProductIndex = 0;
+                            await showCurrentProduct();
+                            return;
+                        }
+                    }
+                }
+
+                // Обычный вывод моделей
+                renderModels(modelsToShow, sectionId, sectionName, categoryId, categoryName);
                 updateBackButton();
+
             } catch (error) {
                 debugLog('Критическая ошибка в loadModels:', error);
                 showError('Не удалось загрузить модели');
@@ -406,12 +720,6 @@
 
         async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
             debugLog(`=== ЗАГРУЗКА ПОДМОДЕЛЕЙ ДЛЯ МОДЕЛИ: ${modelName} ===`);
-            
-            if (!sectionId || !sectionName || !categoryId || !categoryName || !modelId || !modelName) {
-                debugLog('❌ Отсутствуют обязательные параметры для loadSubmodels');
-                showError('Ошибка загрузки подмоделей');
-                return;
-            }
             
             try {
                 navigationStack.push({ type: 'models', id: modelId, name: modelName });
@@ -430,8 +738,41 @@
                     return;
                 }
 
+                // Проверяем, есть ли реальные подмодели (кроме "Без подмодели")
+                const realSubmodels = data.submodels.filter(submodel => 
+                    submodel.name !== "Без подмодели"
+                );
+
+                // Получаем все товары для проверки
+                const allProducts = [];
+                for (const submodel of data.submodels) {
+                    const products = await getProductsForPath(sectionId, categoryId, modelId, submodel.id);
+                    allProducts.push(...products);
+                }
+
+                if (allProducts.length === 0) {
+                    showEmptyState(`В этой модели нет товаров`);
+                    return;
+                }
+
+                // Если есть только "Без подмодели" или нет реальных подмоделей
+                if (realSubmodels.length === 0) {
+                    // Сразу показываем товары
+                    context.user_data = {
+                        section: sectionId,
+                        category: categoryId,
+                        model: modelId,
+                        submodel: "Без подмодели"
+                    };
+                    currentProducts = allProducts;
+                    currentProductIndex = 0;
+                    await showCurrentProduct();
+                    return;
+                }
+
                 renderSubmodels(data.submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
                 updateBackButton();
+
             } catch (error) {
                 debugLog('Критическая ошибка в loadSubmodels:', error);
                 showError('Не удалось загрузить подмодели');
@@ -440,12 +781,6 @@
 
         async function loadProducts(sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName) {
             debugLog(`=== ЗАГРУЗКА ТОВАРОВ ДЛЯ: ${submodelName} ===`);
-            
-            if (!sectionId || !submodelId || !submodelName) {
-                debugLog('❌ Отсутствуют обязательные параметры для loadProducts');
-                showError('Ошибка загрузки товаров');
-                return;
-            }
             
             try {
                 navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
@@ -475,6 +810,14 @@
                 return;
             }
 
+            // Сохраняем контекст для навигации
+            context.user_data = {
+                section: sectionId,
+                category: categoryId,
+                model: modelId,
+                submodel: submodelId
+            };
+
             currentProducts = data.products.filter(product => product != null);
             currentProductIndex = 0;
             
@@ -483,11 +826,17 @@
                 return;
             }
 
-            renderCurrentProduct();
+            await showCurrentProduct();
             updateBackButton();
         }
 
-        // ========== РЕНДЕРИНГ ==========
+        async function getProductsForPath(sectionId, categoryId, modelId, submodelId) {
+            const endpoint = `/products/${sectionId || 'null'}/${categoryId || 'null'}/${modelId || 'null'}/${submodelId || 'null'}`;
+            const data = await apiFetch(endpoint);
+            return data?.products || [];
+        }
+
+        // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
 
         function renderSections(sections) {
             let html = '';
@@ -499,7 +848,7 @@
                 const safeName = escapeHtml(section.name);
                 const minPrice = safeNumber(section.min_price);
                 const hasPrice = minPrice > 0;
-                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                const priceText = formatPriceText(hasPrice ? minPrice : null);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
@@ -535,7 +884,7 @@
                 const safeName = escapeHtml(category.name);
                 const minPrice = safeNumber(category.min_price);
                 const hasPrice = minPrice > 0;
-                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                const priceText = formatPriceText(hasPrice ? minPrice : null);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
@@ -571,7 +920,7 @@
                 const safeName = escapeHtml(model.name);
                 const minPrice = safeNumber(model.min_price);
                 const hasPrice = minPrice > 0;
-                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                const priceText = formatPriceText(hasPrice ? minPrice : null);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
@@ -607,7 +956,7 @@
                 const safeName = escapeHtml(submodel.name);
                 const minPrice = safeNumber(submodel.min_price);
                 const hasPrice = minPrice > 0;
-                const priceText = hasPrice ? ` от ${Math.round(minPrice)} р.` : '';
+                const priceText = formatPriceText(hasPrice ? minPrice : null);
                 
                 html += `
                     <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
@@ -633,7 +982,7 @@
             scheduleFeatherReplace();
         }
 
-        function renderCurrentProduct() {
+        async function showCurrentProduct() {
             if (!currentProducts || currentProducts.length === 0) {
                 showEmptyState('Товары не найдены');
                 return;
@@ -653,12 +1002,67 @@
             const photoUrl = safeString(product.photo_url);
             const photoDescription = safeString(product.photo_description);
             
-            const imageUrl = photoUrl ? 
-                (photoUrl.includes('drive.google.com') ? 
-                    photoUrl.replace('/file/d/', '/uc?export=view&id=').split('/view')[0] : 
-                    photoUrl) : 
-                null;
+            const imageUrl = extractPhotoFilenameFromUrl(photoUrl);
 
+            // Получаем данные из навигации
+            const navigation = getCurrentNavigation();
+            const section = navigation.section?.name || 'Неизвестно';
+            const category = navigation.category?.name || 'Неизвестно';
+            const modelName = navigation.model?.name || 'Неизвестно';
+            const submodelName = navigation.submodel?.name || 'Без подмодели';
+
+            // Формируем подпись (аналогично Python логике)
+            let caption = `📦 ${section} → ${category} → ${modelName}\n`;
+            if (submodelName !== "Без подмодели") {
+                caption += `📋 : ${submodelName}\n\n`;
+            } else {
+                caption += "\n";
+            }
+
+            caption += `🎨 Характеристики/Цвет: ${escapeHtml(color)}\n`;
+            caption += `💰 Цена: ${escapeHtml(price)}\n`;
+
+            // Добавляем описание под фото ТОЛЬКО если оно есть
+            if (photoDescription) {
+                caption += `\n📄 Описание:\n${escapeHtml(photoDescription)}`;
+            }
+
+            caption += "\n\n🗺 БАРАБИНСКАЯ 3а с4\n";
+            caption += "📍 <a href='https://2gis.ru/tyumen/search/ скидка%20сервис/firm/70000001048108193/65.610084%2C57.15728?m=65.61013%2C57.157229%2F20'>Посмотреть на 2GIS</a>";
+
+            // Создаем клавиатуру
+            let keyboard = [];
+
+            // Кнопки навигации по товарам
+            if (currentProducts.length > 1) {
+                keyboard.push([
+                    { text: "⬅️", callback: "product_prev" },
+                    { text: `${currentProductIndex + 1}/${currentProducts.length}`, callback: "product_info" },
+                    { text: "➡️", callback: "product_next" }
+                ]);
+            }
+
+            // Кнопка ВАРИАНТЫ (если нужно показать)
+            // Для этого нужно загрузить каталог и проверить
+            const showVariants = false; // Временно отключено, нужно реализовать проверку
+
+            if (showVariants) {
+                keyboard.push([
+                    { text: "🎨 ВАРИАНТЫ", callback: "show_color_variants" }
+                ]);
+            }
+
+            // Кнопки действий
+            keyboard.push([
+                { text: "💬 Спросить AI", callback: "ask_ai" },
+                { text: "📞 БАРАБИНСКАЯ 3а с4", callback: "show_phone_1" }
+            ]);
+
+            // Кнопка назад
+            const backButton = getBackButton();
+            keyboard.push([backButton]);
+
+            // Отображаем контент
             let html = `
                 <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
                     ${imageUrl ? `
@@ -684,163 +1088,82 @@
                                 </span>
                             ` : ''}
                         </div>
+                        
+                        <div class="text-gray-600 whitespace-pre-line">${caption}</div>
             `;
 
-            if (photoDescription) {
-                html += `<p class="text-gray-600 mb-3">${escapeHtml(photoDescription)}</p>`;
-            }
-
-            if (description) {
-                html += `<p class="text-gray-500 text-sm mb-3">${escapeHtml(description)}</p>`;
-            }
-
-            // Навигация по товарам
-            if (currentProducts.length > 1) {
-                const prevDisabled = currentProductIndex === 0;
-                const nextDisabled = currentProductIndex === currentProducts.length - 1;
-                
-                html += `
-                    <div class="flex justify-between items-center mb-4 bg-gray-50 rounded-lg p-2">
-                        <button onclick="showPreviousProduct()" 
-                                class="py-2 px-3 bg-white rounded-lg flex items-center ${prevDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
-                                ${prevDisabled ? 'disabled' : ''}>
-                            <i data-feather="chevron-left" class="w-4 h-4 mr-1"></i>
-                            <span class="text-sm">Назад</span>
-                        </button>
-                        
-                        <span class="text-sm text-gray-600 font-medium">
-                            ${currentProductIndex + 1} / ${currentProducts.length}
-                        </span>
-                        
-                        <button onclick="showNextProduct()" 
-                                class="py-2 px-3 bg-white rounded-lg flex items-center ${nextDisabled ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:bg-gray-50'}"
-                                ${nextDisabled ? 'disabled' : ''}>
-                            <span class="text-sm">Вперед</span>
-                            <i data-feather="chevron-right" class="w-4 h-4 ml-1"></i>
-                        </button>
-                    </div>
-                `;
-            }
-
-            // Кнопки действий
-            const productInfo = [
-                navigationStack.find(item => item?.type === 'sections')?.name,
-                navigationStack.find(item => item?.type === 'categories')?.name,
-                navigationStack.find(item => item?.type === 'models')?.name,
-                navigationStack.find(item => item?.type === 'submodels')?.name,
-                color,
-                price !== 'Цена не указана' ? price : ''
-            ].filter(Boolean).join(' → ');
-
-            html += `
-                        <div class="flex space-x-2">
-                            <button class="flex-1 py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center"
-                                    onclick="contactAboutProduct('${escapeHtml(productInfo).replace(/'/g, "\\'")}')">
-                                <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
-                                Узнать подробнее
+            // Добавляем кнопки навигации
+            if (keyboard.length > 0) {
+                html += `<div class="mt-4 space-y-2">`;
+                keyboard.forEach(row => {
+                    html += `<div class="flex space-x-2">`;
+                    row.forEach(button => {
+                        html += `
+                            <button onclick="handleButtonClick('${button.callback}')" 
+                                    class="flex-1 py-2 px-3 bg-blue-500 text-white rounded-lg transition font-medium text-sm">
+                                ${button.text}
                             </button>
-                        </div>
-                    </div>
-                </div>
-            `;
+                        `;
+                    });
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div></div>`;
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
         }
 
-        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        // ========== УПРАВЛЕНИЕ НАВИГАЦИЕЙ ==========
 
-        function showPreviousProduct() {
-            if (currentProductIndex > 0) {
-                currentProductIndex--;
-                renderCurrentProduct();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
+        function getCurrentNavigation() {
+            // Восстанавливаем навигацию из стека
+            const navigation = {
+                section: null,
+                category: null,
+                model: null,
+                submodel: null
+            };
 
-        function showNextProduct() {
-            if (currentProductIndex < currentProducts.length - 1) {
-                currentProductIndex++;
-                renderCurrentProduct();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-
-        function goBack() {
-            if (!navigationStack.length) {
-                if (tg) {
-                    tg.close();
-                } else {
-                    loadSections();
-                }
-                return;
-            }
-            
-            const current = navigationStack[navigationStack.length - 1];
-            if (!current) {
-                loadSections();
-                return;
-            }
-            
-            navigationStack.pop();
-            
-            if (navigationStack.length === 0) {
-                loadSections();
-            } else {
-                const prev = navigationStack[navigationStack.length - 1];
-                if (!prev) {
-                    loadSections();
-                    return;
-                }
-                
-                switch (prev.type) {
+            navigationStack.forEach(item => {
+                switch (item.type) {
                     case 'sections':
-                        loadSections();
+                        navigation.section = { id: item.id, name: item.name };
                         break;
                     case 'categories':
-                        const section = navigationStack.find(item => item?.type === 'sections');
-                        if (section) {
-                            loadCategories(section.id, section.name);
-                        } else {
-                            loadSections();
-                        }
+                        navigation.category = { id: item.id, name: item.name };
                         break;
                     case 'models':
-                        const sectionForModel = navigationStack.find(item => item?.type === 'sections');
-                        const category = navigationStack.find(item => item?.type === 'categories');
-                        if (sectionForModel && category) {
-                            loadModels(sectionForModel.id, sectionForModel.name, category.id, category.name);
-                        } else {
-                            loadSections();
-                        }
+                        navigation.model = { id: item.id, name: item.name };
                         break;
                     case 'submodels':
-                        const sectionForSubmodel = navigationStack.find(item => item?.type === 'sections');
-                        const categoryForSubmodel = navigationStack.find(item => item?.type === 'categories');
-                        const model = navigationStack.find(item => item?.type === 'models');
-                        if (sectionForSubmodel && categoryForSubmodel && model) {
-                            loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
-                        } else {
-                            loadSections();
-                        }
+                        navigation.submodel = { id: item.id, name: item.name };
                         break;
-                    default:
-                        loadSections();
                 }
-            }
+            });
+
+            return navigation;
         }
 
-        function updateBackButton() {
-            if (!tg) return;
-            
-            try {
-                if (navigationStack.length > 0) {
-                    tg.BackButton.show();
-                } else {
-                    tg.BackButton.hide();
-                }
-            } catch (error) {
-                debugLog('Ошибка обновления кнопки назад:', error);
+        function getBackButton() {
+            if (navigationStack.length === 0) {
+                return { text: "🔙 Назад", callback: "back_to_sections" };
+            }
+
+            const lastItem = navigationStack[navigationStack.length - 1];
+            switch (lastItem.type) {
+                case 'sections':
+                    return { text: "🔙 Назад к разделам", callback: "back_to_sections" };
+                case 'categories':
+                    return { text: "🔙 Назад к категориям", callback: "back_to_categories" };
+                case 'models':
+                    return { text: "🔙 Назад к моделям", callback: "back_to_models" };
+                case 'submodels':
+                    return { text: "🔙 Назад к подмоделям", callback: "back_to_submodels" };
+                default:
+                    return { text: "🔙 Назад", callback: "back_to_sections" };
             }
         }
 
@@ -898,6 +1221,162 @@
             scheduleFeatherReplace();
         }
 
+        function updateBackButton() {
+            if (!tg) return;
+            
+            try {
+                if (navigationStack.length > 0) {
+                    if (tg.BackButton) {
+                        tg.BackButton.show();
+                        tg.BackButton.onClick(goBack);
+                    }
+                } else {
+                    if (tg.BackButton) {
+                        tg.BackButton.hide();
+                    }
+                }
+            } catch (error) {
+                debugLog('Ошибка обновления кнопки назад:', error);
+            }
+        }
+
+        function goBack() {
+            if (navigationStack.length > 0) {
+                navigationStack.pop();
+                
+                if (navigationStack.length === 0) {
+                    loadSections();
+                } else {
+                    const current = navigationStack[navigationStack.length - 1];
+                    handleBackNavigation(current.type);
+                }
+            } else if (tg) {
+                tg.close();
+            }
+        }
+
+        function handleBackNavigation(type) {
+            switch (type) {
+                case 'sections':
+                    loadSections();
+                    break;
+                case 'categories':
+                    const section = navigationStack.find(item => item.type === 'sections');
+                    if (section) {
+                        loadCategories(section.id, section.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
+                case 'models':
+                    const sectionForModel = navigationStack.find(item => item.type === 'sections');
+                    const category = navigationStack.find(item => item.type === 'categories');
+                    if (sectionForModel && category) {
+                        loadModels(sectionForModel.id, sectionForModel.name, category.id, category.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
+                case 'submodels':
+                    const sectionForSubmodel = navigationStack.find(item => item.type === 'sections');
+                    const categoryForSubmodel = navigationStack.find(item => item.type === 'categories');
+                    const model = navigationStack.find(item => item.type === 'models');
+                    if (sectionForSubmodel && categoryForSubmodel && model) {
+                        loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
+                default:
+                    loadSections();
+            }
+        }
+
+        // ========== ОБРАБОТЧИКИ КНОПОК ==========
+
+        async function handleButtonClick(callback) {
+            debugLog(`Обработка callback: ${callback}`);
+            
+            switch (callback) {
+                case 'product_prev':
+                    if (currentProductIndex > 0) {
+                        currentProductIndex--;
+                        await showCurrentProduct();
+                    }
+                    break;
+                    
+                case 'product_next':
+                    if (currentProductIndex < currentProducts.length - 1) {
+                        currentProductIndex++;
+                        await showCurrentProduct();
+                    }
+                    break;
+                    
+                case 'back_to_sections':
+                    navigationStack = [];
+                    await loadSections();
+                    break;
+                    
+                case 'back_to_categories':
+                    if (navigationStack.length > 0) {
+                        navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
+                        const section = navigationStack.find(item => item.type === 'sections');
+                        if (section) {
+                            await loadCategories(section.id, section.name);
+                        } else {
+                            await loadSections();
+                        }
+                    }
+                    break;
+                    
+                case 'back_to_models':
+                    if (navigationStack.length > 0) {
+                        navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
+                        const section = navigationStack.find(item => item.type === 'sections');
+                        const category = navigationStack.find(item => item.type === 'categories');
+                        if (section && category) {
+                            await loadModels(section.id, section.name, category.id, category.name);
+                        } else {
+                            await loadSections();
+                        }
+                    }
+                    break;
+                    
+                case 'back_to_submodels':
+                    if (navigationStack.length > 0) {
+                        navigationStack = navigationStack.filter(item => item.type !== 'submodels');
+                        const section = navigationStack.find(item => item.type === 'sections');
+                        const category = navigationStack.find(item => item.type === 'categories');
+                        const model = navigationStack.find(item => item.type === 'models');
+                        if (section && category && model) {
+                            await loadSubmodels(section.id, section.name, category.id, category.name, model.id, model.name);
+                        } else {
+                            await loadSections();
+                        }
+                    }
+                    break;
+                    
+                case 'show_phone_1':
+                    contactAboutProduct();
+                    break;
+                    
+                case 'ask_ai':
+                    // Реализация AI чата может быть добавлена позже
+                    alert('Функция AI чата будет реализована в будущем');
+                    break;
+                    
+                case 'show_color_variants':
+                    // Реализация показа вариантов цвета
+                    alert('Функция показа вариантов цвета будет реализована в будущем');
+                    break;
+                    
+                default:
+                    debugLog(`Неизвестный callback: ${callback}`);
+            }
+        }
+
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+
         function showLoading() {
             elements.loading.classList.remove('hidden');
             elements.content.classList.add('hidden');
@@ -930,7 +1409,27 @@
             updateBackButton();
         }
 
-        // ========== МЕНЮ И ВНЕШНИЕ ФУНКЦИИ ==========
+        function contactAboutProduct() {
+            const product = currentProducts[currentProductIndex];
+            const navigation = getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price !== 'Цена не указана' ? product?.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
 
         function openSideMenu() {
             elements.sideMenu.classList.remove('hidden');
@@ -965,21 +1464,6 @@
             }
         }
 
-        function contactAboutProduct(productInfo) {
-            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
-            const contactUrl = `https://t.me/SidkaService01?text=${encodeURIComponent(message)}`;
-            
-            try {
-                if (tg) {
-                    tg.openTelegramLink(contactUrl);
-                } else {
-                    window.open(contactUrl, '_blank');
-                }
-            } catch (error) {
-                window.open(contactUrl, '_blank');
-            }
-        }
-
         async function testAllEndpoints() {
             debugLog('=== ТЕСТИРОВАНИЕ ВСЕХ КОНЕЧНЫХ ТОЧЕК ===');
             
@@ -999,6 +1483,13 @@
             
             debugLog('=== ТЕСТИРОВАНИЕ ЗАВЕРШЕНО ===');
         }
+
+        // Контекст для хранения данных (аналог Python context.user_data)
+        const context = {
+            user_data: {},
+            current_product: null,
+            in_ai_chat_mode: false
+        };
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
@@ -1043,8 +1534,7 @@
         window.loadModels = loadModels;
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
-        window.showPreviousProduct = showPreviousProduct;
-        window.showNextProduct = showNextProduct;
+        window.handleButtonClick = handleButtonClick;
         window.goBack = goBack;
         window.openInBot = openInBot;
         window.contactAboutProduct = contactAboutProduct;
