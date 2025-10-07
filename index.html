@@ -377,7 +377,7 @@
             }
         }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ССЫЛОК НА ИЗОБРАЖЕНИЯ
+        // ПОЛНОСТЬЮ ПЕРЕРАБОТАННАЯ ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ ИЗОБРАЖЕНИЙ
         function extractPhotoFilenameFromUrl(url) {
             try {
                 if (!url || typeof url !== 'string') return null;
@@ -391,7 +391,7 @@
                     return url.startsWith('http') ? url : null;
                 }
 
-                // Для Google Drive ссылок - ИСПРАВЛЕННАЯ ЛОГИКА
+                // Для Google Drive ссылок - УПРОЩЕННАЯ ЛОГИКА
                 if (url.includes('drive.google.com')) {
                     let fileId = null;
 
@@ -420,8 +420,8 @@
                     }
 
                     if (fileId) {
-                        // ИСПРАВЛЕНИЕ: используем прямую ссылку для скачивания
-                        const imageUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                        // ИСПОЛЬЗУЕМ ПРЯМУЮ ССЫЛКУ НА ПРОСМОТР
+                        const imageUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
                         debugLog('Сгенерирован URL изображения:', imageUrl);
                         return imageUrl;
                     }
@@ -441,47 +441,23 @@
             }
         }
 
-        // Функции для обработки изображений
+        // УПРОЩЕННЫЕ ФУНКЦИИ ДЛЯ ОБРАБОТКИ ИЗОБРАЖЕНИЙ
         function handleImageError(imgElement, originalUrl = '') {
             debugLog('Ошибка загрузки изображения:', {
                 src: imgElement.src,
                 original: originalUrl
             });
             
-            // Пробуем альтернативный URL если это Google Drive
-            if (imgElement.src.includes('drive.google.com')) {
-                const currentSrc = imgElement.src;
-                
-                // Если это была ссылка на скачивание, пробуем через view
-                if (currentSrc.includes('export=download')) {
-                    const fileIdMatch = currentSrc.match(/id=([^&]+)/);
-                    if (fileIdMatch && fileIdMatch[1]) {
-                        const alternativeUrl = `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`;
-                        debugLog('Пробуем альтернативный URL:', alternativeUrl);
-                        
-                        imgElement.src = alternativeUrl;
-                        return; // Не скрываем изображение, пробуем заново
-                    }
-                }
-                // Если это была ссылка на view, пробуем через download
-                else if (currentSrc.includes('export=view')) {
-                    const fileIdMatch = currentSrc.match(/id=([^&]+)/);
-                    if (fileIdMatch && fileIdMatch[1]) {
-                        const alternativeUrl = `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
-                        debugLog('Пробуем альтернативный URL:', alternativeUrl);
-                        
-                        imgElement.src = alternativeUrl;
-                        return; // Не скрываем изображение, пробуем заново
-                    }
-                }
-            }
-            
-            // Если альтернативные URL не помогли, показываем placeholder
+            // Сразу скрываем изображение и показываем placeholder
             imgElement.style.display = 'none';
             const placeholder = imgElement.nextElementSibling;
             if (placeholder && placeholder.classList.contains('image-placeholder')) {
                 placeholder.style.display = 'flex';
             }
+            
+            // Останавливаем дальнейшие попытки загрузки
+            imgElement.onerror = null;
+            
             scheduleFeatherReplace();
         }
 
@@ -492,12 +468,6 @@
             if (placeholder && placeholder.classList.contains('image-placeholder')) {
                 placeholder.style.display = 'none';
             }
-            
-            // Добавляем обработчик для ошибок после загрузки (на случай проблем с отображением)
-            imgElement.onerror = function() {
-                debugLog('Ошибка отображения изображения после загрузки:', this.src);
-                handleImageError(this, this.src);
-            };
         }
 
         // ========== КОНТАКТНЫЕ ФУНКЦИИ ==========
@@ -966,12 +936,11 @@
                 if (imageUrl) {
                     html += `
                         <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
-                             class="product-image w-full h-48 object-cover"
+                             class="product-image"
                              loading="lazy"
                              onerror="handleImageError(this, '${escapeHtml(photoUrl)}')"
-                             onload="handleImageLoad(this)"
-                             crossorigin="anonymous">
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                             onload="handleImageLoad(this)">
+                        <div class="image-placeholder" style="display: none;">
                             <div class="text-center text-gray-400">
                                 <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Не удалось загрузить фото</div>
@@ -980,7 +949,7 @@
                     `;
                 } else {
                     html += `
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center image-placeholder">
+                        <div class="image-placeholder">
                             <div class="text-center text-gray-400">
                                 <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Фото не доступно</div>
