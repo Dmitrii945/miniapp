@@ -168,6 +168,13 @@
         .test-button:hover {
             background-color: #7C3AED;
         }
+        
+        .image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -368,44 +375,91 @@
             }
         }
 
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ССЫЛОК НА ИЗОБРАЖЕНИЯ
         function extractPhotoFilenameFromUrl(url) {
             try {
                 if (!url || typeof url !== 'string') return null;
-                url = url.trim();
 
+                url = url.trim();
+                debugLog('Обработка URL фото:', url);
+
+                // Если это уже прямая ссылка на изображение
                 if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
+                    debugLog('Прямая ссылка на изображение:', url);
                     return url.startsWith('http') ? url : null;
                 }
 
+                // Для Google Drive ссылок - УЛУЧШЕННАЯ ЛОГИКА
                 if (url.includes('drive.google.com')) {
                     let fileId = null;
 
+                    // Основной паттерн для ссылок вида /file/d/ID/view
                     if (url.includes('/file/d/')) {
                         const match = url.match(/\/file\/d\/([^\/]+)/);
-                        if (match && match[1]) fileId = match[1];
+                        if (match && match[1]) {
+                            fileId = match[1];
+                            debugLog('Найден fileId из /file/d/:', fileId);
+                        }
                     } 
+                    // Для ссылок вида uc?export=view&id=...
                     else if (url.includes('uc?export=view&id=')) {
                         fileId = url.split('uc?export=view&id=')[1];
+                        debugLog('Найден fileId из uc?export=view:', fileId);
                     }
+                    // Для ссылок вида id=...
                     else if (url.includes('id=')) {
                         fileId = url.split('id=')[1].split('&')[0];
+                        debugLog('Найден fileId из id=:', fileId);
                     }
+                    // Дополнительные паттерны для разных форматов Google Drive ссылок
                     else if (url.includes('/open?id=')) {
                         fileId = url.split('/open?id=')[1];
+                        debugLog('Найден fileId из /open?id=:', fileId);
                     }
 
                     if (fileId) {
-                        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+                        // ИСПРАВЛЕНИЕ: используем preview вместо download для лучшей совместимости
+                        const imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+                        debugLog('Сгенерирован URL изображения:', imageUrl);
+                        return imageUrl;
                     }
                 }
 
+                // Для других HTTP ссылок
                 if (url.startsWith('http://') || url.startsWith('https://')) {
+                    debugLog('HTTP ссылка:', url);
                     return url;
                 }
 
+                debugLog('URL не распознан');
                 return null;
             } catch (error) {
+                debugLog('Ошибка извлечения фото из URL:', error);
                 return null;
+            }
+        }
+
+        // Функции для обработки изображений
+        function handleImageError(imgElement, originalUrl = '') {
+            debugLog('Ошибка загрузки изображения:', {
+                src: imgElement.src,
+                original: originalUrl
+            });
+            
+            imgElement.style.display = 'none';
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('image-placeholder')) {
+                placeholder.style.display = 'flex';
+            }
+            scheduleFeatherReplace();
+        }
+
+        function handleImageLoad(imgElement) {
+            debugLog('Изображение успешно загружено:', imgElement.src);
+            imgElement.style.display = 'block';
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('image-placeholder')) {
+                placeholder.style.display = 'none';
             }
         }
 
@@ -866,6 +920,7 @@
                 const photoDescription = safeString(product.photo_description);
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                debugLog(`Товар ${index}:`, { color, photoUrl, imageUrl });
 
                 html += `
                     <div class="product-card fade-in">
@@ -876,9 +931,10 @@
                         <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(color)}" 
                              class="product-image w-full h-48 object-cover"
                              loading="lazy"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                             onerror="handleImageError(this, '${escapeHtml(photoUrl)}')"
+                             onload="handleImageLoad(this)"
                              crossorigin="anonymous">
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden">
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
                             <div class="text-center text-gray-400">
                                 <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Не удалось загрузить фото</div>
@@ -887,7 +943,7 @@
                     `;
                 } else {
                     html += `
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center image-placeholder">
                             <div class="text-center text-gray-400">
                                 <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Фото не доступно</div>
@@ -1378,6 +1434,8 @@
         window.retryLastAction = retryLastAction;
         window.testCurrentCategory = testCurrentCategory;
         window.testAllEndpoints = testAllEndpoints;
+        window.handleImageError = handleImageError;
+        window.handleImageLoad = handleImageLoad;
     </script>
 </body>
 </html>
