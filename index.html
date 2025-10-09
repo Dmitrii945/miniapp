@@ -277,7 +277,7 @@
         // Конфигурация
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
-        const API_TIMEOUT = 30000; // Увеличили таймаут до 30 секунд
+        const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
 
@@ -285,7 +285,7 @@
         let navigationStack = [];
         let currentProducts = [];
         let catalogData = null;
-        let lastAction = null; // Для повтора последнего действия
+        let lastAction = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -357,15 +357,12 @@
                 let cleanStr = priceStr.trim();
                 if (!cleanStr) return Infinity;
 
-                // Убираем валюту и другие символы, но сохраняем цифры, запятые и точки
                 cleanStr = cleanStr.replace(/[^\d,.]/g, '');
 
                 if (!cleanStr) return Infinity;
 
-                // Заменяем запятую на точку (русский формат)
                 cleanStr = cleanStr.replace(',', '.');
 
-                // Убираем лишние точки
                 const parts = cleanStr.split('.');
                 if (parts.length > 2) {
                     cleanStr = parts[0] + '.' + parts.slice(1).join('');
@@ -409,19 +406,16 @@
             }
         }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ССЫЛОК НА ИЗОБРАЖЕНИЯ
         function extractPhotoFilenameFromUrl(url) {
             try {
                 if (!url || typeof url !== 'string') return null;
 
                 url = url.trim();
 
-                // Если это уже прямая ссылка на изображение
                 if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
                     return url.startsWith('http') ? url : null;
                 }
 
-                // Для Google Drive ссылок
                 if (url.includes('drive.google.com')) {
                     let fileId = null;
 
@@ -446,7 +440,6 @@
                     }
                 }
 
-                // Для других HTTP ссылок
                 if (url.startsWith('http://') || url.startsWith('https://')) {
                     return url;
                 }
@@ -458,7 +451,6 @@
             }
         }
 
-        // НОВАЯ ФУНКЦИЯ: Альтернативные методы получения изображений
         function getAlternativeImageUrls(originalUrl) {
             const urls = [];
             
@@ -506,7 +498,6 @@
             return urls;
         }
 
-        // Функции для отладки загрузки изображений
         function handleImageError(imgElement, originalUrl = '', alternativeUrls = []) {
             debugLog('Ошибка загрузки изображения:', {
                 src: imgElement.src,
@@ -640,7 +631,7 @@
             }
         }
 
-        // ========== НАВИГАЦИЯ ==========
+        // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
             debugLog('=== ЗАГРУЗКА РАЗДЕЛОВ ===');
@@ -694,6 +685,19 @@
                     return;
                 }
 
+                // УМНАЯ ПРОВЕРКА: если в категории только одна модель "Без модели" - сразу загружаем товары
+                if (data.categories.length === 1) {
+                    const category = data.categories[0];
+                    const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+                    
+                    if (modelsData?.models && modelsData.models.length === 1 && 
+                        modelsData.models[0].name === "Без модели") {
+                        debugLog('Обнаружена категория только с "Без модели", загружаем товары напрямую');
+                        await loadProductsDirect(sectionId, category.id, null, null, category.name);
+                        return;
+                    }
+                }
+
                 renderCategories(data.categories, sectionId, sectionName);
                 updateBackButton();
             } catch (error) {
@@ -703,7 +707,7 @@
         }
 
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
-            debugLog(`=== ЗАГРРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
+            debugLog(`=== ЗАГРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
@@ -725,7 +729,24 @@
                     return;
                 }
 
-                renderModels(data.models, sectionId, sectionName, categoryId, categoryName);
+                // УМНАЯ ПРОВЕРКА: если только одна модель "Без модели" - сразу загружаем товары
+                if (data.models.length === 1 && data.models[0].name === "Без модели") {
+                    debugLog('Обнаружена только модель "Без модели", загружаем товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, data.models[0].id, null, categoryName);
+                    return;
+                }
+
+                // ФИЛЬТРУЕМ: убираем "Без модели" из списка, если есть другие модели
+                const filteredModels = data.models.filter(model => model.name !== "Без модели");
+                
+                if (filteredModels.length === 0) {
+                    // Если после фильтрации ничего не осталось, все равно загружаем товары
+                    debugLog('После фильтрации моделей не осталось, загружаем товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
                 updateBackButton();
             } catch (error) {
                 debugLog('Критическая ошибка в loadModels:', error);
@@ -756,7 +777,24 @@
                     return;
                 }
 
-                renderSubmodels(data.submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                // УМНАЯ ПРОВЕРКА: если только одна подмодель "Без подмодели" - сразу загружаем товары
+                if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
+                    debugLog('Обнаружена только подмодель "Без подмодели", загружаем товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, modelId, data.submodels[0].id, modelName);
+                    return;
+                }
+
+                // ФИЛЬТРУЕМ: убираем "Без подмодели" из списка, если есть другие подмодели
+                const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
+                
+                if (filteredSubmodels.length === 0) {
+                    // Если после фильтрации ничего не осталось, все равно загружаем товары
+                    debugLog('После фильтрации подмоделей не осталось, загружаем товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
                 updateBackButton();
             } catch (error) {
                 debugLog('Критическая ошибка в loadSubmodels:', error);
@@ -781,7 +819,13 @@
         }
 
         async function loadProductsDirect(sectionId, categoryId, modelId, submodelId, currentName) {
-            const endpoint = `/products/${sectionId || 'null'}/${categoryId || 'null'}/${modelId || 'null'}/${submodelId || 'null'}`;
+            // ЗАМЕНЯЕМ null на 'null' для API
+            const safeSectionId = sectionId || 'null';
+            const safeCategoryId = categoryId || 'null';
+            const safeModelId = modelId || 'null';
+            const safeSubmodelId = submodelId || 'null';
+            
+            const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
             elements.pageTitle.textContent = currentName;
             
             debugLog(`Загрузка товаров по endpoint: ${endpoint}`);
@@ -846,7 +890,6 @@
                 return;
             }
             
-            // Добавляем кнопку "Назад" внизу
             html += `
                 <button onclick="goBack()" class="back-button">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
@@ -891,7 +934,6 @@
                 return;
             }
             
-            // Добавляем кнопку "Назад" внизу
             html += `
                 <button onclick="goBack()" class="back-button">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
@@ -936,7 +978,6 @@
                 return;
             }
             
-            // Добавляем кнопку "Назад" внизу
             html += `
                 <button onclick="goBack()" class="back-button">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
@@ -981,7 +1022,6 @@
                 return;
             }
             
-            // Добавляем кнопку "Назад" внизу
             html += `
                 <button onclick="goBack()" class="back-button">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
@@ -993,7 +1033,6 @@
             scheduleFeatherReplace();
         }
 
-        // НОВАЯ ФУНКЦИЯ: Рендеринг хлебных крошек для товара
         function renderProductBreadcrumbs(navigation) {
             if (!navigation.section && !navigation.category && !navigation.model && !navigation.submodel) {
                 return '';
@@ -1015,14 +1054,14 @@
                 });
             }
             
-            if (navigation.model) {
+            if (navigation.model && navigation.model.name !== "Без модели") {
                 breadcrumbs.push({
                     name: navigation.model.name,
                     action: `loadSubmodels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}')`
                 });
             }
             
-            if (navigation.submodel && navigation.submodel.name !== 'Без подмодели') {
+            if (navigation.submodel && navigation.submodel.name !== "Без подмодели") {
                 breadcrumbs.push({
                     name: navigation.submodel.name,
                     action: `loadProducts('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}', '${navigation.submodel.id}', '${navigation.submodel.name.replace(/'/g, "\\'")}')`
@@ -1047,7 +1086,6 @@
             return html;
         }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Показ всех товаров списком (без пагинации)
         function renderAllProducts() {
             if (!currentProducts || currentProducts.length === 0) {
                 showEmptyState('Товары не найдены');
@@ -1133,7 +1171,6 @@
 
                 html += `</div>`;
 
-                // ДОБАВЛЕНЫ КНОПКИ ТЕЛЕФОНА И 2GIS ПОД КАЖДЫМ ФОТО
                 html += `
                     <div class="action-buttons">
                         <button onclick="makePhoneCall()" class="action-button phone-button">
@@ -1160,7 +1197,6 @@
                 html += `</div></div>`;
             });
 
-            // Добавляем кнопку "Назад" внизу списка товаров
             html += `
                 <button onclick="goBack()" class="back-button">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
@@ -1176,7 +1212,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // НОВАЯ ФУНКЦИЯ: Контакт по конкретному товару
         function contactAboutSpecificProduct(productIndex) {
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
@@ -1482,7 +1517,6 @@
             }
         }
 
-        // НОВАЯ ФУНКЦИЯ: Повтор последнего действия
         function retryLastAction() {
             if (!lastAction) {
                 loadSections();
