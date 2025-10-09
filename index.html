@@ -104,6 +104,28 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             border: 1px solid #e5e7eb;
             overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .category-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
         .retry-button {
@@ -181,6 +203,15 @@
         .back-button:hover {
             background-color: #4B5563;
             transform: translateY(-1px);
+        }
+
+        .clickable-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clickable-card:hover {
+            background-color: #f8fafc;
         }
     </style>
 </head>
@@ -861,7 +892,7 @@
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
 
         function renderSections(sections) {
-            let html = '';
+            let html = '<div class="space-y-3">';
             
             sections.forEach(section => {
                 if (!section) return;
@@ -872,21 +903,23 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
+                    <div class="category-card fade-in" onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg">${safeName}</h3>
-                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    <i data-feather="chevron-right" class="w-5 h-5 tg-theme-hint"></i>
+                                </div>
                             </div>
-                            <button onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть категории</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
                         </div>
                     </div>
                 `;
             });
+            
+            html += '</div>';
             
             if (!html) {
                 showEmptyState('Нет доступных разделов');
@@ -905,7 +938,7 @@
         }
 
         function renderCategories(categories, sectionId, sectionName) {
-            let html = '';
+            let html = '<div class="space-y-3">';
             
             categories.forEach(category => {
                 if (!category) return;
@@ -916,21 +949,23 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
+                    <div class="category-card fade-in" onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg">${safeName}</h3>
-                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    <i data-feather="chevron-right" class="w-5 h-5 tg-theme-hint"></i>
+                                </div>
                             </div>
-                            <button onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть модели</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
                         </div>
                     </div>
                 `;
             });
+            
+            html += '</div>';
             
             if (!html) {
                 showEmptyState('Нет доступных категорий');
@@ -949,7 +984,7 @@
         }
 
         function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
-            let html = '';
+            let html = '<div class="space-y-3">';
             
             models.forEach(model => {
                 if (!model) return;
@@ -960,21 +995,23 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
+                    <div class="category-card fade-in" onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg">${safeName}</h3>
-                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    <i data-feather="chevron-right" class="w-5 h-5 tg-theme-hint"></i>
+                                </div>
                             </div>
-                            <button onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть подмодели</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
                         </div>
                     </div>
                 `;
             });
+            
+            html += '</div>';
             
             if (!html) {
                 showEmptyState('Нет доступных моделей');
@@ -993,7 +1030,7 @@
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
-            let html = '';
+            let html = '<div class="space-y-3">';
             
             submodels.forEach(submodel => {
                 if (!submodel) return;
@@ -1004,21 +1041,23 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
+                    <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg">${safeName}</h3>
-                                ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    <i data-feather="chevron-right" class="w-5 h-5 tg-theme-hint"></i>
+                                </div>
                             </div>
-                            <button onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition flex justify-between items-center font-medium">
-                                <span>Смотреть товары</span>
-                                <i data-feather="chevron-right" class="ml-2"></i>
-                            </button>
                         </div>
                     </div>
                 `;
             });
+            
+            html += '</div>';
             
             if (!html) {
                 showEmptyState('Нет доступных подмоделей');
