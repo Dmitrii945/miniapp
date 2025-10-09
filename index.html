@@ -282,7 +282,7 @@
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
         const API_TIMEOUT = 30000;
-        let debugMode = false;
+        let debugMode = true; // Включаем дебаг по умолчанию для диагностики
         let featherTimeout;
 
         // Контактная информация
@@ -610,6 +610,7 @@
                 }
             }
             
+            console.log(logMessage); // Всегда логируем в консоль
             elements.debugContent.textContent += logMessage + '\n\n';
             elements.debugInfo.scrollTop = elements.debugInfo.scrollHeight;
         }
@@ -662,7 +663,6 @@
                 }
                 
                 debugLog(`✅ Успешный ответ`, data);
-                hideLoading();
                 return data;
                 
             } catch (error) {
@@ -676,8 +676,6 @@
                 }
                 
                 debugLog(`❌ Ошибка API: ${errorMessage}`);
-                hideLoading();
-                showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
             }
         }
@@ -696,7 +694,7 @@
                 const data = await apiFetch('/sections');
                 
                 if (data?.error) {
-                    showEmptyState('Ошибка загрузки разделов');
+                    showError('Ошибка загрузки разделов: ' + data.error);
                     return;
                 }
                 
@@ -707,9 +705,10 @@
 
                 renderNavigationLevel(data.sections, 'section');
                 updateBackButton();
+                
             } catch (error) {
                 debugLog('Критическая ошибка в loadSections:', error);
-                showError('Не удалось загрузить разделы');
+                showError('Не удалось загрузить разделы: ' + error.message);
             }
         }
 
@@ -855,6 +854,7 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            hideLoading();
         }
 
         function getNextLevelType(currentType) {
@@ -1048,6 +1048,7 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            hideLoading();
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1429,11 +1430,17 @@
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('=== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ===');
+            
             try {
+                // Инициализируем Telegram Web App
                 initTelegramApp();
+                
+                // Инициализируем иконки
                 scheduleFeatherReplace();
                 
+                // Настраиваем обработчики меню
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
                 
@@ -1451,17 +1458,17 @@
                     }
                 });
                 
-                // Показываем загрузку сразу
-                showLoading();
+                // Показываем дебаг информацию сразу для диагностики
+                elements.debugInfo.classList.remove('hidden');
                 
-                // Загружаем разделы с небольшой задержкой для инициализации
-                setTimeout(() => {
-                    loadSections();
-                }, 500);
+                debugLog('DOM загружен, начинаем загрузку данных...');
+                
+                // Загружаем разделы сразу
+                loadSections();
                 
             } catch (error) {
-                console.error('Ошибка инициализации:', error);
-                showError('Ошибка загрузки приложения');
+                console.error('Критическая ошибка инициализации:', error);
+                showError('Критическая ошибка загрузки приложения: ' + error.message);
             }
         });
 
