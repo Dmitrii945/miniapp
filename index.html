@@ -198,9 +198,9 @@
         </header>
 
         <!-- Loading -->
-        <div id="loading" class="hidden p-8 text-center">
+        <div id="loading" class="p-8 text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p class="mt-4 tg-theme-hint">Загрузка...</p>
+            <p class="mt-4 tg-theme-hint">Загрузка каталога...</p>
         </div>
 
         <!-- Empty State -->
@@ -239,7 +239,7 @@
         </div>
 
         <!-- Main Content -->
-        <main id="content" class="p-4 fade-in">
+        <main id="content" class="p-4 fade-in hidden">
             <!-- Контент загружается динамически -->
         </main>
 
@@ -377,7 +377,7 @@
             }
         }
 
-        // ФУНКЦИИ ИЗ ВТОРОГО КОДА ДЛЯ ОБРАБОТКИ ИЗОБРАЖЕНИЙ
+        // ФУНКЦИИ ДЛЯ ОБРАБОТКИ ИЗОБРАЖЕНИЙ
         function extractPhotoFilenameFromUrl(url) {
             try {
                 if (!url || typeof url !== 'string') return null;
@@ -822,6 +822,11 @@
         function renderNavigationLevel(items, levelType) {
             let html = '';
             
+            if (!items || items.length === 0) {
+                showEmptyState(`Нет доступных ${getLevelName(levelType)}`);
+                return;
+            }
+            
             items.forEach(item => {
                 if (!item) return;
                 
@@ -847,11 +852,6 @@
                     </div>
                 `;
             });
-            
-            if (!html) {
-                showEmptyState(`Нет доступных ${getLevelName(levelType)}`);
-                return;
-            }
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
@@ -1019,7 +1019,7 @@
 
                 html += `</div>`;
 
-                // Кнопки действий под каждым товаром (оставлены из первого кода)
+                // Кнопки действий под каждым товаром
                 html += `
                     <div class="action-buttons">
                         <button onclick="makePhoneCall()" class="action-button phone-button">
@@ -1451,9 +1451,13 @@
                     }
                 });
                 
+                // Показываем загрузку сразу
+                showLoading();
+                
+                // Загружаем разделы с небольшой задержкой для инициализации
                 setTimeout(() => {
                     loadSections();
-                }, 100);
+                }, 500);
                 
             } catch (error) {
                 console.error('Ошибка инициализации:', error);
