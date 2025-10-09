@@ -252,6 +252,53 @@
         .bg-contrast {
             background-color: #ffffff !important;
         }
+
+        /* Стили для зеленой кнопки меню */
+        .menu-button {
+            background-color: #10B981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-button:hover {
+            background-color: #059669;
+            transform: scale(1.05);
+        }
+
+        /* Стили для пунктов меню */
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1F2937;
+        }
+
+        .menu-item:hover {
+            background-color: #F3F4F6;
+            transform: translateX(4px);
+        }
+
+        .menu-item i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #E5E7EB;
+            margin: 8px 0;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -259,13 +306,11 @@
         <!-- Header -->
         <header class="bg-white shadow-sm p-4 sticky top-0 z-10">
             <div class="flex justify-between items-center">
-                <button id="toggleMenu" class="p-2 rounded-lg tg-theme-secondary-bg">
+                <button id="toggleMenu" class="menu-button">
                     <i data-feather="menu"></i>
                 </button>
                 <h1 class="text-lg font-semibold tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
-                <button onclick="toggleDebug()" class="p-2 rounded-lg tg-theme-secondary-bg">
-                    <i data-feather="tool"></i>
-                </button>
+                <div class="w-10"></div> <!-- Пустой элемент для балансировки -->
             </div>
             
             <!-- Breadcrumbs -->
@@ -299,15 +344,6 @@
             </button>
         </div>
 
-        <!-- Debug Info -->
-        <div id="debugInfo" class="hidden p-4 bg-yellow-50 border border-yellow-200 text-xs">
-            <div class="flex justify-between items-center mb-2">
-                <h4 class="font-semibold text-contrast">Отладочная информация:</h4>
-                <button onclick="clearDebug()" class="text-xs bg-yellow-200 px-2 py-1 rounded">Очистить</button>
-            </div>
-            <pre id="debugContent" class="overflow-auto max-h-40 text-contrast"></pre>
-        </div>
-
         <!-- Main Content -->
         <main id="content" class="p-4 fade-in">
             <!-- Контент загружается динамически -->
@@ -324,19 +360,45 @@
                         </button>
                     </div>
                     
-                    <div class="space-y-2">
-                        <button onclick="loadSections(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center text-contrast">
-                            <i data-feather="home" class="mr-3"></i>
-                            Главная
-                        </button>
-                        <button onclick="openInBot(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center text-contrast">
-                            <i data-feather="message-circle" class="mr-3"></i>
-                            Открыть в боте
-                        </button>
-                        <button onclick="testAllEndpoints(); closeSideMenu();" class="w-full p-3 text-left rounded-lg hover:bg-gray-100 flex items-center text-contrast">
-                            <i data-feather="tool" class="mr-3"></i>
-                            Тест API
-                        </button>
+                    <div class="space-y-1">
+                        <!-- Контакты -->
+                        <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
+                            <i data-feather="phone"></i>
+                            <div>
+                                <div class="font-medium">Телефон</div>
+                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="menu-item" onclick="open2GIS(); closeSideMenu();">
+                            <i data-feather="map-pin"></i>
+                            <div>
+                                <div class="font-medium">2GIS</div>
+                                <div class="text-sm text-gray-600">Наш адрес на карте</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
+                        <!-- Телеграмм канал -->
+                        <div class="menu-item" onclick="openTelegramChannel(); closeSideMenu();">
+                            <i data-feather="send"></i>
+                            <div>
+                                <div class="font-medium">Телеграмм канал</div>
+                                <div class="text-sm text-gray-600">Новости и акции</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
+                        <!-- Главная -->
+                        <div class="menu-item" onclick="loadSections(); closeSideMenu();">
+                            <i data-feather="home"></i>
+                            <div>
+                                <div class="font-medium">Главная</div>
+                                <div class="text-sm text-gray-600">Вернуться в каталог</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -360,7 +422,8 @@
         // Контактная информация
         const CONTACT_INFO = {
             phone: "60-01-60",
-            gisUrl: "https://2gis.ru/tyumen/firm/70000001048108193/65.610084%2C57.15728?m=65.610539%2C57.157207%2F19.57"
+            gisUrl: "https://2gis.ru/tyumen/firm/70000001048108193/65.610084%2C57.15728?m=65.610539%2C57.157207%2F19.57",
+            telegramChannel: "https://t.me/stroibat_tyumen"
         };
 
         // DOM элементы
@@ -373,8 +436,6 @@
             errorState: document.getElementById('errorState'),
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
-            debugInfo: document.getElementById('debugInfo'),
-            debugContent: document.getElementById('debugContent'),
             pageTitle: document.getElementById('pageTitle')
         };
 
@@ -390,8 +451,6 @@
                 document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', '#f3f4f6');
                 document.documentElement.style.setProperty('--tg-theme-button-color', '#3B82F6');
                 document.documentElement.style.setProperty('--tg-theme-button-text-color', '#ffffff');
-                
-                debugLog('Применены fallback цвета для мобильного браузера');
             }
         }
 
@@ -428,7 +487,7 @@
                 try {
                     feather.replace();
                 } catch (error) {
-                    debugLog('Ошибка feather.replace:', error);
+                    console.log('Ошибка feather.replace:', error);
                 }
             }, 100);
         }
@@ -456,7 +515,7 @@
                 const result = parseFloat(cleanStr);
                 return isNaN(result) ? Infinity : result;
             } catch (error) {
-                debugLog(`Ошибка преобразования цены '${priceStr}':`, error);
+                console.log(`Ошибка преобразования цены '${priceStr}':`, error);
                 return Infinity;
             }
         }
@@ -477,9 +536,9 @@
         function makePhoneCall() {
             const phoneNumber = CONTACT_INFO.phone;
             if (tg) {
-                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
             } else {
-                window.open(`tel:${phoneNumber}`);
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
             }
         }
 
@@ -488,6 +547,14 @@
                 tg.openLink(CONTACT_INFO.gisUrl);
             } else {
                 window.open(CONTACT_INFO.gisUrl, '_blank');
+            }
+        }
+
+        function openTelegramChannel() {
+            if (tg) {
+                tg.openLink(CONTACT_INFO.telegramChannel);
+            } else {
+                window.open(CONTACT_INFO.telegramChannel, '_blank');
             }
         }
 
@@ -531,7 +598,7 @@
 
                 return null;
             } catch (error) {
-                debugLog('Ошибка извлечения фото из URL:', error);
+                console.log('Ошибка извлечения фото из URL:', error);
                 return null;
             }
         }
@@ -570,32 +637,19 @@
                     urls.push(`https://lh3.googleusercontent.com/d/${fileId}=w1000`);
                 }
                 
-                debugLog('Альтернативные URL для изображения:', {
-                    original: originalUrl,
-                    fileId: fileId,
-                    alternatives: urls
-                });
-                
             } catch (error) {
-                debugLog('Ошибка генерации альтернативных URL:', error);
+                console.log('Ошибка генерации альтернативных URL:', error);
             }
             
             return urls;
         }
 
         function handleImageError(imgElement, originalUrl = '', alternativeUrls = []) {
-            debugLog('Ошибка загрузки изображения:', {
-                src: imgElement.src,
-                original: originalUrl,
-                triedAlternative: imgElement.dataset.triedAlternative || '0'
-            });
-            
             const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
             
             if (alternativeUrls.length > triedAlternative) {
                 imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
                 imgElement.src = alternativeUrls[triedAlternative];
-                debugLog(`Пробуем альтернативную ссылку ${triedAlternative + 1}:`, alternativeUrls[triedAlternative]);
                 return;
             }
             
@@ -608,7 +662,6 @@
         }
 
         function handleImageLoad(imgElement) {
-            debugLog('Изображение успешно загружено:', imgElement.src);
             imgElement.style.display = 'block';
             const placeholder = imgElement.nextElementSibling;
             if (placeholder && placeholder.classList.contains('image-placeholder')) {
@@ -623,53 +676,22 @@
                 try {
                     tg.expand();
                     tg.enableClosingConfirmation();
-                    debugLog('Telegram Web App инициализирован');
                 } catch (error) {
-                    debugLog('Ошибка инициализации Telegram Web App:', error);
+                    console.log('Ошибка инициализации Telegram Web App:', error);
                 }
             }
-        }
-
-        function debugLog(message, data = null) {
-            if (!debugMode) return;
-            
-            const timestamp = new Date().toLocaleTimeString();
-            let logMessage = `[${timestamp}] ${message}`;
-            
-            if (data) {
-                try {
-                    logMessage += '\n' + JSON.stringify(data, null, 2);
-                } catch (error) {
-                    logMessage += '\n [Несериализуемые данные]';
-                }
-            }
-            
-            elements.debugContent.textContent += logMessage + '\n\n';
-            elements.debugInfo.scrollTop = elements.debugInfo.scrollHeight;
-        }
-
-        function toggleDebug() {
-            debugMode = !debugMode;
-            elements.debugInfo.classList.toggle('hidden');
-            debugLog('Режим отладки ' + (debugMode ? 'включен' : 'выключен'));
-        }
-
-        function clearDebug() {
-            elements.debugContent.textContent = '';
         }
 
         // ========== API ФУНКЦИИ ==========
 
         async function apiFetch(endpoint) {
             const url = `${API_BASE}${endpoint}`;
-            debugLog(`🔄 API запрос: ${url}`);
             
             showLoading();
             
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
                 controller.abort();
-                debugLog(`⏰ Таймаут запроса: ${url}`);
             }, API_TIMEOUT);
             
             try {
@@ -683,8 +705,6 @@
                 
                 clearTimeout(timeoutId);
                 
-                debugLog(`📊 Статус ответа: ${response.status}`);
-                
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -695,7 +715,6 @@
                     throw new Error('Пустой ответ от сервера');
                 }
                 
-                debugLog(`✅ Успешный ответ`, data);
                 hideLoading();
                 return data;
                 
@@ -709,7 +728,6 @@
                     errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
                 }
                 
-                debugLog(`❌ Ошибка API: ${errorMessage}`);
                 hideLoading();
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
@@ -719,7 +737,6 @@
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
-            debugLog('=== ЗАГРУЗКА РАЗДЕЛОВ ===');
             lastAction = { type: 'loadSections' };
             
             try {
@@ -742,13 +759,11 @@
                 renderSections(data.sections);
                 updateBackButton();
             } catch (error) {
-                debugLog('Критическая ошибка в loadSections:', error);
                 showError('Не удалось загрузить разделы');
             }
         }
 
         async function loadCategories(sectionId, sectionName) {
-            debugLog(`=== ЗАГРУЗКА КАТЕГОРИЙ ДЛЯ РАЗДЕЛА: ${sectionName} ===`);
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
@@ -759,26 +774,21 @@
                 const data = await apiFetch(`/categories/${sectionId}`);
                 
                 if (data?.error) {
-                    debugLog('Ошибка загрузки категорий, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
-                    debugLog('Категории не найдены, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
                     return;
                 }
 
-                // УМНАЯ ПРОВЕРКА: если в категории только одна модель "Без модели" - сразу загружаем товары
                 if (data.categories.length === 1) {
                     const category = data.categories[0];
                     const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
                     
                     if (modelsData?.models && modelsData.models.length === 1 && 
                         modelsData.models[0].name === "Без модели") {
-                        debugLog('Обнаружена категория только с "Без модели", загружаем товары напрямую');
-                        // ИСПРАВЛЕНИЕ: передаем null для модели и подмодели вместо ID "Без модели"
                         await loadProductsDirect(sectionId, category.id, null, null, category.name);
                         return;
                     }
@@ -787,13 +797,11 @@
                 renderCategories(data.categories, sectionId, sectionName);
                 updateBackButton();
             } catch (error) {
-                debugLog('Критическая ошибка в loadCategories:', error);
                 await loadProductsDirect(sectionId, null, null, null, sectionName);
             }
         }
 
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
-            debugLog(`=== ЗАГРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
@@ -804,31 +812,23 @@
                 const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
                 
                 if (data?.error) {
-                    debugLog('Ошибка загрузки моделей, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.models) || data.models.length === 0) {
-                    debugLog('Модели не найдены, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
                     return;
                 }
 
-                // УМНАЯ ПРОВЕРКА: если только одна модель "Без модели" - сразу загружаем товары
                 if (data.models.length === 1 && data.models[0].name === "Без модели") {
-                    debugLog('Обнаружена только модель "Без модели", загружаем товары напрямую');
-                    // ИСПРАВЛЕНИЕ: передаем null для модели и подмодели вместо ID "Без модели"
                     await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
                     return;
                 }
 
-                // ФИЛЬТРУЕМ: убираем "Без модели" из списка, если есть другие модели
                 const filteredModels = data.models.filter(model => model.name !== "Без модели");
                 
                 if (filteredModels.length === 0) {
-                    // Если после фильтрации ничего не осталось, все равно загружаем товары
-                    debugLog('После фильтрации моделей не осталось, загружаем товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
                     return;
                 }
@@ -836,13 +836,11 @@
                 renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
                 updateBackButton();
             } catch (error) {
-                debugLog('Критическая ошибка в loadModels:', error);
                 await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
             }
         }
 
         async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
-            debugLog(`=== ЗАГРУЗКА ПОДМОДЕЛЕЙ ДЛЯ МОДЕЛИ: ${modelName} ===`);
             lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
             
             try {
@@ -853,31 +851,23 @@
                 const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
                 
                 if (data?.error) {
-                    debugLog('Ошибка загрузки подмоделей, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
-                    debugLog('Подмодели не найдены, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
 
-                // УМНАЯ ПРОВЕРКА: если только одна подмодель "Без подмодели" - сразу загружаем товары
                 if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
-                    debugLog('Обнаружена только подмодель "Без подмодели", загружаем товары напрямую');
-                    // ИСПРАВЛЕНИЕ: передаем null для подмодели вместо ID "Без подмодели"
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
 
-                // ФИЛЬТРУЕМ: убираем "Без подмодели" из списка, если есть другие подмодели
                 const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
                 
                 if (filteredSubmodels.length === 0) {
-                    // Если после фильтрации ничего не осталось, все равно загружаем товары
-                    debugLog('После фильтрации подмоделей не осталось, загружаем товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
@@ -885,13 +875,11 @@
                 renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
                 updateBackButton();
             } catch (error) {
-                debugLog('Критическая ошибка в loadSubmodels:', error);
                 await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
             }
         }
 
         async function loadProducts(sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName) {
-            debugLog(`=== ЗАГРУЗКА ТОВАРОВ ДЛЯ: ${submodelName} ===`);
             lastAction = { type: 'loadProducts', sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName };
             
             try {
@@ -901,13 +889,11 @@
                 
                 await loadProductsDirect(sectionId, categoryId, modelId, submodelId, submodelName);
             } catch (error) {
-                debugLog('Критическая ошибка в loadProducts:', error);
                 showError('Не удалось загрузить товары');
             }
         }
 
         async function loadProductsDirect(sectionId, categoryId, modelId, submodelId, currentName) {
-            // ЗАМЕНЯЕМ null на 'null' для API
             const safeSectionId = sectionId || 'null';
             const safeCategoryId = categoryId || 'null';
             const safeModelId = modelId || 'null';
@@ -915,8 +901,6 @@
             
             const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
             elements.pageTitle.textContent = currentName;
-            
-            debugLog(`Загрузка товаров по endpoint: ${endpoint}`);
             
             const data = await apiFetch(endpoint);
             
@@ -931,8 +915,6 @@
             }
 
             currentProducts = data.products.filter(product => product != null);
-            
-            debugLog(`Загружено товаров: ${currentProducts.length}`);
             
             if (currentProducts.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
@@ -1360,26 +1342,6 @@
             return navigation;
         }
 
-        function getBackButton() {
-            if (navigationStack.length === 0) {
-                return { text: "🔙 Назад к разделам", callback: "loadSections()" };
-            }
-
-            const lastItem = navigationStack[navigationStack.length - 1];
-            switch (lastItem.type) {
-                case 'sections':
-                    return { text: "🔙 Назад к разделам", callback: "loadSections()" };
-                case 'categories':
-                    return { text: "🔙 Назад к категориям", callback: "handleBackToCategories()" };
-                case 'models':
-                    return { text: "🔙 Назад к моделям", callback: "handleBackToModels()" };
-                case 'submodels':
-                    return { text: "🔙 Назад к подмоделям", callback: "handleBackToSubmodels()" };
-                default:
-                    return { text: "🔙 Назад", callback: "loadSections()" };
-            }
-        }
-
         function updateBreadcrumbsFromStack() {
             const items = [{ name: 'Главная', action: 'loadSections' }];
             
@@ -1449,7 +1411,7 @@
                     }
                 }
             } catch (error) {
-                debugLog('Ошибка обновления кнопки назад:', error);
+                console.log('Ошибка обновления кнопки назад:', error);
             }
         }
 
@@ -1502,47 +1464,6 @@
                     break;
                 default:
                     loadSections();
-            }
-        }
-
-        // ========== ОБРАБОТЧИКИ ДЕЙСТВИЙ ==========
-
-        function handleBackToCategories() {
-            if (navigationStack.length > 0) {
-                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
-                const section = navigationStack.find(item => item.type === 'sections');
-                if (section) {
-                    loadCategories(section.id, section.name);
-                } else {
-                    loadSections();
-                }
-            }
-        }
-
-        function handleBackToModels() {
-            if (navigationStack.length > 0) {
-                navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
-                const section = navigationStack.find(item => item.type === 'sections');
-                const category = navigationStack.find(item => item.type === 'categories');
-                if (section && category) {
-                    loadModels(section.id, section.name, category.id, category.name);
-                } else {
-                    loadSections();
-                }
-            }
-        }
-
-        function handleBackToSubmodels() {
-            if (navigationStack.length > 0) {
-                navigationStack = navigationStack.filter(item => item.type !== 'submodels');
-                const section = navigationStack.find(item => item.type === 'sections');
-                const category = navigationStack.find(item => item.type === 'categories');
-                const model = navigationStack.find(item => item.type === 'models');
-                if (section && category && model) {
-                    loadSubmodels(section.id, section.name, category.id, category.name, model.id, model.name);
-                } else {
-                    loadSections();
-                }
             }
         }
 
@@ -1600,19 +1521,6 @@
             }, 300);
         }
 
-        function openInBot() {
-            const botUrl = 'https://t.me/SSERVICE72_bot';
-            try {
-                if (tg) {
-                    tg.openTelegramLink(botUrl);
-                } else {
-                    window.open(botUrl, '_blank');
-                }
-            } catch (error) {
-                window.open(botUrl, '_blank');
-            }
-        }
-
         function retryLastAction() {
             if (!lastAction) {
                 loadSections();
@@ -1640,50 +1548,12 @@
             }
         }
 
-        async function testAllEndpoints() {
-            debugLog('=== ТЕСТИРОВАНИЕ ВСЕХ КОНЕЧНЫХ ТОЧЕК ===');
-            
-            const endpoints = [
-                '/sections',
-                '/categories/dcb1364bebe64073',
-                '/models/dcb1364bebe64073/3d13eaa317c84d8c',
-                '/submodels/dcb1364bebe64073/3d13eaa317c84d8c/null',
-                '/products/dcb1364bebe64073/3d13eaa317c84d8c/null/null'
-            ];
-            
-            for (const endpoint of endpoints) {
-                const data = await apiFetch(endpoint);
-                debugLog(`Тест ${endpoint}:`, data);
-                
-                if (endpoint.includes('/products/') && data && data.products) {
-                    debugLog('=== ТЕСТИРОВАНИЕ ОБРАБОТКИ ФОТО ===');
-                    data.products.forEach((product, index) => {
-                        if (product.photo_url) {
-                            const originalUrl = product.photo_url;
-                            const processedUrl = extractPhotoFilenameFromUrl(originalUrl);
-                            const alternatives = getAlternativeImageUrls(originalUrl);
-                            debugLog(`Фото товара ${index + 1}:`, {
-                                original: originalUrl,
-                                processed: processedUrl,
-                                alternatives: alternatives,
-                                fileId: originalUrl.match(/[?&]id=([^&]+)/)?.[1]
-                            });
-                        }
-                    });
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-            
-            debugLog('=== ТЕСТИРОВАНИЕ ЗАВЕРШЕНО ===');
-        }
-
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initTelegramApp();
-                fixMobileColors(); // Добавлен вызов функции исправления цветов
+                fixMobileColors();
                 scheduleFeatherReplace();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
@@ -1722,16 +1592,11 @@
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
+        window.openTelegramChannel = openTelegramChannel;
         window.renderAllProducts = renderAllProducts;
-        window.handleBackToCategories = handleBackToCategories;
-        window.handleBackToModels = handleBackToModels;
-        window.handleBackToSubmodels = handleBackToSubmodels;
         window.goBack = goBack;
-        window.openInBot = openInBot;
         window.openSideMenu = openSideMenu;
         window.closeSideMenu = closeSideMenu;
-        window.toggleDebug = toggleDebug;
-        window.testAllEndpoints = testAllEndpoints;
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
