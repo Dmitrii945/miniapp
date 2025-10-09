@@ -733,7 +733,6 @@
             }
         }
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Загрузка подмоделей с автоматическим переходом к товарам если нет подмоделей
         async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
             debugLog(`=== ЗАГРУЗКА ПОДМОДЕЛЕЙ ДЛЯ МОДЕЛИ: ${modelName} ===`);
             lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
@@ -746,25 +745,18 @@
                 const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
                 
                 if (data?.error) {
-                    debugLog('Ошибка загрузки подмоделей, загружаем товары напрямую');
+                    debugLog('Ошибка загрузки подмоделей, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
                 
-                // Проверяем, есть ли реальные подмодели (не только "Без подмодели")
-                const validSubmodels = data.submodels?.filter(submodel => 
-                    submodel && submodel.name && submodel.name !== 'Без подмодели'
-                ) || [];
-                
-                debugLog(`Найдено подмоделей: ${validSubmodels.length}`, validSubmodels);
-                
-                if (!data || !Array.isArray(data.submodels) || validSubmodels.length === 0) {
-                    debugLog('Нет реальных подмоделей, загружаем товары напрямую');
+                if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
+                    debugLog('Подмодели не найдены, пробуем загрузить товары напрямую');
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
 
-                renderSubmodels(validSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                renderSubmodels(data.submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
                 updateBackButton();
             } catch (error) {
                 debugLog('Критическая ошибка в loadSubmodels:', error);
