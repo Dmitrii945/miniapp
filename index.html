@@ -662,150 +662,148 @@
             }
         }
 
-        // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
-
-async function loadCategories(sectionId, sectionName) {
-    debugLog(`=== ЗАГРУЗКА КАТЕГОРИЙ ДЛЯ РАЗДЕЛА: ${sectionName} ===`);
-    lastAction = { type: 'loadCategories', sectionId, sectionName };
-    
-    try {
-        navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
-        updateBreadcrumbsFromStack();
-        elements.pageTitle.textContent = sectionName;
-        
-        const data = await apiFetch(`/categories/${sectionId}`);
-        
-        if (data?.error) {
-            debugLog('Ошибка загрузки категорий, пробуем загрузить товары напрямую');
-            await loadProductsDirect(sectionId, null, null, null, sectionName);
-            return;
-        }
-        
-        if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
-            debugLog('Категории не найдены, пробуем загрузить товары напрямую');
-            await loadProductsDirect(sectionId, null, null, null, sectionName);
-            return;
-        }
-
-        // УМНАЯ ПРОВЕРКА: если в категории только одна модель "Без модели" - сразу загружаем товары
-        if (data.categories.length === 1) {
-            const category = data.categories[0];
-            const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+        async function loadCategories(sectionId, sectionName) {
+            debugLog(`=== ЗАГРУЗКА КАТЕГОРИЙ ДЛЯ РАЗДЕЛА: ${sectionName} ===`);
+            lastAction = { type: 'loadCategories', sectionId, sectionName };
             
-            if (modelsData?.models && modelsData.models.length === 1 && 
-                modelsData.models[0].name === "Без модели") {
-                debugLog('Обнаружена категория только с "Без модели", загружаем товары напрямую');
-                // ИСПРАВЛЕНИЕ: передаем null для модели и подмодели вместо ID "Без модели"
-                await loadProductsDirect(sectionId, category.id, null, null, category.name);
-                return;
+            try {
+                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = sectionName;
+                
+                const data = await apiFetch(`/categories/${sectionId}`);
+                
+                if (data?.error) {
+                    debugLog('Ошибка загрузки категорий, пробуем загрузить товары напрямую');
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+                    debugLog('Категории не найдены, пробуем загрузить товары напрямую');
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+
+                // УМНАЯ ПРОВЕРКА: если в категории только одна модель "Без модели" - сразу загружаем товары
+                if (data.categories.length === 1) {
+                    const category = data.categories[0];
+                    const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+                    
+                    if (modelsData?.models && modelsData.models.length === 1 && 
+                        modelsData.models[0].name === "Без модели") {
+                        debugLog('Обнаружена категория только с "Без модели", загружаем товары напрямую');
+                        // ИСПРАВЛЕНИЕ: передаем null для модели и подмодели вместо ID "Без модели"
+                        await loadProductsDirect(sectionId, category.id, null, null, category.name);
+                        return;
+                    }
+                }
+
+                renderCategories(data.categories, sectionId, sectionName);
+                updateBackButton();
+            } catch (error) {
+                debugLog('Критическая ошибка в loadCategories:', error);
+                await loadProductsDirect(sectionId, null, null, null, sectionName);
             }
         }
 
-        renderCategories(data.categories, sectionId, sectionName);
-        updateBackButton();
-    } catch (error) {
-        debugLog('Критическая ошибка в loadCategories:', error);
-        await loadProductsDirect(sectionId, null, null, null, sectionName);
-    }
-}
+        async function loadModels(sectionId, sectionName, categoryId, categoryName) {
+            debugLog(`=== ЗАГРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
+            lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
+            
+            try {
+                navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = categoryName;
+                
+                const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
+                
+                if (data?.error) {
+                    debugLog('Ошибка загрузки моделей, пробуем загрузить товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.models) || data.models.length === 0) {
+                    debugLog('Модели не найдены, пробуем загрузить товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
 
-async function loadModels(sectionId, sectionName, categoryId, categoryName) {
-    debugLog(`=== ЗАГРУЗКА МОДЕЛЕЙ ДЛЯ КАТЕГОРИИ: ${categoryName} ===`);
-    lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
-    
-    try {
-        navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
-        updateBreadcrumbsFromStack();
-        elements.pageTitle.textContent = categoryName;
-        
-        const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
-        
-        if (data?.error) {
-            debugLog('Ошибка загрузки моделей, пробуем загрузить товары напрямую');
-            await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
-            return;
-        }
-        
-        if (!data || !Array.isArray(data.models) || data.models.length === 0) {
-            debugLog('Модели не найдены, пробуем загрузить товары напрямую');
-            await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
-            return;
-        }
+                // УМНАЯ ПРОВЕРКА: если только одна модель "Без модели" - сразу загружаем товары
+                if (data.models.length === 1 && data.models[0].name === "Без модели") {
+                    debugLog('Обнаружена только модель "Без модели", загружаем товары напрямую');
+                    // ИСПРАВЛЕНИЕ: передаем null для модели и подмодели вместо ID "Без модели"
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
 
-        // УМНАЯ ПРОВЕРКА: если только одна модель "Без модели" - сразу загружаем товары
-        if (data.models.length === 1 && data.models[0].name === "Без модели") {
-            debugLog('Обнаружена только модель "Без модели", загружаем товары напрямую');
-            // ИСПРАВЛЕНИЕ: передаем null для модели и подмодели вместо ID "Без модели"
-            await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
-            return;
-        }
+                // ФИЛЬТРУЕМ: убираем "Без модели" из списка, если есть другие модели
+                const filteredModels = data.models.filter(model => model.name !== "Без модели");
+                
+                if (filteredModels.length === 0) {
+                    // Если после фильтрации ничего не осталось, все равно загружаем товары
+                    debugLog('После фильтрации моделей не осталось, загружаем товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
 
-        // ФИЛЬТРУЕМ: убираем "Без модели" из списка, если есть другие модели
-        const filteredModels = data.models.filter(model => model.name !== "Без модели");
-        
-        if (filteredModels.length === 0) {
-            // Если после фильтрации ничего не осталось, все равно загружаем товары
-            debugLog('После фильтрации моделей не осталось, загружаем товары напрямую');
-            await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
-            return;
-        }
-
-        renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
-        updateBackButton();
-    } catch (error) {
-        debugLog('Критическая ошибка в loadModels:', error);
-        await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
-    }
-}
-
-async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
-    debugLog(`=== ЗАГРУЗКА ПОДМОДЕЛЕЙ ДЛЯ МОДЕЛИ: ${modelName} ===`);
-    lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
-    
-    try {
-        navigationStack.push({ type: 'models', id: modelId, name: modelName });
-        updateBreadcrumbsFromStack();
-        elements.pageTitle.textContent = modelName;
-        
-        const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
-        
-        if (data?.error) {
-            debugLog('Ошибка загрузки подмоделей, пробуем загрузить товары напрямую');
-            await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
-            return;
-        }
-        
-        if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
-            debugLog('Подмодели не найдены, пробуем загрузить товары напрямую');
-            await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
-            return;
+                renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
+                updateBackButton();
+            } catch (error) {
+                debugLog('Критическая ошибка в loadModels:', error);
+                await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+            }
         }
 
-        // УМНАЯ ПРОВЕРКА: если только одна подмодель "Без подмодели" - сразу загружаем товары
-        if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
-            debugLog('Обнаружена только подмодель "Без подмодели", загружаем товары напрямую');
-            // ИСПРАВЛЕНИЕ: передаем null для подмодели вместо ID "Без подмодели"
-            await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
-            return;
-        }
+        async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
+            debugLog(`=== ЗАГРУЗКА ПОДМОДЕЛЕЙ ДЛЯ МОДЕЛИ: ${modelName} ===`);
+            lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
+            
+            try {
+                navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = modelName;
+                
+                const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
+                
+                if (data?.error) {
+                    debugLog('Ошибка загрузки подмоделей, пробуем загрузить товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
+                    debugLog('Подмодели не найдены, пробуем загрузить товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
 
-        // ФИЛЬТРУЕМ: убираем "Без подмодели" из списка, если есть другие подмодели
-        const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
-        
-        if (filteredSubmodels.length === 0) {
-            // Если после фильтрации ничего не осталось, все равно загружаем товары
-            debugLog('После фильтрации подмоделей не осталось, загружаем товары напрямую');
-            await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
-            return;
-        }
+                // УМНАЯ ПРОВЕРКА: если только одна подмодель "Без подмодели" - сразу загружаем товары
+                if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
+                    debugLog('Обнаружена только подмодель "Без подмодели", загружаем товары напрямую');
+                    // ИСПРАВЛЕНИЕ: передаем null для подмодели вместо ID "Без подмодели"
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
 
-        renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
-        updateBackButton();
-    } catch (error) {
-        debugLog('Критическая ошибка в loadSubmodels:', error);
-        await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
-    }
-}
+                // ФИЛЬТРУЕМ: убираем "Без подмодели" из списка, если есть другие подмодели
+                const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
+                
+                if (filteredSubmodels.length === 0) {
+                    // Если после фильтрации ничего не осталось, все равно загружаем товары
+                    debugLog('После фильтрации подмоделей не осталось, загружаем товары напрямую');
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                updateBackButton();
+            } catch (error) {
+                debugLog('Критическая ошибка в loadSubmodels:', error);
+                await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+            }
+        }
 
         async function loadProducts(sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName) {
             debugLog(`=== ЗАГРУЗКА ТОВАРОВ ДЛЯ: ${submodelName} ===`);
