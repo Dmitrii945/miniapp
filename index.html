@@ -442,9 +442,7 @@
         // ========== УТИЛИТЫ ==========
 
         function fixMobileColors() {
-            // Проверяем, работает ли Telegram Web App
             if (!window.Telegram?.WebApp) {
-                // Если нет, применяем fallback стили
                 document.documentElement.style.setProperty('--tg-theme-bg-color', '#ffffff');
                 document.documentElement.style.setProperty('--tg-theme-text-color', '#000000');
                 document.documentElement.style.setProperty('--tg-theme-hint-color', '#666666');
@@ -767,7 +765,10 @@
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = sectionName;
                 
@@ -805,7 +806,10 @@
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = categoryName;
                 
@@ -844,7 +848,10 @@
             lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
             
             try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'submodels');
                 navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = modelName;
                 
@@ -961,12 +968,15 @@
                 return;
             }
             
-            html += `
-                <button onclick="goBack()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад
-                </button>
-            `;
+            // Кнопка "Назад" показывается только если есть куда возвращаться
+            if (navigationStack.length > 0) {
+                html += `
+                    <button onclick="goBack()" class="back-button">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад
+                    </button>
+                `;
+            }
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
@@ -1413,13 +1423,13 @@
 
         function goBack() {
             if (navigationStack.length > 0) {
-                navigationStack.pop();
+                const currentItem = navigationStack.pop();
                 
                 if (navigationStack.length === 0) {
                     loadSections();
                 } else {
-                    const current = navigationStack[navigationStack.length - 1];
-                    handleBackNavigation(current.type);
+                    const previousItem = navigationStack[navigationStack.length - 1];
+                    handleBackNavigation(previousItem.type);
                 }
             } else if (tg) {
                 tg.close();
