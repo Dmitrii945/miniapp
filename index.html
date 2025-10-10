@@ -366,7 +366,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
                             </div>
                         </div>
                         
@@ -723,7 +723,7 @@
                 if (error.name === 'AbortError') {
                     errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.`;
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
                 }
                 
                 hideLoading();
@@ -953,7 +953,7 @@
                                     <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    ${priceText ? `<span class="price-badge">ОТ ${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -1001,7 +1001,7 @@
                                     <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    ${priceText ? `<span class="price-badge">ОТ ${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -1046,7 +1046,7 @@
                                     <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    ${priceText ? `<span class="price-badge">ОТ ${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -1091,7 +1091,7 @@
                                     <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    ${priceText ? `<span class="price-badge">ОТ ${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
                                 </div>
                             </div>
                         </div>
