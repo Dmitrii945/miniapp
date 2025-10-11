@@ -188,6 +188,15 @@
             background-color: #D97706;
         }
         
+        .taxi-button {
+            background-color: #EF4444;
+            color: white;
+        }
+        
+        .taxi-button:hover {
+            background-color: #DC2626;
+        }
+        
         .back-button {
             background-color: #6B7280;
             color: white;
@@ -299,6 +308,83 @@
             background-color: #E5E7EB;
             margin: 8px 0;
         }
+
+        /* Модальное окно для копирования номера */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1F2937;
+        }
+
+        .phone-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #10B981;
+            margin: 20px 0;
+            padding: 12px;
+            background-color: #F0FDF4;
+            border-radius: 8px;
+            border: 2px solid #10B981;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-button-copy {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .modal-button-copy:hover {
+            background-color: #059669;
+        }
+
+        .modal-button-close {
+            background-color: #6B7280;
+            color: white;
+        }
+
+        .modal-button-close:hover {
+            background-color: #4B5563;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -362,7 +448,7 @@
                     
                     <div class="space-y-1">
                         <!-- Контакты -->
-                        <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
+                        <div class="menu-item" onclick="showPhoneModal(); closeSideMenu();">
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
@@ -375,6 +461,14 @@
                             <div>
                                 <div class="font-medium">2GIS</div>
                                 <div class="text-sm text-gray-600">Наш адрес на карте</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-item" onclick="orderYandexTaxi(); closeSideMenu();">
+                            <i data-feather="car"></i>
+                            <div>
+                                <div class="font-medium">Яндекс Такси</div>
+                                <div class="text-sm text-gray-600">Вызвать такси</div>
                             </div>
                         </div>
 
@@ -403,6 +497,25 @@
                 </div>
             </div>
         </div>
+
+        <!-- Модальное окно для копирования номера -->
+        <div id="phoneModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 class="modal-title">Копирование номера</h3>
+                <p>Скопируйте номер телефона для связи:</p>
+                <div class="phone-number" id="modalPhoneNumber">${CONTACT_INFO.phone}</div>
+                <div class="modal-buttons">
+                    <button class="modal-button modal-button-copy" onclick="copyPhoneNumber()">
+                        <i data-feather="copy" class="w-4 h-4 mr-2"></i>
+                        Копировать
+                    </button>
+                    <button class="modal-button modal-button-close" onclick="closePhoneModal()">
+                        <i data-feather="x" class="w-4 h-4 mr-2"></i>
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -423,7 +536,12 @@
         const CONTACT_INFO = {
             phone: "60-01-60",
             gisUrl: "https://2gis.ru/tyumen/firm/70000001048108193/65.610084%2C57.15728?m=65.610539%2C57.157207%2F19.57",
-            telegramChannel: "https://t.me/skidkaservis"
+            telegramChannel: "https://t.me/skidkaservis",
+            address: "г. Тюмень, ул. Барабинская, д. 3а, стр. 4",
+            coordinates: {
+                lat: 57.15728,
+                lon: 65.610084
+            }
         };
 
         // DOM элементы
@@ -436,7 +554,8 @@
             errorState: document.getElementById('errorState'),
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
-            pageTitle: document.getElementById('pageTitle')
+            pageTitle: document.getElementById('pageTitle'),
+            phoneModal: document.getElementById('phoneModal')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -531,13 +650,32 @@
         }
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
-        function makePhoneCall() {
+        function showPhoneModal() {
+            elements.phoneModal.classList.remove('hidden');
+            scheduleFeatherReplace();
+        }
+
+        function closePhoneModal() {
+            elements.phoneModal.classList.add('hidden');
+        }
+
+        function copyPhoneNumber() {
             const phoneNumber = CONTACT_INFO.phone;
-            if (tg) {
-                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
-            } else {
-                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
-            }
+            navigator.clipboard.writeText(phoneNumber).then(() => {
+                if (tg) {
+                    tg.showAlert(`Номер ${phoneNumber} скопирован!`);
+                } else {
+                    alert(`Номер ${phoneNumber} скопирован!`);
+                }
+                closePhoneModal();
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+                if (tg) {
+                    tg.showAlert(`Не удалось скопировать номер. Скопируйте вручную: ${phoneNumber}`);
+                } else {
+                    alert(`Не удалось скопировать номер. Скопируйте вручную: ${phoneNumber}`);
+                }
+            });
         }
 
         function open2GIS() {
@@ -553,6 +691,17 @@
                 tg.openLink(CONTACT_INFO.telegramChannel);
             } else {
                 window.open(CONTACT_INFO.telegramChannel, '_blank');
+            }
+        }
+
+        function orderYandexTaxi() {
+            // Формируем URL для Яндекс Такси с координатами из 2GIS
+            const taxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${CONTACT_INFO.coordinates.lat}&end-lon=${CONTACT_INFO.coordinates.lon}&ref=miniApp&appmetrica_tracking_id=1178268795219780156`;
+            
+            if (tg) {
+                tg.openLink(taxiUrl);
+            } else {
+                window.open(taxiUrl, '_blank');
             }
         }
 
@@ -723,7 +872,7 @@
                 if (error.name === 'AbortError') {
                     errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.`;
                 }
                 
                 hideLoading();
@@ -1257,13 +1406,17 @@
 
                 html += `
                     <div class="action-buttons">
-                        <button onclick="makePhoneCall()" class="action-button phone-button">
-                            <i data-feather="phone" class="w-4 h-4"></i>
-                            ${CONTACT_INFO.phone}
+                        <button onclick="showPhoneModal()" class="action-button phone-button">
+                            <i data-feather="shopping-cart" class="w-4 h-4"></i>
+                            ЗАКАЗАТЬ
                         </button>
                         <button onclick="open2GIS()" class="action-button gis-button">
                             <i data-feather="map-pin" class="w-4 h-4"></i>
                             2GIS
+                        </button>
+                        <button onclick="orderYandexTaxi()" class="action-button taxi-button">
+                            <i data-feather="car" class="w-4 h-4"></i>
+                            Такси
                         </button>
                     </div>
                 `;
@@ -1579,6 +1732,13 @@
                     }
                 });
                 
+                // Закрытие модального окна при клике вне его
+                elements.phoneModal.addEventListener('click', (e) => {
+                    if (e.target === elements.phoneModal) {
+                        closePhoneModal();
+                    }
+                });
+                
                 setTimeout(() => {
                     loadSections();
                 }, 100);
@@ -1596,8 +1756,11 @@
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
-        window.makePhoneCall = makePhoneCall;
+        window.showPhoneModal = showPhoneModal;
+        window.closePhoneModal = closePhoneModal;
+        window.copyPhoneNumber = copyPhoneNumber;
         window.open2GIS = open2GIS;
+        window.orderYandexTaxi = orderYandexTaxi;
         window.openTelegramChannel = openTelegramChannel;
         window.renderAllProducts = renderAllProducts;
         window.goBack = goBack;
