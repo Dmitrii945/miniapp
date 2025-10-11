@@ -188,15 +188,6 @@
             background-color: #D97706;
         }
         
-        .taxi-button {
-            background-color: #EF4444;
-            color: white;
-        }
-        
-        .taxi-button:hover {
-            background-color: #DC2626;
-        }
-        
         .back-button {
             background-color: #6B7280;
             color: white;
@@ -308,83 +299,6 @@
             background-color: #E5E7EB;
             margin: 8px 0;
         }
-
-        /* Модальное окно для копирования номера */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            text-align: center;
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #1F2937;
-        }
-
-        .phone-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #10B981;
-            margin: 20px 0;
-            padding: 12px;
-            background-color: #F0FDF4;
-            border-radius: 8px;
-            border: 2px solid #10B981;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .modal-button {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .modal-button-copy {
-            background-color: #10B981;
-            color: white;
-        }
-
-        .modal-button-copy:hover {
-            background-color: #059669;
-        }
-
-        .modal-button-close {
-            background-color: #6B7280;
-            color: white;
-        }
-
-        .modal-button-close:hover {
-            background-color: #4B5563;
-        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -404,7 +318,7 @@
         </header>
 
         <!-- Loading -->
-        <div id="loading" class="p-8 text-center">
+        <div id="loading" class="hidden p-8 text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
             <p class="mt-4 tg-theme-hint text-contrast">Загрузка...</p>
         </div>
@@ -431,7 +345,7 @@
         </div>
 
         <!-- Main Content -->
-        <main id="content" class="p-4 fade-in hidden">
+        <main id="content" class="p-4 fade-in">
             <!-- Контент загружается динамически -->
         </main>
 
@@ -448,11 +362,11 @@
                     
                     <div class="space-y-1">
                         <!-- Контакты -->
-                        <div class="menu-item" onclick="showPhoneModal(); closeSideMenu();">
+                        <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
                             </div>
                         </div>
                         
@@ -461,14 +375,6 @@
                             <div>
                                 <div class="font-medium">2GIS</div>
                                 <div class="text-sm text-gray-600">Наш адрес на карте</div>
-                            </div>
-                        </div>
-
-                        <div class="menu-item" onclick="orderYandexTaxi(); closeSideMenu();">
-                            <i data-feather="car"></i>
-                            <div>
-                                <div class="font-medium">Яндекс Такси</div>
-                                <div class="text-sm text-gray-600">Вызвать такси</div>
                             </div>
                         </div>
 
@@ -497,25 +403,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Модальное окно для копирования номера -->
-        <div id="phoneModal" class="modal-overlay hidden">
-            <div class="modal-content">
-                <h3 class="modal-title">Копирование номера</h3>
-                <p>Скопируйте номер телефона для связи:</p>
-                <div class="phone-number" id="modalPhoneNumber">60-01-60</div>
-                <div class="modal-buttons">
-                    <button class="modal-button modal-button-copy" onclick="copyPhoneNumber()">
-                        <i data-feather="copy" class="w-4 h-4 mr-2"></i>
-                        Копировать
-                    </button>
-                    <button class="modal-button modal-button-close" onclick="closePhoneModal()">
-                        <i data-feather="x" class="w-4 h-4 mr-2"></i>
-                        Закрыть
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -523,7 +410,7 @@
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
         const API_TIMEOUT = 30000;
-        let debugMode = true; // Включаем режим отладки
+        let debugMode = false;
         let featherTimeout;
 
         // Состояние приложения
@@ -536,12 +423,7 @@
         const CONTACT_INFO = {
             phone: "60-01-60",
             gisUrl: "https://2gis.ru/tyumen/firm/70000001048108193/65.610084%2C57.15728?m=65.610539%2C57.157207%2F19.57",
-            telegramChannel: "https://t.me/skidkaservis",
-            address: "г. Тюмень, ул. Барабинская, д. 3а, стр. 4",
-            coordinates: {
-                lat: 57.15728,
-                lon: 65.610084
-            }
+            telegramChannel: "https://t.me/skidkaservis"
         };
 
         // DOM элементы
@@ -554,17 +436,10 @@
             errorState: document.getElementById('errorState'),
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
-            pageTitle: document.getElementById('pageTitle'),
-            phoneModal: document.getElementById('phoneModal')
+            pageTitle: document.getElementById('pageTitle')
         };
 
         // ========== УТИЛИТЫ ==========
-
-        function debugLog(message, data = null) {
-            if (debugMode) {
-                console.log(`[DEBUG] ${message}`, data || '');
-            }
-        }
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -609,7 +484,6 @@
             featherTimeout = setTimeout(() => {
                 try {
                     feather.replace();
-                    debugLog('Feather icons replaced');
                 } catch (error) {
                     console.log('Ошибка feather.replace:', error);
                 }
@@ -657,32 +531,13 @@
         }
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
-        function showPhoneModal() {
-            elements.phoneModal.classList.remove('hidden');
-            scheduleFeatherReplace();
-        }
-
-        function closePhoneModal() {
-            elements.phoneModal.classList.add('hidden');
-        }
-
-        function copyPhoneNumber() {
+        function makePhoneCall() {
             const phoneNumber = CONTACT_INFO.phone;
-            navigator.clipboard.writeText(phoneNumber).then(() => {
-                if (tg) {
-                    tg.showAlert(`Номер ${phoneNumber} скопирован!`);
-                } else {
-                    alert(`Номер ${phoneNumber} скопирован!`);
-                }
-                closePhoneModal();
-            }).catch(err => {
-                console.error('Ошибка копирования:', err);
-                if (tg) {
-                    tg.showAlert(`Не удалось скопировать номер. Скопируйте вручную: ${phoneNumber}`);
-                } else {
-                    alert(`Не удалось скопировать номер. Скопируйте вручную: ${phoneNumber}`);
-                }
-            });
+            if (tg) {
+                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            } else {
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            }
         }
 
         function open2GIS() {
@@ -701,14 +556,114 @@
             }
         }
 
-        function orderYandexTaxi() {
-            // Формируем URL для Яндекс Такси с координатами из 2GIS
-            const taxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${CONTACT_INFO.coordinates.lat}&end-lon=${CONTACT_INFO.coordinates.lon}&ref=miniApp&appmetrica_tracking_id=1178268795219780156`;
+        function extractPhotoFilenameFromUrl(url) {
+            try {
+                if (!url || typeof url !== 'string') return null;
+
+                url = url.trim();
+
+                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
+                    return url.startsWith('http') ? url : null;
+                }
+
+                if (url.includes('drive.google.com')) {
+                    let fileId = null;
+
+                    if (url.includes('/file/d/')) {
+                        const match = url.match(/\/file\/d\/([^\/]+)/);
+                        if (match && match[1]) {
+                            fileId = match[1];
+                        }
+                    } 
+                    else if (url.includes('uc?export=view&id=')) {
+                        fileId = url.split('uc?export=view&id=')[1];
+                    }
+                    else if (url.includes('id=')) {
+                        fileId = url.split('id=')[1].split('&')[0];
+                    }
+                    else if (url.includes('/open?id=')) {
+                        fileId = url.split('/open?id=')[1];
+                    }
+
+                    if (fileId) {
+                        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+                    }
+                }
+
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
+                }
+
+                return null;
+            } catch (error) {
+                console.log('Ошибка извлечения фото из URL:', error);
+                return null;
+            }
+        }
+
+        function getAlternativeImageUrls(originalUrl) {
+            const urls = [];
             
-            if (tg) {
-                tg.openLink(taxiUrl);
-            } else {
-                window.open(taxiUrl, '_blank');
+            if (!originalUrl || typeof originalUrl !== 'string') return urls;
+            
+            try {
+                let fileId = null;
+                
+                const match1 = originalUrl.match(/\/file\/d\/([^\/]+)/);
+                if (match1 && match1[1]) {
+                    fileId = match1[1];
+                }
+                
+                if (!fileId) {
+                    const match2 = originalUrl.match(/[?&]id=([^&]+)/);
+                    if (match2 && match2[1]) {
+                        fileId = match2[1];
+                    }
+                }
+                
+                if (!fileId) {
+                    const match3 = originalUrl.match(/\/open\?id=([^&]+)/);
+                    if (match3 && match3[1]) {
+                        fileId = match3[1];
+                    }
+                }
+                
+                if (fileId) {
+                    urls.push(`https://drive.google.com/uc?export=download&id=${fileId}`);
+                    urls.push(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`);
+                    urls.push(`https://docs.google.com/uc?id=${fileId}`);
+                    urls.push(`https://lh3.googleusercontent.com/d/${fileId}=w1000`);
+                }
+                
+            } catch (error) {
+                console.log('Ошибка генерации альтернативных URL:', error);
+            }
+            
+            return urls;
+        }
+
+        function handleImageError(imgElement, originalUrl = '', alternativeUrls = []) {
+            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
+            
+            if (alternativeUrls.length > triedAlternative) {
+                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
+                imgElement.src = alternativeUrls[triedAlternative];
+                return;
+            }
+            
+            imgElement.style.display = 'none';
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('image-placeholder')) {
+                placeholder.style.display = 'flex';
+            }
+            scheduleFeatherReplace();
+        }
+
+        function handleImageLoad(imgElement) {
+            imgElement.style.display = 'block';
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('image-placeholder')) {
+                placeholder.style.display = 'none';
             }
         }
 
@@ -719,12 +674,9 @@
                 try {
                     tg.expand();
                     tg.enableClosingConfirmation();
-                    debugLog('Telegram Web App инициализирован');
                 } catch (error) {
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
-            } else {
-                debugLog('Telegram Web App не обнаружен, работаем в браузере');
             }
         }
 
@@ -733,7 +685,6 @@
         async function apiFetch(endpoint) {
             const url = `${API_BASE}${endpoint}`;
             
-            debugLog(`API запрос: ${url}`);
             showLoading();
             
             const controller = new AbortController();
@@ -762,7 +713,6 @@
                     throw new Error('Пустой ответ от сервера');
                 }
                 
-                debugLog(`API ответ:`, data);
                 hideLoading();
                 return data;
                 
@@ -776,7 +726,6 @@
                     errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
                 }
                 
-                debugLog(`API ошибка: ${errorMessage}`);
                 hideLoading();
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
@@ -786,7 +735,6 @@
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
-            debugLog('Загрузка разделов...');
             lastAction = { type: 'loadSections' };
             
             try {
@@ -797,31 +745,196 @@
                 const data = await apiFetch('/sections');
                 
                 if (data?.error) {
-                    debugLog('Ошибка загрузки разделов:', data.error);
                     showEmptyState('Ошибка загрузки разделов');
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
-                    debugLog('Разделы не найдены');
                     showEmptyState('Разделы не найдены');
                     return;
                 }
 
-                debugLog(`Загружено разделов: ${data.sections.length}`);
                 renderSections(data.sections);
                 updateBackButton();
             } catch (error) {
-                debugLog('Ошибка в loadSections:', error);
                 showError('Не удалось загрузить разделы');
             }
+        }
+
+        async function loadCategories(sectionId, sectionName) {
+            lastAction = { type: 'loadCategories', sectionId, sectionName };
+            
+            try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
+                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = sectionName;
+                
+                const data = await apiFetch(`/categories/${sectionId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+
+                if (data.categories.length === 1) {
+                    const category = data.categories[0];
+                    const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+                    
+                    if (modelsData?.models && modelsData.models.length === 1 && 
+                        modelsData.models[0].name === "Без модели") {
+                        await loadProductsDirect(sectionId, category.id, null, null, category.name);
+                        return;
+                    }
+                }
+
+                renderCategories(data.categories, sectionId, sectionName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, null, null, null, sectionName);
+            }
+        }
+
+        async function loadModels(sectionId, sectionName, categoryId, categoryName) {
+            lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
+            
+            try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
+                navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = categoryName;
+                
+                const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.models) || data.models.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                if (data.models.length === 1 && data.models[0].name === "Без модели") {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                const filteredModels = data.models.filter(model => model.name !== "Без модели");
+                
+                if (filteredModels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+            }
+        }
+
+        async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
+            lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
+            
+            try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'submodels');
+                navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = modelName;
+                
+                const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
+                
+                if (filteredSubmodels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+            }
+        }
+
+        async function loadProducts(sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName) {
+            lastAction = { type: 'loadProducts', sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName };
+            
+            try {
+                navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = submodelName;
+                
+                await loadProductsDirect(sectionId, categoryId, modelId, submodelId, submodelName);
+            } catch (error) {
+                showError('Не удалось загрузить товары');
+            }
+        }
+
+        async function loadProductsDirect(sectionId, categoryId, modelId, submodelId, currentName) {
+            const safeSectionId = sectionId || 'null';
+            const safeCategoryId = categoryId || 'null';
+            const safeModelId = modelId || 'null';
+            const safeSubmodelId = submodelId || 'null';
+            
+            const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
+            elements.pageTitle.textContent = currentName;
+            
+            const data = await apiFetch(endpoint);
+            
+            if (data?.error) {
+                showEmptyState(`Ошибка загрузки товаров для: ${currentName}`);
+                return;
+            }
+            
+            if (!data || !Array.isArray(data.products) || data.products.length === 0) {
+                showEmptyState(`Товары не найдены для: ${currentName}`);
+                return;
+            }
+
+            currentProducts = data.products.filter(product => product != null);
+            
+            if (currentProducts.length === 0) {
+                showEmptyState(`Товары не найдены для: ${currentName}`);
+                return;
+            }
+
+            renderAllProducts();
+            updateBackButton();
         }
 
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
 
         function renderSections(sections) {
-            debugLog('Рендеринг разделов:', sections);
-            
             let html = '<div class="space-y-3">';
             
             sections.forEach(section => {
@@ -850,8 +963,7 @@
             
             html += '</div>';
             
-            if (html === '<div class="space-y-3"></div>') {
-                debugLog('Нет доступных разделов для отображения');
+            if (!html) {
                 showEmptyState('Нет доступных разделов');
                 return;
             }
@@ -868,12 +980,9 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
-            debugLog('Разделы отрендерены');
         }
 
         function renderCategories(categories, sectionId, sectionName) {
-            debugLog('Рендеринг категорий:', categories);
-            
             let html = '<div class="space-y-3">';
             
             categories.forEach(category => {
@@ -902,8 +1011,7 @@
             
             html += '</div>';
             
-            if (!html || html === '<div class="space-y-3"></div>') {
-                debugLog('Нет доступных категорий для отображения');
+            if (!html) {
                 showEmptyState('Нет доступных категорий');
                 return;
             }
@@ -917,31 +1025,6 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
-            debugLog('Категории отрендерены');
-        }
-
-        // Упрощенные функции для остальных уровней (для тестирования)
-        async function loadCategories(sectionId, sectionName) {
-            debugLog(`Загрузка категорий для раздела: ${sectionName}`);
-            
-            // Временно показываем тестовые данные
-            const testCategories = [
-                { name: 'Тестовая категория 1', id: 'test1', min_price: 1000 },
-                { name: 'Тестовая категория 2', id: 'test2', min_price: 2000 }
-            ];
-            
-            renderCategories(testCategories, sectionId, sectionName);
-        }
-
-        async function loadModels(sectionId, sectionName, categoryId, categoryName) {
-            debugLog(`Загрузка моделей для категории: ${categoryName}`);
-            
-            const testModels = [
-                { name: 'Тестовая модель 1', id: 'test1', min_price: 1500 },
-                { name: 'Тестовая модель 2', id: 'test2', min_price: 2500 }
-            ];
-            
-            renderModels(testModels, sectionId, sectionName, categoryId, categoryName);
         }
 
         function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
@@ -972,13 +1055,313 @@
             });
             
             html += '</div>';
-            html += `<button onclick="goBack()" class="back-button">Назад</button>`;
+            
+            if (!html) {
+                showEmptyState('Нет доступных моделей');
+                return;
+            }
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
         }
 
+        function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
+            let html = '<div class="space-y-3">';
+            
+            submodels.forEach(submodel => {
+                if (!submodel) return;
+                
+                const safeId = escapeHtml(submodel.id);
+                const safeName = escapeHtml(submodel.name);
+                const minPrice = safeNumber(submodel.min_price);
+                const priceText = formatPriceText(minPrice);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (!html) {
+                showEmptyState('Нет доступных подмоделей');
+                return;
+            }
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function renderProductBreadcrumbs(navigation) {
+            if (!navigation.section && !navigation.category && !navigation.model && !navigation.submodel) {
+                return '';
+            }
+
+            const breadcrumbs = [];
+            
+            if (navigation.section) {
+                breadcrumbs.push({
+                    name: navigation.section.name,
+                    action: `loadCategories('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.category) {
+                breadcrumbs.push({
+                    name: navigation.category.name,
+                    action: `loadModels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.model && navigation.model.name !== "Без модели") {
+                breadcrumbs.push({
+                    name: navigation.model.name,
+                    action: `loadSubmodels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.submodel && navigation.submodel.name !== "Без подмодели") {
+                breadcrumbs.push({
+                    name: navigation.submodel.name,
+                    action: `loadProducts('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}', '${navigation.submodel.id}', '${navigation.submodel.name.replace(/'/g, "\\'")}')`
+                });
+            }
+
+            if (breadcrumbs.length === 0) {
+                return '';
+            }
+
+            let html = '<div class="mb-4 p-3 bg-gray-50 rounded-lg">';
+            html += '<div class="flex items-center flex-wrap text-sm text-gray-600">';
+            
+            breadcrumbs.forEach((crumb, index) => {
+                if (index > 0) {
+                    html += '<span class="breadcrumb-separator">→</span>';
+                }
+                html += `<span class="breadcrumb-item" onclick="${crumb.action}">${escapeHtml(crumb.name)}</span>`;
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function renderAllProducts() {
+            if (!currentProducts || currentProducts.length === 0) {
+                showEmptyState('Товары не найдены');
+                return;
+            }
+
+            const navigation = getCurrentNavigation();
+            let html = '<div class="product-list">';
+            
+            html += `
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Найдено товаров: ${currentProducts.length}</h2>
+                </div>
+            `;
+            
+            html += renderProductBreadcrumbs(navigation);
+
+            currentProducts.forEach((product, index) => {
+                if (!product) return;
+                
+                const color = safeString(product.color, 'Не указан');
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const description = safeString(product.description);
+                const photoUrl = safeString(product.photo_url);
+                const photoDescription = safeString(product.photo_description);
+                
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+
+                html += `
+                    <div class="product-card fade-in">
+                `;
+
+                if (imageUrl || alternativeUrls.length > 0) {
+                    const finalImageUrl = imageUrl || alternativeUrls[0];
+                    html += `
+                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
+                             class="product-image w-full h-48 object-cover"
+                             onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                             onload="handleImageLoad(this)"
+                             loading="lazy"
+                             crossorigin="anonymous"
+                             data-tried-alternative="0">
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Не удалось загрузить фото</div>
+                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Фото не доступно</div>
+                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="space-y-2 mb-4">
+                `;
+
+                if (photoDescription) {
+                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
+                }
+
+                if (description) {
+                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
+                }
+
+                html += `</div>`;
+
+                html += `
+                    <div class="action-buttons">
+                        <button onclick="makePhoneCall()" class="action-button phone-button">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        <button onclick="open2GIS()" class="action-button gis-button">
+                            <i data-feather="map-pin" class="w-4 h-4"></i>
+                            2GIS
+                        </button>
+                    </div>
+                `;
+
+                html += `
+                    <div class="mt-3">
+                        <button onclick="contactAboutSpecificProduct(${index})" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                            Узнать подробнее
+                        </button>
+                    </div>
+                `;
+
+                html += `</div></div>`;
+            });
+
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function contactAboutSpecificProduct(productIndex) {
+            const product = currentProducts[productIndex];
+            const navigation = getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
         // ========== УПРАВЛЕНИЕ НАВИГАЦИЕЙ ==========
+
+        function getCurrentNavigation() {
+            const navigation = {
+                section: null,
+                category: null,
+                model: null,
+                submodel: null
+            };
+
+            navigationStack.forEach(item => {
+                switch (item.type) {
+                    case 'sections':
+                        navigation.section = { id: item.id, name: item.name };
+                        break;
+                    case 'categories':
+                        navigation.category = { id: item.id, name: item.name };
+                        break;
+                    case 'models':
+                        navigation.model = { id: item.id, name: item.name };
+                        break;
+                    case 'submodels':
+                        navigation.submodel = { id: item.id, name: item.name };
+                        break;
+                }
+            });
+
+            return navigation;
+        }
+
+        function updateBreadcrumbsFromStack() {
+            const items = [{ name: 'Главная', action: 'loadSections' }];
+            
+            navigationStack.forEach(item => {
+                if (item && item.name) {
+                    items.push({
+                        name: item.name,
+                        action: null
+                    });
+                }
+            });
+            
+            updateBreadcrumbs(items);
+        }
 
         function updateBreadcrumbs(items) {
             elements.breadcrumbs.innerHTML = '';
@@ -1019,21 +1402,6 @@
             scheduleFeatherReplace();
         }
 
-        function updateBreadcrumbsFromStack() {
-            const items = [{ name: 'Главная', action: 'loadSections' }];
-            
-            navigationStack.forEach(item => {
-                if (item && item.name) {
-                    items.push({
-                        name: item.name,
-                        action: null
-                    });
-                }
-            });
-            
-            updateBreadcrumbs(items);
-        }
-
         function updateBackButton() {
             if (!tg) return;
             
@@ -1055,10 +1423,53 @@
 
         function goBack() {
             if (navigationStack.length > 0) {
-                navigationStack.pop();
-                loadSections();
+                const currentItem = navigationStack.pop();
+                
+                if (navigationStack.length === 0) {
+                    loadSections();
+                } else {
+                    const previousItem = navigationStack[navigationStack.length - 1];
+                    handleBackNavigation(previousItem.type);
+                }
             } else if (tg) {
                 tg.close();
+            }
+        }
+
+        function handleBackNavigation(type) {
+            switch (type) {
+                case 'sections':
+                    loadSections();
+                    break;
+                case 'categories':
+                    const section = navigationStack.find(item => item.type === 'sections');
+                    if (section) {
+                        loadCategories(section.id, section.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
+                case 'models':
+                    const sectionForModel = navigationStack.find(item => item.type === 'sections');
+                    const category = navigationStack.find(item => item.type === 'categories');
+                    if (sectionForModel && category) {
+                        loadModels(sectionForModel.id, sectionForModel.name, category.id, category.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
+                case 'submodels':
+                    const sectionForSubmodel = navigationStack.find(item => item.type === 'sections');
+                    const categoryForSubmodel = navigationStack.find(item => item.type === 'categories');
+                    const model = navigationStack.find(item => item.type === 'models');
+                    if (sectionForSubmodel && categoryForSubmodel && model) {
+                        loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
+                default:
+                    loadSections();
             }
         }
 
@@ -1069,7 +1480,6 @@
             elements.content.classList.add('hidden');
             elements.emptyState.classList.add('hidden');
             elements.errorState.classList.add('hidden');
-            debugLog('Показан индикатор загрузки');
         }
 
         function hideLoading() {
@@ -1077,7 +1487,6 @@
             elements.content.classList.remove('hidden');
             elements.emptyState.classList.add('hidden');
             elements.errorState.classList.add('hidden');
-            debugLog('Скрыт индикатор загрузки');
         }
 
         function showEmptyState(message = 'Товары не найдены') {
@@ -1087,7 +1496,6 @@
             elements.errorState.classList.add('hidden');
             elements.emptyMessage.textContent = message;
             updateBackButton();
-            debugLog(`Показано пустое состояние: ${message}`);
         }
 
         function showError(message = 'Произошла ошибка') {
@@ -1097,7 +1505,6 @@
             elements.errorState.classList.remove('hidden');
             elements.errorMessage.textContent = message;
             updateBackButton();
-            debugLog(`Показана ошибка: ${message}`);
         }
 
         function openSideMenu() {
@@ -1125,14 +1532,31 @@
                 loadSections();
                 return;
             }
-            loadSections();
+
+            switch (lastAction.type) {
+                case 'loadSections':
+                    loadSections();
+                    break;
+                case 'loadCategories':
+                    loadCategories(lastAction.sectionId, lastAction.sectionName);
+                    break;
+                case 'loadModels':
+                    loadModels(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName);
+                    break;
+                case 'loadSubmodels':
+                    loadSubmodels(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName);
+                    break;
+                case 'loadProducts':
+                    loadProducts(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName, lastAction.submodelId, lastAction.submodelName);
+                    break;
+                default:
+                    loadSections();
+            }
         }
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
         document.addEventListener('DOMContentLoaded', () => {
-            debugLog('DOM загружен, начинаем инициализацию');
-            
             try {
                 initTelegramApp();
                 fixMobileColors();
@@ -1155,22 +1579,13 @@
                     }
                 });
                 
-                // Закрытие модального окна при клике вне его
-                elements.phoneModal.addEventListener('click', (e) => {
-                    if (e.target === elements.phoneModal) {
-                        closePhoneModal();
-                    }
-                });
-                
-                // Загружаем разделы сразу после инициализации
-                debugLog('Запуск загрузки разделов...');
                 setTimeout(() => {
                     loadSections();
                 }, 100);
                 
             } catch (error) {
                 console.error('Ошибка инициализации:', error);
-                showError('Ошибка загрузки приложения: ' + error.message);
+                showError('Ошибка загрузки приложения');
             }
         });
 
@@ -1178,16 +1593,19 @@
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
         window.loadModels = loadModels;
-        window.showPhoneModal = showPhoneModal;
-        window.closePhoneModal = closePhoneModal;
-        window.copyPhoneNumber = copyPhoneNumber;
+        window.loadSubmodels = loadSubmodels;
+        window.loadProducts = loadProducts;
+        window.contactAboutSpecificProduct = contactAboutSpecificProduct;
+        window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
-        window.orderYandexTaxi = orderYandexTaxi;
         window.openTelegramChannel = openTelegramChannel;
+        window.renderAllProducts = renderAllProducts;
         window.goBack = goBack;
         window.openSideMenu = openSideMenu;
         window.closeSideMenu = closeSideMenu;
         window.retryLastAction = retryLastAction;
+        window.handleImageError = handleImageError;
+        window.handleImageLoad = handleImageLoad;
     </script>
 </body>
 </html>
