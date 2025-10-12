@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* ВСЕ СТИЛИ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ */
         :root {
             --tg-theme-bg-color: #ffffff;
             --tg-theme-text-color: #000000;
@@ -440,6 +441,64 @@
             color: #374151;
             z-index: 10;
         }
+
+        /* Стили для уведомлений */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #EF4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 16px;
+            max-width: 320px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+            border-left: 4px solid #10B981;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification-item {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            margin-bottom: 8px;
+            border-left: 3px solid #10B981;
+        }
+
+        .notification-item.price-increase {
+            border-left-color: #EF4444;
+        }
+
+        .price-change-up {
+            color: #EF4444;
+            font-weight: bold;
+        }
+
+        .price-change-down {
+            color: #10B981;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -449,6 +508,7 @@
             <div class="flex justify-between items-center">
                 <button id="toggleMenu" class="menu-button">
                     <i data-feather="menu"></i>
+                    <span id="notificationBadge" class="notification-badge hidden">0</span>
                 </button>
                 <div class="header-title">
                     <h1 class="main-title tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
@@ -495,6 +555,30 @@
             <!-- Контент загружается динамически -->
         </main>
 
+        <!-- Notifications Panel -->
+        <div id="notificationsPanel" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+            <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-0 transition-transform duration-300">
+                <div class="p-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-semibold text-contrast">Уведомления</h2>
+                        <button onclick="closeNotifications()" class="p-2 rounded-lg hover:bg-gray-100">
+                            <i data-feather="x"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="notificationsList" class="space-y-2 max-h-[80vh] overflow-y-auto">
+                        <!-- Уведомления загружаются динамически -->
+                    </div>
+
+                    <div class="mt-4">
+                        <button onclick="markAllNotificationsAsRead()" class="w-full py-2 px-4 bg-blue-500 text-white rounded-lg">
+                            Пометить все как прочитанные
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Side Menu -->
         <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
             <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
@@ -507,6 +591,16 @@
                     </div>
                     
                     <div class="space-y-1">
+                        <!-- Уведомления -->
+                        <div class="menu-item" onclick="openNotifications(); closeSideMenu();">
+                            <i data-feather="bell"></i>
+                            <div>
+                                <div class="font-medium">Уведомления</div>
+                                <div class="text-sm text-gray-600">Изменения цен</div>
+                            </div>
+                            <span id="menuNotificationBadge" class="notification-badge hidden">0</span>
+                        </div>
+
                         <!-- Избранное -->
                         <div class="menu-item" onclick="loadFavorites(); closeSideMenu();">
                             <i data-feather="heart"></i>
@@ -583,12 +677,13 @@
     </div>
 
     <script>
-        // Конфигурация
+        // ========== КОНФИГУРАЦИЯ ==========
         const tg = window.Telegram?.WebApp;
-        const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
+        const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api'; // Базовый URL для API
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
+        let notificationCheckInterval;
 
         // Состояние приложения
         let navigationStack = [];
@@ -597,6 +692,8 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        let unreadNotifications = 0;
+        let currentUser = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -621,10 +718,546 @@
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
             pageTitle: document.getElementById('pageTitle'),
-            installButton: document.getElementById('installButton')
+            installButton: document.getElementById('installButton'),
+            notificationsPanel: document.getElementById('notificationsPanel'),
+            notificationsList: document.getElementById('notificationsList'),
+            notificationBadge: document.getElementById('notificationBadge'),
+            menuNotificationBadge: document.getElementById('menuNotificationBadge')
         };
 
-        // ========== УТИЛИТЫ ==========
+        // ========== СИСТЕМА УВЕДОМЛЕНИЙ ==========
+
+        function getCurrentUser() {
+            if (!currentUser && tg) {
+                const initData = tg.initDataUnsafe;
+                currentUser = {
+                    id: initData.user?.id,
+                    username: initData.user?.username,
+                    first_name: initData.user?.first_name,
+                    last_name: initData.user?.last_name
+                };
+            }
+            return currentUser;
+        }
+
+        async function checkForNotifications() {
+            const user = getCurrentUser();
+            if (!user || !user.id) {
+                console.log('Пользователь не идентифицирован');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/notifications/${user.id}`);
+                if (!response.ok) throw new Error('Ошибка получения уведомлений');
+                
+                const notifications = await response.json();
+                updateNotificationBadge(notifications.length);
+                
+                // Показываем всплывающие уведомления для новых изменений
+                showPopupNotifications(notifications);
+                
+            } catch (error) {
+                console.log('Ошибка проверки уведомлений:', error);
+            }
+        }
+
+        function updateNotificationBadge(count) {
+            unreadNotifications = count;
+            
+            if (elements.notificationBadge) {
+                if (count > 0) {
+                    elements.notificationBadge.textContent = count > 99 ? '99+' : count;
+                    elements.notificationBadge.classList.remove('hidden');
+                } else {
+                    elements.notificationBadge.classList.add('hidden');
+                }
+            }
+            
+            if (elements.menuNotificationBadge) {
+                if (count > 0) {
+                    elements.menuNotificationBadge.textContent = count > 99 ? '99+' : count;
+                    elements.menuNotificationBadge.classList.remove('hidden');
+                } else {
+                    elements.menuNotificationBadge.classList.add('hidden');
+                }
+            }
+        }
+
+        function showPopupNotifications(notifications) {
+            // Показываем только первые 3 уведомления
+            const newNotifications = notifications.slice(0, 3);
+            
+            newNotifications.forEach((notification, index) => {
+                setTimeout(() => {
+                    showSingleNotification(notification);
+                }, index * 2000); // Показываем с задержкой
+            });
+        }
+
+        function showSingleNotification(notification) {
+            const oldPrice = extractNumericPrice(notification.old_price);
+            const newPrice = extractNumericPrice(notification.new_price);
+            const isPriceDecrease = newPrice < oldPrice;
+            
+            const popup = document.createElement('div');
+            popup.className = 'notification-popup';
+            popup.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-semibold text-contrast">💰 Цена изменилась!</h3>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+                        <i data-feather="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">${notification.color}</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm ${isPriceDecrease ? 'price-change-down' : 'price-change-up'}">
+                        ${notification.old_price} → ${notification.new_price}
+                    </span>
+                    <button onclick="markNotificationAsRead(${notification.id}); this.parentElement.parentElement.remove()" 
+                            class="text-blue-500 text-sm hover:text-blue-700">
+                        OK
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            scheduleFeatherReplace();
+            
+            // Автоматическое скрытие через 5 секунд
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 5000);
+        }
+
+        async function markNotificationAsRead(notificationId) {
+            try {
+                const response = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    // Обновляем счетчик уведомлений
+                    checkForNotifications();
+                }
+            } catch (error) {
+                console.log('Ошибка отметки уведомления:', error);
+            }
+        }
+
+        async function markAllNotificationsAsRead() {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            try {
+                // Получаем все непрочитанные уведомления
+                const response = await fetch(`${API_BASE}/notifications/${user.id}`);
+                const notifications = await response.json();
+                
+                // Помечаем каждое как прочитанное
+                for (const notification of notifications) {
+                    await markNotificationAsRead(notification.id);
+                }
+                
+                // Закрываем панель уведомлений
+                closeNotifications();
+                
+            } catch (error) {
+                console.log('Ошибка отметки всех уведомлений:', error);
+            }
+        }
+
+        function openNotifications() {
+            elements.notificationsPanel.classList.remove('hidden');
+            loadNotificationsList();
+        }
+
+        function closeNotifications() {
+            elements.notificationsPanel.classList.add('hidden');
+        }
+
+        async function loadNotificationsList() {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/notifications/${user.id}`);
+                const notifications = await response.json();
+                
+                let html = '';
+                
+                if (notifications.length === 0) {
+                    html = `
+                        <div class="text-center py-8">
+                            <i data-feather="bell-off" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+                            <p class="text-gray-500">Нет новых уведомлений</p>
+                        </div>
+                    `;
+                } else {
+                    notifications.forEach(notification => {
+                        const oldPrice = extractNumericPrice(notification.old_price);
+                        const newPrice = extractNumericPrice(notification.new_price);
+                        const isPriceDecrease = newPrice < oldPrice;
+                        const changePercent = ((newPrice - oldPrice) / oldPrice * 100).toFixed(1);
+                        
+                        html += `
+                            <div class="notification-item ${isPriceDecrease ? '' : 'price-increase'}">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-semibold text-contrast">${notification.color}</h4>
+                                    <span class="text-xs text-gray-500">${new Date(notification.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-2">
+                                    ${notification.section} → ${notification.category}
+                                </p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm ${isPriceDecrease ? 'price-change-down' : 'price-change-up'}">
+                                        ${notification.old_price} → ${notification.new_price}
+                                        ${changePercent !== 'NaN' ? `(${isPriceDecrease ? '' : '+'}${changePercent}%)` : ''}
+                                    </span>
+                                    <button onclick="markNotificationAsRead(${notification.id})" 
+                                            class="text-blue-500 text-sm hover:text-blue-700">
+                                        Прочитано
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                elements.notificationsList.innerHTML = html;
+                scheduleFeatherReplace();
+                
+            } catch (error) {
+                console.log('Ошибка загрузки уведомлений:', error);
+                elements.notificationsList.innerHTML = `
+                    <div class="text-center py-8">
+                        <i data-feather="alert-triangle" class="w-12 h-12 mx-auto text-red-400 mb-4"></i>
+                        <p class="text-red-500">Ошибка загрузки уведомлений</p>
+                    </div>
+                `;
+                scheduleFeatherReplace();
+            }
+        }
+
+        // ========== РАБОТА С ИЗБРАННЫМ ЧЕРЕЗ API ==========
+
+        async function toggleFavorite(product, productIndex) {
+            const user = getCurrentUser();
+            if (!user || !user.id) {
+                if (tg) {
+                    tg.showAlert('Для добавления в избранное необходимо авторизоваться в Telegram');
+                } else {
+                    alert('Для добавления в избранное необходимо авторизоваться в Telegram');
+                }
+                return;
+            }
+
+            const productKey = generateProductKey(product);
+            const isCurrentlyFavorite = await isProductInFavorites(user.id, productKey);
+
+            try {
+                if (isCurrentlyFavorite) {
+                    // Удаляем из избранного
+                    await removeFromFavorites(user.id, productKey);
+                    if (tg) {
+                        tg.showAlert('Товар удален из избранного');
+                    }
+                } else {
+                    // Добавляем в избранное
+                    await addToFavorites(user.id, productKey, product.price);
+                    if (tg) {
+                        tg.showAlert('Товар добавлен в избранное');
+                    }
+                }
+                
+                // Обновляем отображение кнопки
+                updateFavoriteButton(productKey, productIndex);
+                
+            } catch (error) {
+                console.log('Ошибка работы с избранным:', error);
+                if (tg) {
+                    tg.showAlert('Ошибка при работе с избранным');
+                }
+            }
+        }
+
+        async function isProductInFavorites(userId, productKey) {
+            try {
+                const response = await fetch(`${API_BASE}/favorites/${userId}`);
+                if (!response.ok) return false;
+                
+                const favorites = await response.json();
+                return favorites.some(fav => fav.product_key === productKey);
+            } catch (error) {
+                console.log('Ошибка проверки избранного:', error);
+                return false;
+            }
+        }
+
+        async function addToFavorites(userId, productKey, currentPrice) {
+            const response = await fetch(`${API_BASE}/favorites`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    product_key: productKey,
+                    current_price: currentPrice
+                })
+            });
+            
+            if (!response.ok) throw new Error('Ошибка добавления в избранное');
+        }
+
+        async function removeFromFavorites(userId, productKey) {
+            const response = await fetch(`${API_BASE}/favorites`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    product_key: productKey
+                })
+            });
+            
+            if (!response.ok) throw new Error('Ошибка удаления из избранного');
+        }
+
+        function generateProductKey(product) {
+            const navigation = getCurrentNavigation();
+            return [
+                navigation.section?.name || '',
+                navigation.category?.name || '',
+                navigation.model?.name || '',
+                navigation.submodel?.name || '',
+                product.color || ''
+            ].filter(Boolean).join('|');
+        }
+
+        async function updateFavoriteButton(productKey, productIndex) {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            const isFavorite = await isProductInFavorites(user.id, productKey);
+            const button = document.querySelector(`[data-product-index="${productIndex}"] .favorite-button`);
+            
+            if (button) {
+                if (isFavorite) {
+                    button.classList.add('active');
+                    button.innerHTML = '<i data-feather="heart"></i>';
+                } else {
+                    button.classList.remove('active');
+                    button.innerHTML = '<i data-feather="heart"></i>';
+                }
+                scheduleFeatherReplace();
+            }
+        }
+
+        // ========== ОБНОВЛЕННЫЕ ФУНКЦИИ ИЗБРАННОГО ==========
+
+        async function loadFavorites() {
+            const user = getCurrentUser();
+            if (!user || !user.id) {
+                showEmptyState('Для просмотра избранного необходимо авторизоваться в Telegram');
+                return;
+            }
+
+            lastAction = { type: 'loadFavorites' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Избранное', action: 'loadFavorites' }]);
+            elements.pageTitle.textContent = 'Избранное';
+            
+            try {
+                const response = await fetch(`${API_BASE}/favorites/${user.id}`);
+                if (!response.ok) throw new Error('Ошибка загрузки избранного');
+                
+                const favorites = await response.json();
+                
+                if (!favorites || favorites.length === 0) {
+                    showEmptyState('В избранном пока нет товаров');
+                    return;
+                }
+
+                renderFavorites(favorites);
+                updateBackButton();
+                
+            } catch (error) {
+                console.log('Ошибка загрузки избранного:', error);
+                showEmptyState('Ошибка загрузки избранного');
+            }
+        }
+
+        function renderFavorites(favorites) {
+            let html = '<div class="product-list">';
+            
+            html += `
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
+                </div>
+            `;
+
+            favorites.forEach((fav, index) => {
+                const productInfo = {
+                    color: fav.color,
+                    price: fav.current_price,
+                    section: fav.section,
+                    category: fav.category,
+                    model: fav.model,
+                    submodel: fav.submodel
+                };
+                
+                const productKey = fav.product_key;
+
+                html += `
+                    <div class="product-card fade-in" data-product-index="${index}">
+                        <div class="favorite-label">В избранном</div>
+                        <div class="favorite-button active" onclick="removeFavoriteFromList('${productKey}')">
+                            <i data-feather="heart"></i>
+                        </div>
+                `;
+
+                // Заглушка для фото (можно расширить при необходимости)
+                html += `
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                        <div class="text-center text-gray-400">
+                            <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                            <div class="text-sm">Товар из избранного</div>
+                        </div>
+                    </div>
+                `;
+
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(productInfo.color)}</h3>
+                                ${productInfo.price ? `
+                                    <span class="price-badge">${escapeHtml(formatPriceForBadge(productInfo.price))}</span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="space-y-2 mb-4">
+                `;
+
+                // Информация о товаре
+                const breadcrumbs = [];
+                if (productInfo.section) breadcrumbs.push(productInfo.section);
+                if (productInfo.category) breadcrumbs.push(productInfo.category);
+                if (productInfo.model && productInfo.model !== "Без модели") breadcrumbs.push(productInfo.model);
+                if (productInfo.submodel && productInfo.submodel !== "Без подмодели") breadcrumbs.push(productInfo.submodel);
+
+                if (breadcrumbs.length > 0) {
+                    html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
+                }
+
+                html += `<p class="text-gray-500 text-sm text-contrast">Добавлено: ${new Date(fav.created_at).toLocaleDateString()}</p>`;
+
+                html += `</div>`;
+
+                // Кнопки действий
+                html += `
+                    <div class="action-buttons">
+                        <button onclick="makePhoneCall()" class="action-button phone-button">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        <button onclick="open2GIS()" class="action-button gis-button">
+                            <i data-feather="map-pin" class="w-4 h-4"></i>
+                            2GIS
+                        </button>
+                        <button onclick="callTaxi()" class="action-button taxi-button">
+                            <i data-feather="car" class="w-4 h-4"></i>
+                            Такси
+                        </button>
+                    </div>
+                `;
+
+                html += `
+                    <div class="mt-3">
+                        <button onclick="contactAboutFavoriteProduct('${productKey}')" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-content: center">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                            Узнать подробнее
+                        </button>
+                    </div>
+                `;
+
+                html += `</div></div>`;
+            });
+
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function removeFavoriteFromList(productKey) {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            try {
+                await removeFromFavorites(user.id, productKey);
+                if (tg) {
+                    tg.showAlert('Товар удален из избранного');
+                }
+                
+                // Перезагружаем список избранного
+                loadFavorites();
+                
+            } catch (error) {
+                console.log('Ошибка удаления из избранного:', error);
+                if (tg) {
+                    tg.showAlert('Ошибка при удалении из избранного');
+                }
+            }
+        }
+
+        function contactAboutFavoriteProduct(productKey) {
+            const parts = productKey.split('|');
+            const message = `Здравствуйте! Интересует товар из избранного: ${parts.join(' → ')}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ УВЕДОМЛЕНИЙ ==========
+
+        function initNotificationSystem() {
+            // Проверяем уведомления при загрузке
+            setTimeout(() => {
+                checkForNotifications();
+            }, 2000);
+            
+            // Устанавливаем периодическую проверку (каждые 5 минут)
+            notificationCheckInterval = setInterval(() => {
+                checkForNotifications();
+            }, 5 * 60 * 1000);
+            
+            // Проверяем уведомления при возвращении на вкладку
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    checkForNotifications();
+                }
+            });
+        }
+
+        // ========== СУЩЕСТВУЮЩИЕ ФУНКЦИИ (БЕЗ ИЗМЕНЕНИЙ) ==========
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -922,273 +1555,6 @@
 
         function showInstallPrompt() {
             installPWA();
-        }
-
-        // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
-        function toggleFavorite(product, productIndex) {
-            const productId = generateProductId(product);
-            const isFavorite = favorites.some(fav => fav.id === productId);
-            
-            if (isFavorite) {
-                // Удаляем из избранного
-                favorites = favorites.filter(fav => fav.id !== productId);
-                if (tg) {
-                    tg.showAlert('Товар удален из избранного');
-                }
-            } else {
-                // Добавляем в избранное
-                const navigation = getCurrentNavigation();
-                favorites.push({
-                    id: productId,
-                    product: product,
-                    navigation: navigation,
-                    timestamp: Date.now()
-                });
-                if (tg) {
-                    tg.showAlert('Товар добавлен в избранное');
-                }
-            }
-            
-            // Сохраняем в localStorage
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            // Обновляем отображение кнопки
-            updateFavoriteButton(productId, productIndex);
-        }
-
-        function generateProductId(product) {
-            // Создаем уникальный идентификатор на основе данных товара
-            return btoa(encodeURIComponent(
-                `${product.color || ''}-${product.price || ''}-${product.photo_url || ''}`
-            )).substring(0, 20);
-        }
-
-        function updateFavoriteButton(productId, productIndex) {
-            const isFavorite = favorites.some(fav => fav.id === productId);
-            const button = document.querySelector(`[data-product-index="${productIndex}"] .favorite-button`);
-            
-            if (button) {
-                if (isFavorite) {
-                    button.classList.add('active');
-                    button.innerHTML = '<i data-feather="heart"></i>';
-                } else {
-                    button.classList.remove('active');
-                    button.innerHTML = '<i data-feather="heart"></i>';
-                }
-                scheduleFeatherReplace();
-            }
-        }
-
-        function loadFavorites() {
-            lastAction = { type: 'loadFavorites' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Избранное', action: 'loadFavorites' }]);
-            elements.pageTitle.textContent = 'Избранное';
-            
-            if (!favorites || favorites.length === 0) {
-                showEmptyState('В избранном пока нет товаров');
-                return;
-            }
-
-            renderFavorites();
-            updateBackButton();
-        }
-
-        function renderFavorites() {
-            let html = '<div class="product-list">';
-            
-            html += `
-                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
-                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
-                </div>
-            `;
-
-            favorites.forEach((fav, index) => {
-                const product = fav.product;
-                const navigation = fav.navigation;
-                
-                if (!product) return;
-                
-                const color = safeString(product.color, 'Не указан');
-                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
-                const description = safeString(product.description);
-                const photoUrl = safeString(product.photo_url);
-                const photoDescription = safeString(product.photo_description);
-                
-                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
-                const alternativeUrls = getAlternativeImageUrls(photoUrl);
-
-                html += `
-                    <div class="product-card fade-in" data-product-index="${index}">
-                `;
-
-                // Кнопка избранного
-                html += `
-                    <div class="favorite-label">В избранном</div>
-                    <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
-                        <i data-feather="heart"></i>
-                    </div>
-                `;
-
-                if (imageUrl || alternativeUrls.length > 0) {
-                    const finalImageUrl = imageUrl || alternativeUrls[0];
-                    html += `
-                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
-                             class="product-image w-full h-48 object-cover"
-                             onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                             onload="handleImageLoad(this)"
-                             loading="lazy"
-                             crossorigin="anonymous"
-                             data-tried-alternative="0">
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                            <div class="text-center text-gray-400">
-                                <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                <div class="text-sm">Не удалось загрузить фото</div>
-                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                            <div class="text-center text-gray-400">
-                                <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
-                                <div class="text-sm">Фото не доступно</div>
-                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
-                            </div>
-                        </div>
-                    `;
-                }
-
-                html += `
-                        <div class="p-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                ${price && price !== 'Цена не указана' ? `
-                                    <span class="price-badge">${escapeHtml(price)}</span>
-                                ` : ''}
-                            </div>
-                            
-                            <div class="space-y-2 mb-4">
-                `;
-
-                if (photoDescription) {
-                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
-                }
-
-                if (description) {
-                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
-                }
-
-                // Хлебные крошки для навигации
-                if (navigation) {
-                    const breadcrumbs = [];
-                    
-                    if (navigation.section) {
-                        breadcrumbs.push(navigation.section.name);
-                    }
-                    
-                    if (navigation.category) {
-                        breadcrumbs.push(navigation.category.name);
-                    }
-                    
-                    if (navigation.model && navigation.model.name !== "Без модели") {
-                        breadcrumbs.push(navigation.model.name);
-                    }
-                    
-                    if (navigation.submodel && navigation.submodel.name !== "Без подмодели") {
-                        breadcrumbs.push(navigation.submodel.name);
-                    }
-
-                    if (breadcrumbs.length > 0) {
-                        html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
-                    }
-                }
-
-                html += `</div>`;
-
-                html += `
-                    <div class="action-buttons">
-                        <button onclick="makePhoneCall()" class="action-button phone-button">
-                            <i data-feather="phone" class="w-4 h-4"></i>
-                            ${CONTACT_INFO.phone}
-                        </button>
-                        <button onclick="open2GIS()" class="action-button gis-button">
-                            <i data-feather="map-pin" class="w-4 h-4"></i>
-                            2GIS
-                        </button>
-                        <button onclick="callTaxi()" class="action-button taxi-button">
-                            <i data-feather="car" class="w-4 h-4"></i>
-                            Такси
-                        </button>
-                    </div>
-                `;
-
-                html += `
-                    <div class="mt-3">
-                        <button onclick="contactAboutSpecificProductFromFavorites(${index})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
-                            <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
-                            Узнать подробнее
-                        </button>
-                    </div>
-                `;
-
-                html += `</div></div>`;
-            });
-
-            html += `
-                <button onclick="loadSections()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад в каталог
-                </button>
-            `;
-
-            html += '</div>';
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function toggleFavoriteFromFavorites(favoriteId) {
-            favorites = favorites.filter(fav => fav.id !== favoriteId);
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            if (favorites.length === 0) {
-                showEmptyState('В избранном пока нет товаров');
-            } else {
-                renderFavorites();
-            }
-            
-            if (tg) {
-                tg.showAlert('Товар удален из избранного');
-            }
-        }
-
-        function contactAboutSpecificProductFromFavorites(favoriteIndex) {
-            const favorite = favorites[favoriteIndex];
-            const product = favorite.product;
-            const navigation = favorite.navigation;
-            
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price && product.price !== 'Цена не указана' ? product.price : ''
-            ].filter(Boolean).join(' → ');
-
-            const message = `Здравствуйте! Интересует товар из избранного: ${productInfo}. Подскажите подробности.`;
-            
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
-            } else {
-                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
-            }
         }
 
         function extractPhotoFilenameFromUrl(url) {
@@ -1877,7 +2243,7 @@
                 // Кнопка избранного
                 html += `
                     <div class="favorite-label">В избранное</div>
-                    <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                    <div class="favorite-button" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
                         <i data-feather="heart"></i>
                     </div>
                 `;
@@ -1975,6 +2341,14 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            
+            // Обновляем кнопки избранного после рендеринга
+            setTimeout(() => {
+                currentProducts.forEach((product, index) => {
+                    const productKey = generateProductKey(product);
+                    updateFavoriteButton(productKey, index);
+                });
+            }, 500);
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -2237,6 +2611,27 @@
             }
         }
 
+        // ========== ИНИЦИАЛИЗАЦИЯ УВЕДОМЛЕНИЙ ==========
+
+        function initNotificationSystem() {
+            // Проверяем уведомления при загрузке
+            setTimeout(() => {
+                checkForNotifications();
+            }, 2000);
+            
+            // Устанавливаем периодическую проверку (каждые 5 минут)
+            notificationCheckInterval = setInterval(() => {
+                checkForNotifications();
+            }, 5 * 60 * 1000);
+            
+            // Проверяем уведомления при возвращении на вкладку
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    checkForNotifications();
+                }
+            });
+        }
+
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -2244,6 +2639,7 @@
                 initTelegramApp();
                 fixMobileColors();
                 scheduleFeatherReplace();
+                initNotificationSystem(); // Инициализируем систему уведомлений
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
@@ -2269,19 +2665,14 @@
 
                 // Обработчик события beforeinstallprompt для PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
-                    // Предотвращаем автоматическое отображение подсказки
                     e.preventDefault();
-                    // Сохраняем событие для использования позже
                     deferredPrompt = e;
-                    // Показываем кнопку установки
                     if (installButton) {
                         installButton.style.display = 'flex';
                     }
                 });
 
-                // Обработчик события appinstalled
                 window.addEventListener('appinstalled', (e) => {
-                    // Приложение было установлено
                     deferredPrompt = null;
                     if (installButton) {
                         installButton.style.display = 'none';
@@ -2306,9 +2697,9 @@
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
-        window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
+        window.contactAboutFavoriteProduct = contactAboutFavoriteProduct;
         window.toggleFavorite = toggleFavorite;
-        window.toggleFavoriteFromFavorites = toggleFavoriteFromFavorites;
+        window.removeFavoriteFromList = removeFavoriteFromList;
         window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
         window.openTelegramChannel = openTelegramChannel;
@@ -2323,9 +2714,20 @@
         window.goBack = goBack;
         window.openSideMenu = openSideMenu;
         window.closeSideMenu = closeSideMenu;
+        window.openNotifications = openNotifications;
+        window.closeNotifications = closeNotifications;
+        window.markNotificationAsRead = markNotificationAsRead;
+        window.markAllNotificationsAsRead = markAllNotificationsAsRead;
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
+
+        // Очистка интервалов при закрытии
+        window.addEventListener('beforeunload', () => {
+            if (notificationCheckInterval) {
+                clearInterval(notificationCheckInterval);
+            }
+        });
     </script>
 </body>
 </html>
