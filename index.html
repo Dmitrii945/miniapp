@@ -106,6 +106,7 @@
             overflow: hidden;
             transition: all 0.2s;
             cursor: pointer;
+            position: relative;
         }
 
         .product-card:hover {
@@ -394,6 +395,51 @@
             line-height: 1;
             margin-top: 2px;
         }
+
+        /* Стили для кнопки избранного */
+        .favorite-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .favorite-button:hover {
+            background-color: #f9fafb;
+            transform: scale(1.1);
+        }
+
+        .favorite-button.active {
+            background-color: #EF4444;
+            border-color: #EF4444;
+        }
+
+        .favorite-button.active i {
+            color: white;
+        }
+
+        .favorite-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #374151;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -461,6 +507,17 @@
                     </div>
                     
                     <div class="space-y-1">
+                        <!-- Избранное -->
+                        <div class="menu-item" onclick="loadFavorites(); closeSideMenu();">
+                            <i data-feather="heart"></i>
+                            <div>
+                                <div class="font-medium">Избранное</div>
+                                <div class="text-sm text-gray-600">Сохраненные товары</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+                        
                         <!-- Контакты -->
                         <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
                             <i data-feather="phone"></i>
@@ -539,6 +596,7 @@
         let catalogData = null;
         let lastAction = null;
         let deferredPrompt = null;
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -864,6 +922,273 @@
 
         function showInstallPrompt() {
             installPWA();
+        }
+
+        // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
+        function toggleFavorite(product, productIndex) {
+            const productId = generateProductId(product);
+            const isFavorite = favorites.some(fav => fav.id === productId);
+            
+            if (isFavorite) {
+                // Удаляем из избранного
+                favorites = favorites.filter(fav => fav.id !== productId);
+                if (tg) {
+                    tg.showAlert('Товар удален из избранного');
+                }
+            } else {
+                // Добавляем в избранное
+                const navigation = getCurrentNavigation();
+                favorites.push({
+                    id: productId,
+                    product: product,
+                    navigation: navigation,
+                    timestamp: Date.now()
+                });
+                if (tg) {
+                    tg.showAlert('Товар добавлен в избранное');
+                }
+            }
+            
+            // Сохраняем в localStorage
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // Обновляем отображение кнопки
+            updateFavoriteButton(productId, productIndex);
+        }
+
+        function generateProductId(product) {
+            // Создаем уникальный идентификатор на основе данных товара
+            return btoa(encodeURIComponent(
+                `${product.color || ''}-${product.price || ''}-${product.photo_url || ''}`
+            )).substring(0, 20);
+        }
+
+        function updateFavoriteButton(productId, productIndex) {
+            const isFavorite = favorites.some(fav => fav.id === productId);
+            const button = document.querySelector(`[data-product-index="${productIndex}"] .favorite-button`);
+            
+            if (button) {
+                if (isFavorite) {
+                    button.classList.add('active');
+                    button.innerHTML = '<i data-feather="heart"></i>';
+                } else {
+                    button.classList.remove('active');
+                    button.innerHTML = '<i data-feather="heart"></i>';
+                }
+                scheduleFeatherReplace();
+            }
+        }
+
+        function loadFavorites() {
+            lastAction = { type: 'loadFavorites' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Избранное', action: 'loadFavorites' }]);
+            elements.pageTitle.textContent = 'Избранное';
+            
+            if (!favorites || favorites.length === 0) {
+                showEmptyState('В избранном пока нет товаров');
+                return;
+            }
+
+            renderFavorites();
+            updateBackButton();
+        }
+
+        function renderFavorites() {
+            let html = '<div class="product-list">';
+            
+            html += `
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
+                </div>
+            `;
+
+            favorites.forEach((fav, index) => {
+                const product = fav.product;
+                const navigation = fav.navigation;
+                
+                if (!product) return;
+                
+                const color = safeString(product.color, 'Не указан');
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const description = safeString(product.description);
+                const photoUrl = safeString(product.photo_url);
+                const photoDescription = safeString(product.photo_description);
+                
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+
+                html += `
+                    <div class="product-card fade-in" data-product-index="${index}">
+                `;
+
+                // Кнопка избранного
+                html += `
+                    <div class="favorite-label">В избранном</div>
+                    <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
+                        <i data-feather="heart"></i>
+                    </div>
+                `;
+
+                if (imageUrl || alternativeUrls.length > 0) {
+                    const finalImageUrl = imageUrl || alternativeUrls[0];
+                    html += `
+                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
+                             class="product-image w-full h-48 object-cover"
+                             onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                             onload="handleImageLoad(this)"
+                             loading="lazy"
+                             crossorigin="anonymous"
+                             data-tried-alternative="0">
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Не удалось загрузить фото</div>
+                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Фото не доступно</div>
+                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="space-y-2 mb-4">
+                `;
+
+                if (photoDescription) {
+                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
+                }
+
+                if (description) {
+                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
+                }
+
+                // Хлебные крошки для навигации
+                if (navigation) {
+                    const breadcrumbs = [];
+                    
+                    if (navigation.section) {
+                        breadcrumbs.push(navigation.section.name);
+                    }
+                    
+                    if (navigation.category) {
+                        breadcrumbs.push(navigation.category.name);
+                    }
+                    
+                    if (navigation.model && navigation.model.name !== "Без модели") {
+                        breadcrumbs.push(navigation.model.name);
+                    }
+                    
+                    if (navigation.submodel && navigation.submodel.name !== "Без подмодели") {
+                        breadcrumbs.push(navigation.submodel.name);
+                    }
+
+                    if (breadcrumbs.length > 0) {
+                        html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
+                    }
+                }
+
+                html += `</div>`;
+
+                html += `
+                    <div class="action-buttons">
+                        <button onclick="makePhoneCall()" class="action-button phone-button">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        <button onclick="open2GIS()" class="action-button gis-button">
+                            <i data-feather="map-pin" class="w-4 h-4"></i>
+                            2GIS
+                        </button>
+                        <button onclick="callTaxi()" class="action-button taxi-button">
+                            <i data-feather="car" class="w-4 h-4"></i>
+                            Такси
+                        </button>
+                    </div>
+                `;
+
+                html += `
+                    <div class="mt-3">
+                        <button onclick="contactAboutSpecificProductFromFavorites(${index})" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                            Узнать подробнее
+                        </button>
+                    </div>
+                `;
+
+                html += `</div></div>`;
+            });
+
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleFavoriteFromFavorites(favoriteId) {
+            favorites = favorites.filter(fav => fav.id !== favoriteId);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            if (favorites.length === 0) {
+                showEmptyState('В избранном пока нет товаров');
+            } else {
+                renderFavorites();
+            }
+            
+            if (tg) {
+                tg.showAlert('Товар удален из избранного');
+            }
+        }
+
+        function contactAboutSpecificProductFromFavorites(favoriteIndex) {
+            const favorite = favorites[favoriteIndex];
+            const product = favorite.product;
+            const navigation = favorite.navigation;
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар из избранного: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
         }
 
         function extractPhotoFilenameFromUrl(url) {
@@ -1271,6 +1596,23 @@
                 `;
             });
 
+            // Добавляем кнопку избранного в главное меню
+            html += `
+                <div class="category-card fade-in" onclick="loadFavorites()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="heart" class="w-5 h-5 mr-3 text-red-500"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Избранное</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">${favorites.length} товаров</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             // Добавляем кнопку вызова такси в главное меню
             html += `
                 <div class="category-card fade-in" onclick="callTaxi()">
@@ -1517,6 +1859,8 @@
             currentProducts.forEach((product, index) => {
                 if (!product) return;
                 
+                const productId = generateProductId(product);
+                const isFavorite = favorites.some(fav => fav.id === productId);
                 const color = safeString(product.color, 'Не указан');
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
                 const description = safeString(product.description);
@@ -1527,7 +1871,15 @@
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
                 html += `
-                    <div class="product-card fade-in">
+                    <div class="product-card fade-in" data-product-index="${index}">
+                `;
+
+                // Кнопка избранного
+                html += `
+                    <div class="favorite-label">В избранное</div>
+                    <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                        <i data-feather="heart"></i>
+                    </div>
                 `;
 
                 if (imageUrl || alternativeUrls.length > 0) {
@@ -1952,7 +2304,11 @@
         window.loadModels = loadModels;
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
+        window.loadFavorites = loadFavorites;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
+        window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
+        window.toggleFavorite = toggleFavorite;
+        window.toggleFavoriteFromFavorites = toggleFavoriteFromFavorites;
         window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
         window.openTelegramChannel = openTelegramChannel;
