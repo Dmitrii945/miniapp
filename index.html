@@ -281,6 +281,25 @@
             transform: scale(1.05);
         }
 
+        /* Стили для кнопки добавления на главный экран */
+        .install-button {
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .install-button:hover {
+            background-color: #2563EB;
+            transform: scale(1.05);
+        }
+
         /* Стили для пунктов меню */
         .menu-item {
             padding: 12px 16px;
@@ -354,6 +373,27 @@
         .uber-taxi:hover {
             background-color: #333333;
         }
+
+        /* Стили для заголовка с подзаголовком */
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 400;
+            line-height: 1;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -364,8 +404,13 @@
                 <button id="toggleMenu" class="menu-button">
                     <i data-feather="menu"></i>
                 </button>
-                <h1 class="text-lg font-semibold tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
-                <div class="w-10"></div> <!-- Пустой элемент для балансировки -->
+                <div class="header-title">
+                    <h1 class="main-title tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
+                    <div class="sub-title">Скидка Сервис</div>
+                </div>
+                <button id="installButton" class="install-button" title="Добавить на главный экран">
+                    <i data-feather="plus-square"></i>
+                </button>
             </div>
             
             <!-- Breadcrumbs -->
@@ -455,6 +500,17 @@
 
                         <div class="menu-divider"></div>
 
+                        <!-- Добавить на главный экран -->
+                        <div class="menu-item" onclick="showInstallPrompt(); closeSideMenu();">
+                            <i data-feather="plus-square"></i>
+                            <div>
+                                <div class="font-medium">Добавить на главный экран</div>
+                                <div class="text-sm text-gray-600">Быстрый доступ к приложению</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
                         <!-- Главная -->
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
@@ -505,7 +561,8 @@
             errorState: document.getElementById('errorState'),
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
-            pageTitle: document.getElementById('pageTitle')
+            pageTitle: document.getElementById('pageTitle'),
+            installButton: document.getElementById('installButton')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -696,6 +753,15 @@
                 tg.openLink(uberUrl);
             } else {
                 window.open(uberUrl, '_blank');
+            }
+        }
+
+        // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
+        function showInstallPrompt() {
+            if (tg) {
+                tg.showAlert(`Чтобы добавить приложение на главный экран:\n\n1. Нажмите на кнопку меню в правом верхнем углу\n2. Выберите "Добавить на главный экран"\n3. Следуйте инструкциям вашего браузера`);
+            } else {
+                alert(`Чтобы добавить приложение на главный экран:\n\n1. Нажмите на кнопку меню в правом верхнем углу\n2. Выберите "Добавить на главный экран"\n3. Следуйте инструкциям вашего браузера\n\nИли используйте функцию "Добавить на главный экран" в меню вашего браузера.`);
             }
         }
 
@@ -1728,6 +1794,7 @@
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
+                const installButton = document.getElementById('installButton');
                 
                 if (toggleMenuBtn) {
                     toggleMenuBtn.addEventListener('click', openSideMenu);
@@ -1735,6 +1802,10 @@
                 
                 if (closeMenuBtn) {
                     closeMenuBtn.addEventListener('click', closeSideMenu);
+                }
+
+                if (installButton) {
+                    installButton.addEventListener('click', showInstallPrompt);
                 }
                 
                 elements.sideMenu.addEventListener('click', (e) => {
@@ -1767,6 +1838,7 @@
         window.openTaxiMenu = openTaxiMenu;
         window.openYandexTaxi = openYandexTaxi;
         window.openUber = openUber;
+        window.showInstallPrompt = showInstallPrompt;
         window.renderAllProducts = renderAllProducts;
         window.goBack = goBack;
         window.openSideMenu = openSideMenu;
