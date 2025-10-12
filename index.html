@@ -869,16 +869,18 @@
 
         async function loadBannerCarousel() {
             try {
-                console.log('Загрузка баннеров...');
+                console.log('🔄 Загрузка баннеров...');
                 
-                // Получаем реальные товары напрямую из API продуктов
-                const data = await apiFetch('/products/1/null/null/null');
+                // ИСПРАВЛЕННЫЙ ENDPOINT - используем правильный API
+                const data = await apiFetch('/banner_products');
                 
                 if (data?.error || !data?.products || data.products.length === 0) {
-                    console.log('API недоступно, создаем демо-данные');
+                    console.log('❌ API недоступно или нет товаров, создаем демо-данные');
                     createDemoBanners();
                     return;
                 }
+                
+                console.log('✅ Получены товары для баннеров:', data.products.length);
                 
                 // Фильтруем товары с фото и ценой
                 const productsWithPhotos = data.products.filter(product => {
@@ -892,14 +894,14 @@
                 });
                 
                 if (productsWithPhotos.length === 0) {
-                    console.log('Нет товаров с фото, создаем демо-данные');
+                    console.log('❌ Нет товаров с фото, создаем демо-данные');
                     createDemoBanners();
                     return;
                 }
                 
                 // Выбираем случайные товары для баннеров (максимум 5)
                 const randomProducts = getRandomItems(productsWithPhotos, 5);
-                console.log('Выбраны товары для баннеров:', randomProducts);
+                console.log('🎰 Выбраны товары для баннеров:', randomProducts.length);
                 
                 bannerCarousel.items = randomProducts;
                 bannerCarousel.currentIndex = 0;
@@ -907,54 +909,60 @@
                 startBannerAutoPlay();
                 
             } catch (error) {
-                console.log('Ошибка загрузки баннеров:', error);
+                console.log('❌ Ошибка загрузки баннеров:', error);
                 createDemoBanners();
             }
         }
 
         function getRandomItems(array, count) {
             const shuffled = [...array].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
+            return shuffled.slice(0, Math.min(count, array.length));
         }
 
         function createDemoBanners() {
-            console.log('Создание демо-баннеров');
-            // Демо-данные для баннеров с реальными товарами
+            console.log('🔄 Создание демо-баннеров');
+            
+            // Демо-данные для баннеров с правильной структурой
             const demoBanners = [
                 {
                     color: "Бетон М300 В22,5 П3 F150 W4",
                     price: "3200 р.",
                     photo_url: "",
                     description: "Высококачественный бетон для фундаментов и монолитных работ",
-                    section: { id: "1", name: "Бетон" }
+                    section: { id: "demo_beton", name: "Бетон" },
+                    category: { id: "demo_beton_tov", name: "Товарный бетон" }
                 },
                 {
                     color: "Песок карьерный мытый", 
                     price: "750 р.",
                     photo_url: "",
                     description: "Мытый карьерный песок для строительных растворов",
-                    section: { id: "2", name: "Песок" }
+                    section: { id: "demo_pesok", name: "Песок" },
+                    category: { id: "demo_pesok_karr", name: "Карьерный песок" }
                 },
                 {
                     color: "Щебень гранитный 20-40",
                     price: "1850 р.",
                     photo_url: "",
                     description: "Фракция 20-40 мм, высшего качества для бетона",
-                    section: { id: "3", name: "Щебень" }
+                    section: { id: "demo_scheben", name: "Щебень" },
+                    category: { id: "demo_scheben_gran", name: "Гранитный щебень" }
                 },
                 {
                     color: "Цемент М500 Д0",
                     price: "450 р.",
                     photo_url: "",
                     description: "Портландцемент без добавок для высокопрочных конструкций",
-                    section: { id: "4", name: "Цемент" }
+                    section: { id: "demo_cement", name: "Цемент" },
+                    category: { id: "demo_cement_port", name: "Портландцемент" }
                 },
                 {
                     color: "Кирпич керамический полнотелый",
                     price: "25 р.",
                     photo_url: "",
                     description: "Стандартный керамический кирпич для кладки",
-                    section: { id: "5", name: "Кирпич" }
+                    section: { id: "demo_kirpich", name: "Кирпич" },
+                    category: { id: "demo_kirpich_ker", name: "Керамический кирпич" }
                 }
             ];
             
@@ -966,11 +974,11 @@
 
         function renderBannerCarousel() {
             if (!bannerCarousel.items || bannerCarousel.items.length === 0) {
-                console.log('Нет товаров для баннера');
+                console.log('❌ Нет товаров для баннера');
                 return;
             }
 
-            console.log('Рендерим баннер с товарами:', bannerCarousel.items);
+            console.log('🎨 Рендерим баннер с товарами:', bannerCarousel.items.length);
 
             const bannerHTML = `
                 <div class="banner-carousel" id="bannerCarousel">
@@ -980,7 +988,7 @@
                             const imageUrl = extractPhotoFilenameFromUrl(product.photo_url);
                             const priceText = product.price ? formatPriceForBadge(product.price) : '';
                             const productColor = product.color || 'Товар';
-                            const productDescription = product.description || product.section?.name || '';
+                            const productDescription = product.description || (product.section ? product.section.name : '');
                             
                             return `
                             <div class="banner-slide ${isActive ? 'active' : ''}" data-index="${index}" 
@@ -1054,13 +1062,25 @@
         function handleBannerClick(index) {
             const product = bannerCarousel.items[index];
             if (product && product.section) {
-                console.log('Клик по баннеру:', product);
+                console.log('👆 Клик по баннеру:', product.section.name);
+                
+                // Для демо-баннеров просто показываем сообщение
+                if (product.section.id && product.section.id.startsWith('demo_')) {
+                    if (tg) {
+                        tg.showAlert(`Демо-баннер: ${product.section.name}\n\nВ реальном приложении здесь будет переход в раздел "${product.section.name}"`);
+                    } else {
+                        alert(`Демо-баннер: ${product.section.name}\n\nВ реальном приложении здесь будет переход в раздел "${product.section.name}"`);
+                    }
+                    return;
+                }
+                
+                // Для реальных баннеров - переход в раздел
                 loadCategories(product.section.id, product.section.name);
             }
         }
 
         function handleBannerImageError(imgElement, index) {
-            console.log(`Ошибка загрузки изображения для баннера ${index}`);
+            console.log(`❌ Ошибка загрузки изображения для баннера ${index}`);
             const product = bannerCarousel.items[index];
             const alternativeUrls = getAlternativeImageUrls(product.photo_url);
             const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
@@ -1205,8 +1225,6 @@
             }
         }
 
-        // Остальной код остается без изменений...
-        // [Здесь должен быть весь остальной ваш JavaScript код]
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
             const phoneNumber = CONTACT_INFO.phone;
