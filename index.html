@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Все ваши существующие стили остаются без изменений */
         :root {
             --tg-theme-bg-color: #ffffff;
             --tg-theme-text-color: #000000;
@@ -441,7 +442,7 @@
             z-index: 10;
         }
 
-        /* НОВЫЕ СТИЛИ ДЛЯ КАРУСЕЛИ-БАННЕРА */
+        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ КАРУСЕЛИ-БАННЕРА */
         .banner-carousel {
             position: relative;
             width: 100%;
@@ -467,6 +468,7 @@
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
             background: white;
+            cursor: pointer;
         }
         
         .banner-slide.active {
@@ -863,98 +865,96 @@
             return `${Math.round(numericPrice)} р.`;
         }
 
-        // ========== КАРУСЕЛЬ БАННЕРОВ ==========
+        // ========== ИСПРАВЛЕННАЯ КАРУСЕЛЬ БАННЕРОВ ==========
 
         async function loadBannerCarousel() {
             try {
-                // Получаем реальные товары из каталога
-                const data = await apiFetch('/sections');
+                console.log('Загрузка баннеров...');
                 
-                if (data?.error || !data?.sections || data.sections.length === 0) {
-                    // Если API недоступно, создаем демо-данные из существующих разделов
+                // Получаем реальные товары напрямую из API продуктов
+                const data = await apiFetch('/products/1/null/null/null');
+                
+                if (data?.error || !data?.products || data.products.length === 0) {
+                    console.log('API недоступно, создаем демо-данные');
                     createDemoBanners();
                     return;
                 }
                 
-                // Собираем популярные товары из всех разделов
-                await generateBannersFromCatalog(data.sections);
+                // Фильтруем товары с фото и ценой
+                const productsWithPhotos = data.products.filter(product => {
+                    if (!product) return false;
+                    
+                    const hasPhoto = product.photo_url && product.photo_url.trim() !== '';
+                    const hasPrice = product.price && product.price.trim() !== '';
+                    const hasColor = product.color && product.color.trim() !== '';
+                    
+                    return hasPhoto && hasPrice && hasColor;
+                });
+                
+                if (productsWithPhotos.length === 0) {
+                    console.log('Нет товаров с фото, создаем демо-данные');
+                    createDemoBanners();
+                    return;
+                }
+                
+                // Выбираем случайные товары для баннеров (максимум 5)
+                const randomProducts = getRandomItems(productsWithPhotos, 5);
+                console.log('Выбраны товары для баннеров:', randomProducts);
+                
+                bannerCarousel.items = randomProducts;
+                bannerCarousel.currentIndex = 0;
+                renderBannerCarousel();
+                startBannerAutoPlay();
                 
             } catch (error) {
-                console.log('Ошибка загрузки карусели:', error);
+                console.log('Ошибка загрузки баннеров:', error);
                 createDemoBanners();
             }
         }
 
-        async function generateBannersFromCatalog(sections) {
-            const bannerProducts = [];
-            
-            // Собираем товары из всех разделов для баннеров
-            for (const section of sections.slice(0, 5)) { // Ограничиваем 5 разделами
-                try {
-                    const productsData = await apiFetch(`/products/${section.id}/null/null/null`);
-                    if (productsData?.products && productsData.products.length > 0) {
-                        // Берем товары с фото для баннеров
-                        const productsWithPhotos = productsData.products
-                            .filter(product => {
-                                if (!product) return false;
-                                // Проверяем, есть ли реальное фото
-                                const photoUrl = extractPhotoFilenameFromUrl(product.photo_url);
-                                return photoUrl && product.color && product.price;
-                            })
-                            .slice(0, 3) // Максимум 3 товара из каждого раздела
-                            .map(product => ({
-                                ...product,
-                                section: {
-                                    id: section.id,
-                                    name: section.name
-                                }
-                            }));
-                        
-                        bannerProducts.push(...productsWithPhotos);
-                    }
-                } catch (error) {
-                    console.log(`Ошибка загрузки товаров для раздела ${section.name}:`, error);
-                }
-                
-                // Ограничиваем общее количество баннеров
-                if (bannerProducts.length >= 10) break;
-            }
-            
-            if (bannerProducts.length > 0) {
-                bannerCarousel.items = bannerProducts;
-                console.log('Загружены баннеры:', bannerCarousel.items);
-            } else {
-                createDemoBanners();
-            }
-            
-            bannerCarousel.currentIndex = 0;
-            renderBannerCarousel();
-            startBannerAutoPlay();
+        function getRandomItems(array, count) {
+            const shuffled = [...array].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
         }
 
         function createDemoBanners() {
-            // Демо-данные для баннеров на основе реальных разделов
+            console.log('Создание демо-баннеров');
+            // Демо-данные для баннеров с реальными товарами
             const demoBanners = [
                 {
-                    color: "Бетон М300",
+                    color: "Бетон М300 В22,5 П3 F150 W4",
                     price: "3200 р.",
                     photo_url: "",
-                    section: { id: "1", name: "Бетон" },
-                    description: "Высококачественный бетон для строительных работ"
+                    description: "Высококачественный бетон для фундаментов и монолитных работ",
+                    section: { id: "1", name: "Бетон" }
                 },
                 {
-                    color: "Песок карьерный", 
+                    color: "Песок карьерный мытый", 
                     price: "750 р.",
                     photo_url: "",
-                    section: { id: "2", name: "Песок" },
-                    description: "Мытый карьерный песок"
+                    description: "Мытый карьерный песок для строительных растворов",
+                    section: { id: "2", name: "Песок" }
                 },
                 {
                     color: "Щебень гранитный 20-40",
                     price: "1850 р.",
                     photo_url: "",
-                    section: { id: "3", name: "Щебень" },
-                    description: "Фракция 20-40 мм, высшего качества"
+                    description: "Фракция 20-40 мм, высшего качества для бетона",
+                    section: { id: "3", name: "Щебень" }
+                },
+                {
+                    color: "Цемент М500 Д0",
+                    price: "450 р.",
+                    photo_url: "",
+                    description: "Портландцемент без добавок для высокопрочных конструкций",
+                    section: { id: "4", name: "Цемент" }
+                },
+                {
+                    color: "Кирпич керамический полнотелый",
+                    price: "25 р.",
+                    photo_url: "",
+                    description: "Стандартный керамический кирпич для кладки",
+                    section: { id: "5", name: "Кирпич" }
                 }
             ];
             
@@ -978,20 +978,15 @@
                         ${bannerCarousel.items.map((product, index) => {
                             const isActive = index === bannerCarousel.currentIndex;
                             const imageUrl = extractPhotoFilenameFromUrl(product.photo_url);
-                            const alternativeUrls = getAlternativeImageUrls(product.photo_url);
                             const priceText = product.price ? formatPriceForBadge(product.price) : '';
-                            
-                            console.log(`Товар ${index}:`, {
-                                color: product.color,
-                                price: product.price,
-                                imageUrl: imageUrl,
-                                hasPhoto: !!imageUrl
-                            });
+                            const productColor = product.color || 'Товар';
+                            const productDescription = product.description || product.section?.name || '';
                             
                             return `
-                            <div class="banner-slide ${isActive ? 'active' : ''}" data-index="${index}">
+                            <div class="banner-slide ${isActive ? 'active' : ''}" data-index="${index}" 
+                                 onclick="handleBannerClick(${index})">
                                 ${imageUrl ? `
-                                    <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.color || 'Товар')}" 
+                                    <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(productColor)}" 
                                          class="banner-image"
                                          onerror="handleBannerImageError(this, ${index})"
                                          onload="handleBannerImageLoad(this)"
@@ -1000,22 +995,18 @@
                                 ` : `
                                     <div class="banner-placeholder">
                                         <i data-feather="package" class="w-12 h-12 mb-2"></i>
-                                        <div class="banner-title">${escapeHtml(product.color || 'Товар')}</div>
-                                        <div class="banner-price">${priceText}</div>
-                                        <div class="banner-section">${escapeHtml(product.section.name)}</div>
+                                        <div class="banner-title">${escapeHtml(productColor)}</div>
+                                        ${priceText ? `<div class="banner-price">${priceText}</div>` : ''}
+                                        <div class="banner-section">${escapeHtml(productDescription)}</div>
                                     </div>
                                 `}
                                 
                                 <div class="banner-content">
-                                    <div class="banner-title">${escapeHtml(product.color || 'Товар')}</div>
+                                    <div class="banner-title">${escapeHtml(productColor)}</div>
                                     ${priceText ? `
                                         <div class="banner-price">${priceText}</div>
                                     ` : ''}
-                                    ${product.description ? `
-                                        <div class="banner-section">${escapeHtml(product.description)}</div>
-                                    ` : `
-                                        <div class="banner-section">${escapeHtml(product.section.name)}</div>
-                                    `}
+                                    <div class="banner-section">${escapeHtml(productDescription)}</div>
                                 </div>
                             </div>
                         `}).join('')}
@@ -1058,6 +1049,14 @@
             }
             
             scheduleFeatherReplace();
+        }
+
+        function handleBannerClick(index) {
+            const product = bannerCarousel.items[index];
+            if (product && product.section) {
+                console.log('Клик по баннеру:', product);
+                loadCategories(product.section.id, product.section.name);
+            }
         }
 
         function handleBannerImageError(imgElement, index) {
@@ -1120,16 +1119,6 @@
                     }
                 }
                 startBannerAutoPlay();
-            });
-
-            // Добавляем обработчики кликов для перехода в категорию
-            carousel.addEventListener('click', (e) => {
-                if (!e.target.closest('.banner-nav') && !e.target.closest('.banner-indicator')) {
-                    const currentProduct = bannerCarousel.items[bannerCarousel.currentIndex];
-                    if (currentProduct && currentProduct.section) {
-                        loadCategories(currentProduct.section.id, currentProduct.section.name);
-                    }
-                }
             });
         }
 
@@ -1216,6 +1205,8 @@
             }
         }
 
+        // Остальной код остается без изменений...
+        // [Здесь должен быть весь остальной ваш JavaScript код]
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
             const phoneNumber = CONTACT_INFO.phone;
@@ -2539,6 +2530,7 @@
         window.prevBanner = prevBanner;
         window.nextBanner = nextBanner;
         window.goToBanner = goToBanner;
+        window.handleBannerClick = handleBannerClick;
     </script>
 </body>
 </html>
