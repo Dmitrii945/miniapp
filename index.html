@@ -440,6 +440,54 @@
             color: #374151;
             z-index: 10;
         }
+
+        /* Стили для карусели историй */
+        .stories-carousel {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .stories-carousel::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .story-item {
+            transition: all 0.3s ease;
+        }
+        
+        .story-item:active {
+            transform: scale(0.95);
+        }
+        
+        @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        
+        .animate-progress {
+            animation: progress 5s linear;
+        }
+        
+        .progress-bar {
+            width: 0%;
+        }
+
+        .story-image {
+            transition: transform 0.3s ease;
+        }
+
+        .story-item:hover .story-image {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -598,6 +646,14 @@
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
+        // Карусель историй
+        let storiesCarousel = {
+            items: [],
+            currentIndex: 0,
+            lastUpdate: 0,
+            updateInterval: 5 * 60 * 1000 // 5 минут
+        };
+
         // Контактная информация
         const CONTACT_INFO = {
             phone: "60-01-60",
@@ -713,6 +769,427 @@
             const numericPrice = extractNumericPrice(price);
             if (numericPrice === Infinity) return '';
             return `${Math.round(numericPrice)} р.`;
+        }
+
+        // ========== КАРУСЕЛЬ ИСТОРИЙ ==========
+
+        async function loadStoriesCarousel() {
+            try {
+                // Получаем случайные товары со всех категорий
+                const data = await apiFetch('/random-products?limit=10');
+                
+                if (data.products && data.products.length > 0) {
+                    storiesCarousel.items = data.products;
+                    storiesCarousel.lastUpdate = Date.now();
+                    storiesCarousel.currentIndex = 0;
+                    
+                    renderStoriesCarousel();
+                } else {
+                    // Если API нет, генерируем из текущих данных
+                    await generateRandomStories();
+                }
+            } catch (error) {
+                console.log('Ошибка загрузки карусели:', error);
+                await generateRandomStories();
+            }
+        }
+
+        async function generateRandomStories() {
+            // Альтернативный метод - собираем случайные товары из существующих данных
+            if (currentProducts && currentProducts.length > 0) {
+                const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
+                storiesCarousel.items = shuffled.slice(0, 10);
+            } else {
+                // Загружаем базовые данные для карусели
+                const data = await apiFetch('/sections');
+                if (data?.sections) {
+                    const allProducts = [];
+                    // Собираем товары из разных разделов
+                    for (const section of data.sections.slice(0, 3)) {
+                        const productsData = await apiFetch(`/products/${section.id}/null/null/null`);
+                        if (productsData?.products) {
+                            allProducts.push(...productsData.products);
+                        }
+                    }
+                    
+                    const shuffled = allProducts.sort(() => 0.5 - Math.random());
+                    storiesCarousel.items = shuffled.slice(0, 10);
+                }
+            }
+            
+            storiesCarousel.lastUpdate = Date.now();
+            storiesCarousel.currentIndex = 0;
+            renderStoriesCarousel();
+        }
+
+        function renderStoriesCarousel() {
+            if (!storiesCarousel.items || storiesCarousel.items.length === 0) {
+                return;
+            }
+
+            const carouselHTML = `
+                <div class="stories-carousel mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-semibold text-lg text-contrast">Случайные товары</h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">обновятся через 5 мин</span>
+                            <button onclick="refreshStories()" class="p-1 rounded-full hover:bg-gray-100" title="Обновить сейчас">
+                                <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <!-- Контейнер карусели -->
+                        <div id="storiesContainer" class="flex overflow-x-auto gap-3 pb-4 scrollbar-hide"
+                             style="scroll-snap-type: x mandatory;">
+                            ${storiesCarousel.items.map((product, index) => `
+                                <div class="flex-shrink-0 w-28" style="scroll-snap-align: start;">
+                                    <div class="story-item bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer transform transition-all hover:scale-105 active:scale-95"
+                                         onclick="openProductFromStory(${index})"
+                                         data-product-index="${index}">
+                                        <!-- Изображение товара -->
+                                        <div class="relative h-32 bg-gray-100">
+                                            ${renderStoryImage(product)}
+                                            <!-- Бейдж цены -->
+                                            ${product.price ? `
+                                                <div class="absolute bottom-2 left-2 right-2">
+                                                    <div class="price-badge text-xs bg-green-500 text-white px-2 py-1 rounded-full text-center">
+                                                        ${formatPriceForBadge(product.price)}
+                                                    </div>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        
+                                        <!-- Название товара -->
+                                        <div class="p-2">
+                                            <p class="text-xs font-medium text-gray-800 truncate" title="${escapeHtml(product.color || 'Товар')}">
+                                                ${escapeHtml(product.color || 'Товар')}
+                                            </p>
+                                            <p class="text-xs text-gray-500 truncate" title="${escapeHtml(product.photo_description || '')}">
+                                                ${escapeHtml((product.photo_description || '').substring(0, 20))}${(product.photo_description || '').length > 20 ? '...' : ''}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <!-- Кнопки навигации -->
+                        <button onclick="scrollStories(-1)" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <i data-feather="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="scrollStories(1)" class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <i data-feather="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Индикатор прогресса -->
+                    <div class="flex justify-center gap-1 mt-3">
+                        ${storiesCarousel.items.map((_, index) => `
+                            <div class="h-1 w-8 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-500 progress-bar ${index === storiesCarousel.currentIndex ? 'animate-progress' : ''}"
+                                     style="animation-duration: 5s"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Вставляем карусель в начало контента
+            const content = elements.content;
+            if (content.querySelector('.stories-carousel')) {
+                content.querySelector('.stories-carousel').remove();
+            }
+            
+            // Добавляем карусель только на главной странице и страницах категорий
+            const isMainPage = navigationStack.length <= 1;
+            if (isMainPage) {
+                content.insertAdjacentHTML('afterbegin', carouselHTML);
+            }
+            
+            scheduleFeatherReplace();
+            initStoriesSwipe();
+            startStoriesAutoPlay();
+        }
+
+        function renderStoryImage(product) {
+            const photoUrl = safeString(product.photo_url);
+            let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+            const alternativeUrls = getAlternativeImageUrls(photoUrl);
+            
+            if (imageUrl || alternativeUrls.length > 0) {
+                const finalImageUrl = imageUrl || alternativeUrls[0];
+                return `
+                    <img src="${escapeHtml(finalImageUrl)}" 
+                         alt="${escapeHtml(product.color || 'Товар')}"
+                         class="w-full h-32 object-cover story-image"
+                         onerror="handleStoryImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                         loading="lazy"
+                         data-tried-alternative="0">
+                    <div class="story-placeholder hidden w-full h-32 bg-gray-100 flex items-center justify-center">
+                        <i data-feather="package" class="w-6 h-6 text-gray-400"></i>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="w-full h-32 bg-gray-100 flex items-center justify-center">
+                        <i data-feather="package" class="w-8 h-8 text-gray-400"></i>
+                    </div>
+                `;
+            }
+        }
+
+        function handleStoryImageError(imgElement, originalUrl, alternativeUrls) {
+            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
+            
+            if (alternativeUrls.length > triedAlternative) {
+                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
+                imgElement.src = alternativeUrls[triedAlternative];
+                return;
+            }
+            
+            imgElement.style.display = 'none';
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('story-placeholder')) {
+                placeholder.classList.remove('hidden');
+            }
+            scheduleFeatherReplace();
+        }
+
+        function scrollStories(direction) {
+            const container = document.getElementById('storiesContainer');
+            if (!container) return;
+            
+            const scrollAmount = 120; // Ширина элемента + gap
+            container.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
+            
+            updateCurrentStoryIndex();
+        }
+
+        function initStoriesSwipe() {
+            const container = document.getElementById('storiesContainer');
+            if (!container) return;
+            
+            let startX = 0;
+            let currentX = 0;
+            
+            container.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            });
+            
+            container.addEventListener('touchmove', (e) => {
+                currentX = e.touches[0].clientX;
+            });
+            
+            container.addEventListener('touchend', () => {
+                const diff = startX - currentX;
+                if (Math.abs(diff) > 50) { // Минимальное расстояние свайпа
+                    scrollStories(diff > 0 ? -1 : 1);
+                }
+            });
+        }
+
+        function updateCurrentStoryIndex() {
+            const container = document.getElementById('storiesContainer');
+            if (!container) return;
+            
+            const scrollLeft = container.scrollLeft;
+            const itemWidth = 112; // 112px (w-28 = 7rem = 112px)
+            const newIndex = Math.round(scrollLeft / itemWidth);
+            
+            if (newIndex !== storiesCarousel.currentIndex) {
+                storiesCarousel.currentIndex = newIndex;
+                updateProgressBars();
+            }
+        }
+
+        function updateProgressBars() {
+            const bars = document.querySelectorAll('.progress-bar');
+            bars.forEach((bar, index) => {
+                bar.classList.toggle('animate-progress', index === storiesCarousel.currentIndex);
+            });
+        }
+
+        function startStoriesAutoPlay() {
+            // Автопрокрутка каждые 5 секунд
+            setInterval(() => {
+                if (storiesCarousel.items.length > 0) {
+                    const nextIndex = (storiesCarousel.currentIndex + 1) % storiesCarousel.items.length;
+                    storiesCarousel.currentIndex = nextIndex;
+                    
+                    const container = document.getElementById('storiesContainer');
+                    if (container) {
+                        container.scrollTo({
+                            left: nextIndex * 112,
+                            behavior: 'smooth'
+                        });
+                    }
+                    updateProgressBars();
+                }
+            }, 5000);
+        }
+
+        async function openProductFromStory(storyIndex) {
+            const product = storiesCarousel.items[storyIndex];
+            if (!product) return;
+            
+            // Показываем загрузку
+            showLoading();
+            
+            try {
+                // Ищем категорию товара
+                const categoryInfo = await findProductCategory(product);
+                
+                if (categoryInfo) {
+                    // Навигация к категории товара
+                    await navigateToProductCategory(categoryInfo, product);
+                } else {
+                    // Если не нашли категорию, показываем товар в модальном окне
+                    showProductQuickView(product);
+                }
+            } catch (error) {
+                console.log('Ошибка открытия товара:', error);
+                showProductQuickView(product);
+            }
+        }
+
+        async function findProductCategory(product) {
+            // Временная реализация - ищем в текущих данных
+            if (currentProducts && currentProducts.length > 0) {
+                const foundProduct = currentProducts.find(p => 
+                    p.color === product.color || 
+                    p.photo_url === product.photo_url
+                );
+                
+                if (foundProduct) {
+                    return getCurrentNavigation();
+                }
+            }
+            
+            return null;
+        }
+
+        async function navigateToProductCategory(categoryInfo, product) {
+            // Навигация к разделу с товаром
+            const navigation = getCurrentNavigation();
+            
+            // Если товар из текущей категории, просто скроллим к нему
+            if (navigation.section && currentProducts.some(p => p.color === product.color)) {
+                hideLoading();
+                scrollToProductInList(product);
+                return;
+            }
+            
+            // Иначе переходим в нужную категорию
+            if (categoryInfo.sectionId) {
+                await loadCategories(categoryInfo.sectionId, categoryInfo.sectionName);
+            }
+        }
+
+        function scrollToProductInList(product) {
+            const productIndex = currentProducts.findIndex(p => p.color === product.color);
+            if (productIndex !== -1) {
+                const productElement = document.querySelector(`[data-product-index="${productIndex}"]`);
+                if (productElement) {
+                    productElement.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    
+                    // Подсвечиваем товар
+                    productElement.style.boxShadow = '0 0 0 3px #3B82F6';
+                    setTimeout(() => {
+                        productElement.style.boxShadow = '';
+                    }, 2000);
+                }
+            }
+        }
+
+        function showProductQuickView(product) {
+            const quickViewHTML = `
+                <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="font-semibold text-lg">Быстрый просмотр</h3>
+                            <button onclick="closeQuickView()" class="p-2 rounded-full hover:bg-gray-100">
+                                <i data-feather="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="p-4">
+                            <!-- Изображение товара -->
+                            <div class="mb-4">
+                                ${renderStoryImage(product)}
+                            </div>
+                            
+                            <!-- Информация о товаре -->
+                            <div class="space-y-2 mb-4">
+                                <h4 class="font-semibold text-xl">${escapeHtml(product.color || 'Товар')}</h4>
+                                ${product.price ? `
+                                    <div class="price-badge text-lg">${formatPriceForBadge(product.price)}</div>
+                                ` : ''}
+                                ${product.photo_description ? `
+                                    <p class="text-gray-700">${escapeHtml(product.photo_description)}</p>
+                                ` : ''}
+                                ${product.description ? `
+                                    <p class="text-gray-500 text-sm">${escapeHtml(product.description)}</p>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Кнопки действий -->
+                            <div class="space-y-2">
+                                <button onclick="contactAboutSpecificProductFromStory(${JSON.stringify(product).replace(/"/g, '&quot;')})" 
+                                        class="w-full py-3 tg-theme-button rounded-lg font-medium">
+                                    Узнать подробнее
+                                </button>
+                                <button onclick="addToFavoritesFromStory(${JSON.stringify(product).replace(/"/g, '&quot;')})" 
+                                        class="w-full py-3 border border-gray-300 rounded-lg font-medium flex items-center justify-center gap-2">
+                                    <i data-feather="heart" class="w-4 h-4"></i>
+                                    В избранное
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', quickViewHTML);
+            scheduleFeatherReplace();
+        }
+
+        function closeQuickView() {
+            const quickView = document.querySelector('.fixed.inset-0.bg-black');
+            if (quickView) {
+                quickView.remove();
+            }
+        }
+
+        function contactAboutSpecificProductFromStory(product) {
+            const message = `Здравствуйте! Интересует товар: ${product.color}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+            
+            closeQuickView();
+        }
+
+        function addToFavoritesFromStory(product) {
+            toggleFavorite(product, -1); // -1 для специального индекса
+            if (tg) {
+                tg.showAlert('Товар добавлен в избранное!');
+            }
+            closeQuickView();
+        }
+
+        function refreshStories() {
+            loadStoriesCarousel();
         }
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
@@ -1391,6 +1868,11 @@
 
                 renderSections(data.sections);
                 updateBackButton();
+                
+                // Загружаем карусель после основных разделов
+                setTimeout(() => {
+                    loadStoriesCarousel();
+                }, 100);
             } catch (error) {
                 showError('Не удалось загрузить разделы');
             }
@@ -1432,6 +1914,11 @@
 
                 renderCategories(data.categories, sectionId, sectionName);
                 updateBackButton();
+                
+                // Загружаем карусель для категорий
+                setTimeout(() => {
+                    loadStoriesCarousel();
+                }, 100);
             } catch (error) {
                 await loadProductsDirect(sectionId, null, null, null, sectionName);
             }
@@ -2288,6 +2775,13 @@
                     }
                 });
                 
+                // Автоматическое обновление карусели каждые 5 минут
+                setInterval(() => {
+                    if (storiesCarousel.items.length > 0) {
+                        loadStoriesCarousel();
+                    }
+                }, 5 * 60 * 1000);
+                
                 setTimeout(() => {
                     loadSections();
                 }, 100);
@@ -2326,6 +2820,13 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
+        // Функции карусели
+        window.loadStoriesCarousel = loadStoriesCarousel;
+        window.scrollStories = scrollStories;
+        window.refreshStories = refreshStories;
+        window.openProductFromStory = openProductFromStory;
+        window.closeQuickView = closeQuickView;
+        window.addToFavoritesFromStory = addToFavoritesFromStory;
     </script>
 </body>
 </html>
