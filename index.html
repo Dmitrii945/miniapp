@@ -1247,7 +1247,7 @@
             // Устанавливаем периодическую проверку (каждые 5 минут)
             notificationCheckInterval = setInterval(() => {
                 checkForNotifications();
-            }, 5 * 60 * 1000);
+            }, 1 * 60 * 1000);
             
             // Проверяем уведомления при возвращении на вкладку
             document.addEventListener('visibilitychange', () => {
