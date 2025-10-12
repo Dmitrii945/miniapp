@@ -535,12 +535,12 @@
             justify-content: center;
             cursor: pointer;
             z-index: 10;
-            opacity: 0;
+            opacity: 1;
             transition: opacity 0.3s ease;
         }
         
-        .banner-carousel:hover .banner-nav {
-            opacity: 1;
+        .banner-nav:hover {
+            background: rgba(0, 0, 0, 0.7);
         }
         
         .banner-prev {
@@ -594,7 +594,7 @@
         }
 
         .banner-carousel.touch-active .banner-nav {
-            opacity: 0 !important;
+            opacity: 0.5 !important;
         }
     </style>
 </head>
@@ -764,7 +764,8 @@
             touchStartX: 0,
             touchEndX: 0,
             lastUpdateTime: 0,
-            updateInterval: 10 * 60 * 1000 // 10 минут
+            updateInterval: 10 * 60 * 1000, // 10 минут
+            photoUpdateInterval: 5000 // 5 секунд для обновления фото
         };
 
         // Контактная информация
@@ -958,40 +959,40 @@
                     price: "3200 р.",
                     photo_url: "",
                     description: "Высококачественный бетон для фундаментов и монолитных работ",
-                    section: { id: "demo_beton", name: "Бетон" },
-                    category: { id: "demo_beton_tov", name: "Товарный бетон" }
+                    section: { id: "1", name: "Бетон" },
+                    category: { id: "1", name: "Товарный бетон" }
                 },
                 {
                     color: "Песок карьерный мытый", 
                     price: "750 р.",
                     photo_url: "",
                     description: "Мытый карьерный песок для строительных растворов",
-                    section: { id: "demo_pesok", name: "Песок" },
-                    category: { id: "demo_pesok_karr", name: "Карьерный песок" }
+                    section: { id: "2", name: "Песок" },
+                    category: { id: "2", name: "Карьерный песок" }
                 },
                 {
                     color: "Щебень гранитный 20-40",
                     price: "1850 р.",
                     photo_url: "",
                     description: "Фракция 20-40 мм, высшего качества для бетона",
-                    section: { id: "demo_scheben", name: "Щебень" },
-                    category: { id: "demo_scheben_gran", name: "Гранитный щебень" }
+                    section: { id: "3", name: "Щебень" },
+                    category: { id: "3", name: "Гранитный щебень" }
                 },
                 {
                     color: "Цемент М500 Д0",
                     price: "450 р.",
                     photo_url: "",
                     description: "Портландцемент без добавок для высокопрочных конструкций",
-                    section: { id: "demo_cement", name: "Цемент" },
-                    category: { id: "demo_cement_port", name: "Портландцемент" }
+                    section: { id: "4", name: "Цемент" },
+                    category: { id: "4", name: "Портландцемент" }
                 },
                 {
                     color: "Кирпич керамический полнотелый",
                     price: "25 р.",
                     photo_url: "",
                     description: "Стандартный керамический кирпич для кладки",
-                    section: { id: "demo_kirpich", name: "Кирпич" },
-                    category: { id: "demo_kirpich_ker", name: "Керамический кирпич" }
+                    section: { id: "5", name: "Кирпич" },
+                    category: { id: "5", name: "Керамический кирпич" }
                 }
             ];
             
@@ -1061,10 +1062,10 @@
                     
                     <!-- Навигационные кнопки -->
                     ${bannerCarousel.items.length > 1 ? `
-                        <button class="banner-nav banner-prev" onclick="prevBanner()">
+                        <button class="banner-nav banner-prev" onclick="event.stopPropagation(); prevBanner()">
                             <i data-feather="chevron-left" class="w-4 h-4"></i>
                         </button>
-                        <button class="banner-nav banner-next" onclick="nextBanner()">
+                        <button class="banner-nav banner-next" onclick="event.stopPropagation(); nextBanner()">
                             <i data-feather="chevron-right" class="w-4 h-4"></i>
                         </button>
                     ` : ''}
@@ -1074,7 +1075,7 @@
                         <div class="banner-indicators">
                             ${bannerCarousel.items.map((_, index) => `
                                 <div class="banner-indicator ${index === bannerCarousel.currentIndex ? 'active' : ''}" 
-                                     onclick="goToBanner(${index})"></div>
+                                     onclick="event.stopPropagation(); goToBanner(${index})"></div>
                             `).join('')}
                         </div>
                     ` : ''}
@@ -1139,18 +1140,10 @@
             if (product && product.section) {
                 console.log('👆 Клик по баннеру:', product.section.name);
                 
-                // Для демо-баннеров просто показываем сообщение
-                if (product.section.id && product.section.id.startsWith('demo_')) {
-                    if (tg) {
-                        tg.showAlert(`Демо-баннер: ${product.section.name}\n\nВ реальном приложении здесь будет переход в раздел "${product.section.name}"`);
-                    } else {
-                        alert(`Демо-баннер: ${product.section.name}\n\nВ реальном приложении здесь будет переход в раздел "${product.section.name}"`);
-                    }
-                    return;
+                // Для демо-баннеров загружаем соответствующий раздел
+                if (product.section.id && product.section.name) {
+                    loadCategories(product.section.id, product.section.name);
                 }
-                
-                // Для реальных баннеров - переход в раздел
-                loadCategories(product.section.id, product.section.name);
             }
         }
 
@@ -1207,7 +1200,8 @@
                 touchEndX = e.changedTouches[0].screenX;
             }, { passive: true });
             
-            carousel.addEventListener('touchend', () => {
+            carousel.addEventListener('touchend', (e) => {
+                e.preventDefault();
                 carousel.classList.remove('touch-active');
                 const diff = touchStartX - touchEndX;
                 
@@ -1219,7 +1213,7 @@
                     }
                 }
                 startBannerAutoPlay();
-            }, { passive: true });
+            });
         }
 
         function nextBanner() {
@@ -1289,6 +1283,47 @@
                     }
                 }, bannerCarousel.autoPlayDelay);
             }
+            
+            // Запускаем обновление фото каждые 5 секунд
+            startPhotoRotation();
+        }
+
+        function startPhotoRotation() {
+            // Останавливаем предыдущий интервал обновления фото
+            if (bannerCarousel.photoRotationInterval) {
+                clearInterval(bannerCarousel.photoRotationInterval);
+            }
+            
+            // Обновляем фото каждые 5 секунд
+            bannerCarousel.photoRotationInterval = setInterval(() => {
+                rotateBannerPhotos();
+            }, bannerCarousel.photoUpdateDelay || 5000);
+        }
+
+        function rotateBannerPhotos() {
+            if (!bannerCarousel.items || bannerCarousel.items.length === 0) return;
+            
+            const currentSlide = document.querySelector('.banner-slide.active');
+            if (!currentSlide) return;
+            
+            const imgElement = currentSlide.querySelector('.banner-image');
+            if (!imgElement) return;
+            
+            const currentIndex = parseInt(currentSlide.dataset.index);
+            const product = bannerCarousel.items[currentIndex];
+            if (!product || !product.photo_url) return;
+            
+            // Добавляем временную метку для обхода кэша
+            const timestamp = new Date().getTime();
+            const newSrc = extractPhotoFilenameFromUrl(product.photo_url) + '?t=' + timestamp;
+            
+            // Показываем анимацию загрузки
+            imgElement.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                imgElement.src = newSrc;
+                imgElement.style.opacity = '1';
+            }, 300);
         }
 
         function resetBannerAutoPlay() {
@@ -1302,6 +1337,10 @@
             if (bannerCarousel.autoPlayInterval) {
                 clearInterval(bannerCarousel.autoPlayInterval);
                 bannerCarousel.autoPlayInterval = null;
+            }
+            if (bannerCarousel.photoRotationInterval) {
+                clearInterval(bannerCarousel.photoRotationInterval);
+                bannerCarousel.photoRotationInterval = null;
             }
         }
 
