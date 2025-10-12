@@ -1733,7 +1733,7 @@
             }
         }
 
-        // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
+        // ========== ИСПРАВЛЕННАЯ ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
             lastAction = { type: 'loadSections' };
@@ -1766,9 +1766,8 @@
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
-                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
-                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                // Обновляем стек навигации
+                navigationStack = [{ type: 'sections', id: sectionId, name: sectionName }];
                 
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = sectionName;
@@ -1785,6 +1784,8 @@
                     return;
                 }
 
+                // Проверяем, есть ли смысл показывать категории
+                // Если категория всего одна и у нее нет моделей, сразу переходим к товарам
                 if (data.categories.length === 1) {
                     const category = data.categories[0];
                     const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
@@ -1807,9 +1808,11 @@
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
-                navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
-                navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                // Обновляем стек навигации
+                navigationStack = [
+                    { type: 'sections', id: sectionId, name: sectionName },
+                    { type: 'categories', id: categoryId, name: categoryName }
+                ];
                 
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = categoryName;
@@ -1826,11 +1829,13 @@
                     return;
                 }
 
+                // Если модель всего одна и она "Без модели", сразу переходим к товарам
                 if (data.models.length === 1 && data.models[0].name === "Без модели") {
                     await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
                     return;
                 }
 
+                // Фильтруем модели "Без модели"
                 const filteredModels = data.models.filter(model => model.name !== "Без модели");
                 
                 if (filteredModels.length === 0) {
@@ -1849,9 +1854,12 @@
             lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
-                navigationStack = navigationStack.filter(item => item.type !== 'submodels');
-                navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                // Обновляем стек навигации
+                navigationStack = [
+                    { type: 'sections', id: sectionId, name: sectionName },
+                    { type: 'categories', id: categoryId, name: categoryName },
+                    { type: 'models', id: modelId, name: modelName }
+                ];
                 
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = modelName;
@@ -1868,11 +1876,13 @@
                     return;
                 }
 
+                // Если подмодель всего одна и она "Без подмодели", сразу переходим к товарам
                 if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
                     await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
                     return;
                 }
 
+                // Фильтруем подмодели "Без подмодели"
                 const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
                 
                 if (filteredSubmodels.length === 0) {
@@ -1891,7 +1901,14 @@
             lastAction = { type: 'loadProducts', sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName };
             
             try {
-                navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
+                // Обновляем стек навигации
+                navigationStack = [
+                    { type: 'sections', id: sectionId, name: sectionName },
+                    { type: 'categories', id: categoryId, name: categoryName },
+                    { type: 'models', id: modelId, name: modelName },
+                    { type: 'submodels', id: submodelId, name: submodelName }
+                ];
+                
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = submodelName;
                 
@@ -2480,7 +2497,7 @@
 
         function goBack() {
             if (navigationStack.length > 0) {
-                const currentItem = navigationStack.pop();
+                navigationStack.pop();
                 
                 if (navigationStack.length === 0) {
                     loadSections();
@@ -2609,27 +2626,6 @@
                 default:
                     loadSections();
             }
-        }
-
-        // ========== ИНИЦИАЛИЗАЦИЯ УВЕДОМЛЕНИЙ ==========
-
-        function initNotificationSystem() {
-            // Проверяем уведомления при загрузке
-            setTimeout(() => {
-                checkForNotifications();
-            }, 2000);
-            
-            // Устанавливаем периодическую проверку (каждые 5 минут)
-            notificationCheckInterval = setInterval(() => {
-                checkForNotifications();
-            }, 5 * 60 * 1000);
-            
-            // Проверяем уведомления при возвращении на вкладку
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) {
-                    checkForNotifications();
-                }
-            });
         }
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
