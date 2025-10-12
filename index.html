@@ -441,78 +441,135 @@
             z-index: 10;
         }
 
-        /* Стили для карусели историй */
-        .stories-carousel {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+        /* НОВЫЕ СТИЛИ ДЛЯ КАРУСЕЛИ-БАННЕРА */
+        .banner-carousel {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
-        .stories-carousel::-webkit-scrollbar {
-            display: none;
+        .banner-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            background: white;
         }
         
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        .banner-slide.active {
+            opacity: 1;
         }
         
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
+        .banner-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
-        .story-item {
+        .banner-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            color: white;
+            padding: 1rem;
+        }
+        
+        .banner-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .banner-price {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #10B981;
+        }
+        
+        .banner-indicators {
+            position: absolute;
+            bottom: 0.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+        
+        .banner-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
             transition: all 0.3s ease;
         }
         
-        .story-item:active {
-            transform: scale(0.95);
+        .banner-indicator.active {
+            background: white;
+            transform: scale(1.2);
         }
         
-        @keyframes progress {
-            from { width: 0%; }
-            to { width: 100%; }
-        }
-        
-        .animate-progress {
-            animation: progress 5s linear;
-        }
-        
-        .progress-bar {
-            width: 0%;
-        }
-
-        .story-image {
-            transition: transform 0.3s ease;
-        }
-
-        .story-item:hover .story-image {
-            transform: scale(1.05);
-        }
-
-        .story-favorite-button {
+        .banner-nav {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #e5e7eb;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 2rem;
+            height: 2rem;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
             z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-
-        .story-favorite-button.active {
-            background-color: #EF4444;
-            border-color: #EF4444;
+        
+        .banner-carousel:hover .banner-nav {
+            opacity: 1;
         }
-
-        .story-favorite-button.active i {
+        
+        .banner-prev {
+            left: 0.5rem;
+        }
+        
+        .banner-next {
+            right: 0.5rem;
+        }
+        
+        .banner-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
+            flex-direction: column;
+        }
+        
+        .banner-section {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        /* Стили для touch-свайпа */
+        .banner-carousel.touch-active .banner-nav {
+            opacity: 0 !important;
         }
     </style>
 </head>
@@ -672,13 +729,15 @@
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-        // Карусель историй
-        let storiesCarousel = {
+        // Карусель баннеров
+        let bannerCarousel = {
             items: [],
             currentIndex: 0,
-            lastUpdate: 0,
-            updateInterval: 10 * 60 * 1000, // 10 минут
-            autoPlayInterval: null
+            autoPlayInterval: null,
+            autoPlayDelay: 5000, // 5 секунд
+            isAnimating: false,
+            touchStartX: 0,
+            touchEndX: 0
         };
 
         // Контактная информация
@@ -798,337 +857,287 @@
             return `${Math.round(numericPrice)} р.`;
         }
 
-        // ========== КАРУСЕЛЬ ИСТОРИЙ ==========
+        // ========== КАРУСЕЛЬ БАННЕРОВ ==========
 
-        async function loadStoriesCarousel() {
+        async function loadBannerCarousel() {
             try {
-                // Получаем случайные товары
+                // Получаем реальные товары из каталога
                 const data = await apiFetch('/sections');
                 
-                if (data?.error) {
-                    // Если API недоступно, создаем демо-данные
-                    createDemoStories();
+                if (data?.error || !data?.sections || data.sections.length === 0) {
+                    // Если API недоступно, создаем демо-данные из существующих разделов
+                    createDemoBanners();
                     return;
                 }
                 
-                if (data?.sections && data.sections.length > 0) {
-                    // Берем товары из первых разделов для демонстрации
-                    await generateStoriesFromSections(data.sections);
-                } else {
-                    createDemoStories();
-                }
+                // Собираем популярные товары из всех разделов
+                await generateBannersFromCatalog(data.sections);
+                
             } catch (error) {
                 console.log('Ошибка загрузки карусели:', error);
-                createDemoStories();
+                createDemoBanners();
             }
         }
 
-        async function generateStoriesFromSections(sections) {
-            const allProducts = [];
+        async function generateBannersFromCatalog(sections) {
+            const bannerProducts = [];
             
-            // Собираем товары из первых 3 разделов
-            for (const section of sections.slice(0, 3)) {
+            // Собираем товары из всех разделов для баннеров
+            for (const section of sections.slice(0, 5)) { // Ограничиваем 5 разделами
                 try {
                     const productsData = await apiFetch(`/products/${section.id}/null/null/null`);
                     if (productsData?.products) {
-                        // Добавляем информацию о разделе к каждому товару
-                        const productsWithSection = productsData.products.map(product => ({
-                            ...product,
-                            section: {
-                                id: section.id,
-                                name: section.name
-                            }
-                        }));
-                        allProducts.push(...productsWithSection);
+                        // Берем первые 2 товара из каждого раздела для баннеров
+                        const sectionProducts = productsData.products
+                            .filter(product => product != null && product.photo_url)
+                            .slice(0, 2)
+                            .map(product => ({
+                                ...product,
+                                section: {
+                                    id: section.id,
+                                    name: section.name
+                                }
+                            }));
+                        
+                        bannerProducts.push(...sectionProducts);
                     }
                 } catch (error) {
                     console.log(`Ошибка загрузки товаров для раздела ${section.name}:`, error);
                 }
                 
-                // Ограничиваем общее количество товаров
-                if (allProducts.length >= 15) break;
+                // Ограничиваем общее количество баннеров
+                if (bannerProducts.length >= 8) break;
             }
             
-            if (allProducts.length > 0) {
-                // Перемешиваем и берем первые 10
-                const shuffled = allProducts.sort(() => 0.5 - Math.random());
-                storiesCarousel.items = shuffled.slice(0, 10);
+            if (bannerProducts.length > 0) {
+                bannerCarousel.items = bannerProducts;
             } else {
-                createDemoStories();
+                createDemoBanners();
             }
             
-            storiesCarousel.lastUpdate = Date.now();
-            storiesCarousel.currentIndex = 0;
-            renderStoriesCarousel();
+            bannerCarousel.currentIndex = 0;
+            renderBannerCarousel();
+            startBannerAutoPlay();
         }
 
-        function createDemoStories() {
-            // Демо-данные для карусели
-            storiesCarousel.items = [
+        function createDemoBanners() {
+            // Демо-данные для баннеров на основе реальных разделов
+            const demoBanners = [
                 {
-                    color: "Бетон М100",
-                    price: "2500 р.",
+                    color: "Бетон М300",
+                    price: "3200 р.",
                     photo_url: "",
-                    section: { id: "1", name: "Бетон" }
+                    section: { id: "1", name: "Бетон" },
+                    description: "Высококачественный бетон для строительных работ"
                 },
                 {
-                    color: "Бетон М200", 
-                    price: "2700 р.",
+                    color: "Песок карьерный", 
+                    price: "750 р.",
                     photo_url: "",
-                    section: { id: "1", name: "Бетон" }
+                    section: { id: "2", name: "Песок" },
+                    description: "Мытый карьерный песок"
                 },
                 {
-                    color: "Песок речной",
-                    price: "800 р.", 
+                    color: "Щебень гранитный 20-40",
+                    price: "1850 р.",
                     photo_url: "",
-                    section: { id: "2", name: "Песок" }
+                    section: { id: "3", name: "Щебень" },
+                    description: "Фракция 20-40 мм, высшего качества"
                 },
                 {
-                    color: "Щебень гранитный",
-                    price: "1800 р.",
+                    color: "Цемент М500 Д0",
+                    price: "480 р.",
                     photo_url: "",
-                    section: { id: "3", name: "Щебень" }
-                },
-                {
-                    color: "Цемент М500",
-                    price: "450 р.",
-                    photo_url: "",
-                    section: { id: "4", name: "Цемент" }
+                    section: { id: "4", name: "Цемент" },
+                    description: "Мешок 50 кг"
                 }
             ];
             
-            storiesCarousel.lastUpdate = Date.now();
-            storiesCarousel.currentIndex = 0;
-            renderStoriesCarousel();
+            bannerCarousel.items = demoBanners;
+            bannerCarousel.currentIndex = 0;
+            renderBannerCarousel();
+            startBannerAutoPlay();
         }
 
-        function renderStoriesCarousel() {
-            if (!storiesCarousel.items || storiesCarousel.items.length === 0) {
+        function renderBannerCarousel() {
+            if (!bannerCarousel.items || bannerCarousel.items.length === 0) {
                 return;
             }
 
-            const carouselHTML = `
-                <div class="stories-carousel mb-6">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-semibold text-lg text-contrast">Популярные товары</h3>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-500">обновятся через 10 мин</span>
-                            <button onclick="refreshStories()" class="p-1 rounded-full hover:bg-gray-100" title="Обновить сейчас">
-                                <i data-feather="refresh-cw" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="relative">
-                        <!-- Контейнер карусели -->
-                        <div id="storiesContainer" class="flex overflow-x-auto gap-3 pb-4 scrollbar-hide"
-                             style="scroll-snap-type: x mandatory;">
-                            ${storiesCarousel.items.map((product, index) => {
-                                const productId = generateProductId(product);
-                                const isFavorite = favorites.some(fav => fav.id === productId);
-                                
-                                return `
-                                <div class="flex-shrink-0 w-28" style="scroll-snap-align: start;">
-                                    <div class="story-item bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer transform transition-all hover:scale-105 active:scale-95"
-                                         onclick="openCategoryFromStory('${product.section.id}', '${product.section.name.replace(/'/g, "\\'")}')"
-                                         data-product-index="${index}">
-                                         
-                                        <!-- Кнопка избранного -->
-                                        <div class="story-favorite-button ${isFavorite ? 'active' : ''}" 
-                                             onclick="event.stopPropagation(); toggleStoryFavorite(${index})">
-                                            <i data-feather="heart" class="w-3 h-3"></i>
-                                        </div>
-                                        
-                                        <!-- Изображение товара -->
-                                        <div class="relative h-32 bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
-                                            <div class="text-center p-2">
-                                                <i data-feather="package" class="w-8 h-8 text-gray-400 mx-auto mb-2"></i>
-                                                <span class="text-xs font-medium text-gray-600">${escapeHtml(product.section.name)}</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Название и цена товара -->
-                                        <div class="p-2">
-                                            <p class="text-xs font-medium text-gray-800 truncate mb-1" title="${escapeHtml(product.color || 'Товар')}">
-                                                ${escapeHtml(product.color || 'Товар')}
-                                            </p>
-                                            ${product.price ? `
-                                                <div class="price-badge text-xs !bg-green-500 !text-white px-1 py-0.5 text-center">
-                                                    ${formatPriceForBadge(product.price)}
-                                                </div>
-                                            ` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                            `}).join('')}
-                        </div>
+            const bannerHTML = `
+                <div class="banner-carousel" id="bannerCarousel">
+                    ${bannerCarousel.items.map((product, index) => {
+                        const isActive = index === bannerCarousel.currentIndex;
+                        const imageUrl = extractPhotoFilenameFromUrl(product.photo_url);
+                        const alternativeUrls = getAlternativeImageUrls(product.photo_url);
                         
-                        <!-- Кнопки навигации -->
-                        <button onclick="scrollStories(-1)" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <i data-feather="chevron-left" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="scrollStories(1)" class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full w-8 h-8 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <i data-feather="chevron-right" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Индикатор прогресса -->
-                    <div class="flex justify-center gap-1 mt-3">
-                        ${storiesCarousel.items.map((_, index) => `
-                            <div class="h-1 w-8 bg-gray-200 rounded-full overflow-hidden">
-                                <div class="h-full bg-blue-500 progress-bar ${index === storiesCarousel.currentIndex ? 'animate-progress' : ''}"
-                                     style="animation-duration: 5s"></div>
+                        return `
+                        <div class="banner-slide ${isActive ? 'active' : ''}" data-index="${index}">
+                            ${imageUrl ? `
+                                <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.color || 'Товар')}" 
+                                     class="banner-image"
+                                     onerror="handleBannerImageError(this, '${escapeHtml(product.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                     loading="lazy">
+                            ` : `
+                                <div class="banner-placeholder">
+                                    <i data-feather="package" class="w-12 h-12 mb-2"></i>
+                                    <div class="banner-title">${escapeHtml(product.color || 'Товар')}</div>
+                                    <div class="banner-section">${escapeHtml(product.section.name)}</div>
+                                </div>
+                            `}
+                            
+                            <div class="banner-content">
+                                <div class="banner-title">${escapeHtml(product.color || 'Товар')}</div>
+                                ${product.price ? `
+                                    <div class="banner-price">${formatPriceForBadge(product.price)}</div>
+                                ` : ''}
+                                ${product.description ? `
+                                    <div class="banner-section">${escapeHtml(product.description)}</div>
+                                ` : ''}
                             </div>
+                        </div>
+                    `}).join('')}
+                    
+                    <!-- Навигационные кнопки -->
+                    <button class="banner-nav banner-prev" onclick="prevBanner()">
+                        <i data-feather="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <button class="banner-nav banner-next" onclick="nextBanner()">
+                        <i data-feather="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                    
+                    <!-- Индикаторы -->
+                    <div class="banner-indicators">
+                        ${bannerCarousel.items.map((_, index) => `
+                            <div class="banner-indicator ${index === bannerCarousel.currentIndex ? 'active' : ''}" 
+                                 onclick="goToBanner(${index})"></div>
                         `).join('')}
                     </div>
                 </div>
             `;
 
-            // Вставляем карусель в начало контента
+            // Вставляем баннер в начало контента
             const content = elements.content;
-            const existingCarousel = content.querySelector('.stories-carousel');
-            if (existingCarousel) {
-                existingCarousel.remove();
+            const existingBanner = content.querySelector('.banner-carousel');
+            if (existingBanner) {
+                existingBanner.remove();
             }
             
-            // Добавляем карусель только на главной странице
+            // Добавляем баннер только на главной странице
             const isMainPage = navigationStack.length <= 1;
             if (isMainPage) {
-                content.insertAdjacentHTML('afterbegin', carouselHTML);
-                startStoriesAutoPlay();
+                content.insertAdjacentHTML('afterbegin', bannerHTML);
+                initBannerSwipe();
             }
             
             scheduleFeatherReplace();
-            initStoriesSwipe();
         }
 
-        function scrollStories(direction) {
-            const container = document.getElementById('storiesContainer');
-            if (!container) return;
+        function handleBannerImageError(imgElement, originalUrl = '', alternativeUrls = []) {
+            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
             
-            const scrollAmount = 120; // Ширина элемента + gap
-            container.scrollBy({
-                left: direction * scrollAmount,
-                behavior: 'smooth'
-            });
+            if (alternativeUrls.length > triedAlternative) {
+                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
+                imgElement.src = alternativeUrls[triedAlternative];
+                return;
+            }
             
-            updateCurrentStoryIndex();
+            // Если изображение не загрузилось, показываем placeholder
+            const slide = imgElement.closest('.banner-slide');
+            if (slide) {
+                const placeholder = slide.querySelector('.banner-placeholder');
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                }
+                imgElement.style.display = 'none';
+            }
         }
 
-        function initStoriesSwipe() {
-            const container = document.getElementById('storiesContainer');
-            if (!container) return;
+        function initBannerSwipe() {
+            const carousel = document.getElementById('bannerCarousel');
+            if (!carousel) return;
             
-            let startX = 0;
-            let currentX = 0;
-            
-            container.addEventListener('touchstart', (e) => {
-                startX = e.touches[0].clientX;
+            carousel.addEventListener('touchstart', (e) => {
+                bannerCarousel.touchStartX = e.touches[0].clientX;
+                carousel.classList.add('touch-active');
             });
             
-            container.addEventListener('touchmove', (e) => {
-                currentX = e.touches[0].clientX;
+            carousel.addEventListener('touchmove', (e) => {
+                bannerCarousel.touchEndX = e.touches[0].clientX;
             });
             
-            container.addEventListener('touchend', () => {
-                const diff = startX - currentX;
+            carousel.addEventListener('touchend', () => {
+                carousel.classList.remove('touch-active');
+                const diff = bannerCarousel.touchStartX - bannerCarousel.touchEndX;
+                
                 if (Math.abs(diff) > 50) { // Минимальное расстояние свайпа
-                    scrollStories(diff > 0 ? -1 : 1);
+                    if (diff > 0) {
+                        nextBanner();
+                    } else {
+                        prevBanner();
+                    }
                 }
             });
         }
 
-        function updateCurrentStoryIndex() {
-            const container = document.getElementById('storiesContainer');
-            if (!container) return;
+        function nextBanner() {
+            if (bannerCarousel.isAnimating) return;
             
-            const scrollLeft = container.scrollLeft;
-            const itemWidth = 112; // 112px (w-28 = 7rem = 112px)
-            const newIndex = Math.round(scrollLeft / itemWidth);
+            bannerCarousel.isAnimating = true;
+            const nextIndex = (bannerCarousel.currentIndex + 1) % bannerCarousel.items.length;
+            goToBanner(nextIndex);
             
-            if (newIndex !== storiesCarousel.currentIndex) {
-                storiesCarousel.currentIndex = newIndex;
-                updateProgressBars();
-            }
+            setTimeout(() => {
+                bannerCarousel.isAnimating = false;
+            }, 500);
         }
 
-        function updateProgressBars() {
-            const bars = document.querySelectorAll('.progress-bar');
-            bars.forEach((bar, index) => {
-                bar.classList.toggle('animate-progress', index === storiesCarousel.currentIndex);
-            });
+        function prevBanner() {
+            if (bannerCarousel.isAnimating) return;
+            
+            bannerCarousel.isAnimating = true;
+            const prevIndex = bannerCarousel.currentIndex === 0 ? 
+                bannerCarousel.items.length - 1 : bannerCarousel.currentIndex - 1;
+            goToBanner(prevIndex);
+            
+            setTimeout(() => {
+                bannerCarousel.isAnimating = false;
+            }, 500);
         }
 
-        function startStoriesAutoPlay() {
+        function goToBanner(index) {
+            if (bannerCarousel.isAnimating) return;
+            
+            bannerCarousel.currentIndex = index;
+            renderBannerCarousel();
+            resetBannerAutoPlay();
+        }
+
+        function startBannerAutoPlay() {
             // Останавливаем предыдущий интервал
-            if (storiesCarousel.autoPlayInterval) {
-                clearInterval(storiesCarousel.autoPlayInterval);
+            if (bannerCarousel.autoPlayInterval) {
+                clearInterval(bannerCarousel.autoPlayInterval);
             }
             
             // Автопрокрутка каждые 5 секунд
-            storiesCarousel.autoPlayInterval = setInterval(() => {
-                if (storiesCarousel.items.length > 0) {
-                    const nextIndex = (storiesCarousel.currentIndex + 1) % storiesCarousel.items.length;
-                    storiesCarousel.currentIndex = nextIndex;
-                    
-                    const container = document.getElementById('storiesContainer');
-                    if (container) {
-                        container.scrollTo({
-                            left: nextIndex * 112,
-                            behavior: 'smooth'
-                        });
-                    }
-                    updateProgressBars();
+            bannerCarousel.autoPlayInterval = setInterval(() => {
+                if (bannerCarousel.items.length > 1) {
+                    nextBanner();
                 }
-            }, 5000);
+            }, bannerCarousel.autoPlayDelay);
         }
 
-        function openCategoryFromStory(sectionId, sectionName) {
-            loadCategories(sectionId, sectionName);
-        }
-
-        function toggleStoryFavorite(storyIndex) {
-            const product = storiesCarousel.items[storyIndex];
-            const productId = generateProductId(product);
-            const isFavorite = favorites.some(fav => fav.id === productId);
-            
-            if (isFavorite) {
-                // Удаляем из избранного
-                favorites = favorites.filter(fav => fav.id !== productId);
-                if (tg) {
-                    tg.showAlert('Товар удален из избранного');
-                }
-            } else {
-                // Добавляем в избранное
-                favorites.push({
-                    id: productId,
-                    product: product,
-                    timestamp: Date.now()
-                });
-                if (tg) {
-                    tg.showAlert('Товар добавлен в избранное');
-                }
-            }
-            
-            // Сохраняем в localStorage
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            // Обновляем отображение кнопки
-            const button = document.querySelector(`[data-product-index="${storyIndex}"] .story-favorite-button`);
-            if (button) {
-                if (isFavorite) {
-                    button.classList.remove('active');
-                } else {
-                    button.classList.add('active');
-                }
-                scheduleFeatherReplace();
+        function resetBannerAutoPlay() {
+            if (bannerCarousel.autoPlayInterval) {
+                clearInterval(bannerCarousel.autoPlayInterval);
+                startBannerAutoPlay();
             }
         }
 
-        function refreshStories() {
-            loadStoriesCarousel();
-            if (tg) {
-                tg.showAlert('Карусель обновлена!');
+        function stopBannerAutoPlay() {
+            if (bannerCarousel.autoPlayInterval) {
+                clearInterval(bannerCarousel.autoPlayInterval);
+                bannerCarousel.autoPlayInterval = null;
             }
         }
 
@@ -1782,9 +1791,9 @@
                 renderSections(data.sections);
                 updateBackButton();
                 
-                // Загружаем карусель после основных разделов
+                // Загружаем баннер после основных разделов
                 setTimeout(() => {
-                    loadStoriesCarousel();
+                    loadBannerCarousel();
                 }, 100);
             } catch (error) {
                 hideLoading();
@@ -1806,7 +1815,7 @@
             
             renderSections(demoData.sections);
             updateBackButton();
-            loadStoriesCarousel();
+            loadBannerCarousel();
         }
 
         async function loadCategories(sectionId, sectionName) {
@@ -2401,9 +2410,9 @@
                     }
                 });
                 
-                // Автоматическое обновление карусели каждые 10 минут
+                // Автоматическое обновление баннера каждые 10 минут
                 setInterval(() => {
-                    loadStoriesCarousel();
+                    loadBannerCarousel();
                 }, 10 * 60 * 1000);
                 
                 setTimeout(() => {
@@ -2424,7 +2433,6 @@
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
         window.toggleFavorite = toggleFavorite;
         window.toggleFavoriteFromFavorites = toggleFavoriteFromFavorites;
-        window.toggleStoryFavorite = toggleStoryFavorite;
         window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
         window.openTelegramChannel = openTelegramChannel;
@@ -2440,11 +2448,11 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
-        // Функции карусели
-        window.loadStoriesCarousel = loadStoriesCarousel;
-        window.scrollStories = scrollStories;
-        window.refreshStories = refreshStories;
-        window.openCategoryFromStory = openCategoryFromStory;
+        // Функции баннера
+        window.loadBannerCarousel = loadBannerCarousel;
+        window.prevBanner = prevBanner;
+        window.nextBanner = nextBanner;
+        window.goToBanner = goToBanner;
     </script>
 </body>
 </html>
