@@ -388,7 +388,7 @@
         }
 
         .sub-title {
-            font-size: 0.75rem;
+            font-size: 1.125rem;
             color: #6B7280;
             font-weight: 400;
             line-height: 1;
@@ -501,7 +501,7 @@
                         <div class="menu-divider"></div>
 
                         <!-- Добавить на главный экран -->
-                        <div class="menu-item" onclick="showInstallPrompt(); closeSideMenu();">
+                        <div class="menu-item" onclick="installPWA(); closeSideMenu();">
                             <i data-feather="plus-square"></i>
                             <div>
                                 <div class="font-medium">Добавить на главный экран</div>
@@ -538,6 +538,7 @@
         let currentProducts = [];
         let catalogData = null;
         let lastAction = null;
+        let deferredPrompt = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -757,12 +758,112 @@
         }
 
         // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
-        function showInstallPrompt() {
-            if (tg) {
-                tg.showAlert(`Чтобы добавить приложение на главный экран:\n\n1. Нажмите на кнопку меню в правом верхнем углу\n2. Выберите "Добавить на главный экран"\n3. Следуйте инструкциям вашего браузера`);
+        function installPWA() {
+            if (deferredPrompt) {
+                // Показываем запрос на установку
+                deferredPrompt.prompt();
+                
+                // Ждем ответа пользователя
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Пользователь принял установку');
+                        if (tg) {
+                            tg.showAlert('Приложение успешно добавлено на главный экран!');
+                        } else {
+                            alert('Приложение успешно добавлено на главный экран!');
+                        }
+                    } else {
+                        console.log('Пользователь отклонил установку');
+                    }
+                    
+                    // Сбрасываем deferredPrompt после использования
+                    deferredPrompt = null;
+                });
             } else {
-                alert(`Чтобы добавить приложение на главный экран:\n\n1. Нажмите на кнопку меню в правом верхнем углу\n2. Выберите "Добавить на главный экран"\n3. Следуйте инструкциям вашего браузера\n\nИли используйте функцию "Добавить на главный экран" в меню вашего браузера.`);
+                // Если deferredPrompt недоступен, показываем инструкции
+                showInstallInstructions();
             }
+        }
+
+        function showInstallInstructions() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let instructions = '';
+            
+            if (isIOS) {
+                instructions = `
+                    <div class="bg-white rounded-xl p-4 shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран (iOS)</h3>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                                <span>Нажмите кнопку "Поделиться" <i data-feather="share" class="w-4 h-4 inline"></i> в нижней панели Safari</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                                <span>Прокрутите меню и выберите "На экран «Домой»"</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                                <span>Подтвердите добавление, нажав "Добавить" в правом верхнем углу</span>
+                            </div>
+                        </div>
+                        <button onclick="loadSections()" class="back-button mt-4">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад в каталог
+                        </button>
+                    </div>
+                `;
+            } else if (isAndroid) {
+                instructions = `
+                    <div class="bg-white rounded-xl p-4 shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран (Android)</h3>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                                <span>Нажмите на меню (три точки) в правом верхнем углу браузера</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                                <span>Выберите "Добавить на главный экран" или "Установить приложение"</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                                <span>Подтвердите установку в появившемся диалоговом окне</span>
+                            </div>
+                        </div>
+                        <button onclick="loadSections()" class="back-button mt-4">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад в каталог
+                        </button>
+                    </div>
+                `;
+            } else {
+                instructions = `
+                    <div class="bg-white rounded-xl p-4 shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран</h3>
+                        <p class="text-gray-600 mb-4 text-contrast">Используйте функцию "Добавить на главный экран" в меню вашего браузера.</p>
+                        <div class="p-3 bg-yellow-50 rounded-lg mb-4">
+                            <p class="text-sm text-yellow-700">
+                                <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
+                                В разных браузерах эта функция может находиться в разных местах меню.
+                            </p>
+                        </div>
+                        <button onclick="loadSections()" class="back-button">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад в каталог
+                        </button>
+                    </div>
+                `;
+            }
+            
+            elements.content.innerHTML = instructions;
+            scheduleFeatherReplace();
+        }
+
+        function showInstallPrompt() {
+            installPWA();
         }
 
         function extractPhotoFilenameFromUrl(url) {
@@ -1805,12 +1906,33 @@
                 }
 
                 if (installButton) {
-                    installButton.addEventListener('click', showInstallPrompt);
+                    installButton.addEventListener('click', installPWA);
                 }
                 
                 elements.sideMenu.addEventListener('click', (e) => {
                     if (e.target === elements.sideMenu) {
                         closeSideMenu();
+                    }
+                });
+
+                // Обработчик события beforeinstallprompt для PWA
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    // Предотвращаем автоматическое отображение подсказки
+                    e.preventDefault();
+                    // Сохраняем событие для использования позже
+                    deferredPrompt = e;
+                    // Показываем кнопку установки
+                    if (installButton) {
+                        installButton.style.display = 'flex';
+                    }
+                });
+
+                // Обработчик события appinstalled
+                window.addEventListener('appinstalled', (e) => {
+                    // Приложение было установлено
+                    deferredPrompt = null;
+                    if (installButton) {
+                        installButton.style.display = 'none';
                     }
                 });
                 
@@ -1838,7 +1960,9 @@
         window.openTaxiMenu = openTaxiMenu;
         window.openYandexTaxi = openYandexTaxi;
         window.openUber = openUber;
+        window.installPWA = installPWA;
         window.showInstallPrompt = showInstallPrompt;
+        window.showInstallInstructions = showInstallInstructions;
         window.renderAllProducts = renderAllProducts;
         window.goBack = goBack;
         window.openSideMenu = openSideMenu;
