@@ -143,6 +143,7 @@
             background-color: #2563EB;
         }
 
+        /* Стили для кнопок под фото */
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -227,6 +228,7 @@
             background-color: #f8fafc;
         }
 
+        /* Исправляем цвета текста для всех элементов */
         body {
             color: #000000;
             background-color: #f9fafb;
@@ -237,18 +239,22 @@
             color: #000000;
         }
 
+        /* Явно задаем цвета для всех текстовых элементов */
         h1, h2, h3, h4, h5, h6, p, span, div {
             color: #000000;
         }
 
+        /* Убедимся, что все кнопки имеют читаемый текст */
         button {
             color: inherit;
         }
 
+        /* Улучшаем видимость иконок */
         [data-feather] {
             color: inherit;
         }
 
+        /* Гарантируем контрастность для важных элементов */
         .text-contrast {
             color: #000000 !important;
         }
@@ -257,6 +263,7 @@
             background-color: #ffffff !important;
         }
 
+        /* Стили для зеленой кнопки меню */
         .menu-button {
             background-color: #10B981;
             color: white;
@@ -275,6 +282,7 @@
             transform: scale(1.05);
         }
 
+        /* Стили для кнопки добавления на главный экран */
         .install-button {
             background-color: #3B82F6;
             color: white;
@@ -293,6 +301,7 @@
             transform: scale(1.05);
         }
 
+        /* Стили для пунктов меню */
         .menu-item {
             padding: 12px 16px;
             border-radius: 8px;
@@ -320,6 +329,7 @@
             margin: 8px 0;
         }
 
+        /* Стили для кнопок такси */
         .taxi-buttons {
             display: flex;
             gap: 8px;
@@ -365,6 +375,7 @@
             background-color: #333333;
         }
 
+        /* Стили для заголовка с подзаголовком */
         .header-title {
             display: flex;
             flex-direction: column;
@@ -385,6 +396,7 @@
             margin-top: 2px;
         }
 
+        /* Стили для кнопки избранного */
         .favorite-button {
             position: absolute;
             top: 10px;
@@ -427,174 +439,6 @@
             font-weight: 500;
             color: #374151;
             z-index: 10;
-        }
-
-        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ КАРУСЕЛИ-БАННЕРА */
-        .banner-carousel {
-            position: relative;
-            width: 100%;
-            height: 220px;
-            margin-bottom: 1.5rem;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .banner-slides-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .banner-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-            background: white;
-            cursor: pointer;
-        }
-        
-        .banner-slide.active {
-            opacity: 1;
-        }
-        
-        .banner-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .banner-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-            color: white;
-            padding: 1rem;
-        }
-        
-        .banner-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-        
-        .banner-price {
-            font-size: 1rem;
-            font-weight: 500;
-            color: #10B981;
-        }
-        
-        .banner-section {
-            font-size: 0.875rem;
-            opacity: 0.9;
-            margin-top: 0.25rem;
-        }
-        
-        .banner-indicators {
-            position: absolute;
-            bottom: 0.75rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 0.5rem;
-            z-index: 10;
-        }
-        
-        .banner-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .banner-indicator.active {
-            background: white;
-            transform: scale(1.2);
-        }
-        
-        .banner-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        }
-        
-        .banner-nav:hover {
-            background: rgba(0, 0, 0, 0.7);
-        }
-        
-        .banner-prev {
-            left: 0.5rem;
-        }
-        
-        .banner-next {
-            right: 0.5rem;
-        }
-        
-        .banner-placeholder {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            flex-direction: column;
-        }
-
-        .banner-favorite-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 10;
-        }
-
-        .banner-favorite-button:hover {
-            background-color: #f9fafb;
-            transform: scale(1.1);
-        }
-
-        .banner-favorite-button.active {
-            background-color: #EF4444;
-            border-color: #EF4444;
-        }
-
-        .banner-favorite-button.active i {
-            color: white;
-        }
-
-        .banner-carousel.touch-active .banner-nav {
-            opacity: 0.5 !important;
         }
     </style>
 </head>
@@ -679,7 +523,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
                             </div>
                         </div>
                         
@@ -742,7 +586,7 @@
         // Конфигурация
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
-        const API_TIMEOUT = 10000;
+        const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
 
@@ -753,20 +597,6 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-
-        // Карусель баннеров - ИСПРАВЛЕННАЯ ВЕРСИЯ
-        let bannerCarousel = {
-            items: [],
-            currentIndex: 0,
-            autoPlayInterval: null,
-            autoPlayDelay: 5000, // 5 секунд
-            isAnimating: false,
-            touchStartX: 0,
-            touchEndX: 0,
-            lastUpdateTime: 0,
-            updateInterval: 10 * 60 * 1000, // 10 минут
-            photoUpdateInterval: 5000 // 5 секунд для обновления фото
-        };
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -885,467 +715,7 @@
             return `${Math.round(numericPrice)} р.`;
         }
 
-        // ========== ИСПРАВЛЕННАЯ КАРУСЕЛЬ БАННЕРОВ ==========
-
-        async function loadBannerCarousel() {
-            try {
-                console.log('🔄 Загрузка баннеров...');
-                
-                const now = Date.now();
-                // Проверяем, нужно ли обновлять баннеры (каждые 10 минут)
-                if (now - bannerCarousel.lastUpdateTime < bannerCarousel.updateInterval && bannerCarousel.items.length > 0) {
-                    console.log('✅ Используем кэшированные баннеры');
-                    renderBannerCarousel();
-                    startBannerAutoPlay();
-                    return;
-                }
-
-                const data = await apiFetch('/banner_products');
-                
-                if (data?.error || !data?.products || data.products.length === 0) {
-                    console.log('❌ API недоступно или нет товаров, создаем демо-данные');
-                    createDemoBanners();
-                    return;
-                }
-                
-                console.log('✅ Получены товары для баннеров:', data.products.length);
-                
-                // Фильтруем товары с фото и ценой
-                const productsWithPhotos = data.products.filter(product => {
-                    if (!product) return false;
-                    
-                    const hasPhoto = product.photo_url && product.photo_url.trim() !== '';
-                    const hasPrice = product.price && product.price.trim() !== '';
-                    const hasColor = product.color && product.color.trim() !== '';
-                    
-                    return hasPhoto && hasPrice && hasColor;
-                });
-                
-                if (productsWithPhotos.length === 0) {
-                    console.log('❌ Нет товаров с фото, создаем демо-данные');
-                    createDemoBanners();
-                    return;
-                }
-                
-                // Выбираем случайные товары для баннеров (максимум 5)
-                const randomProducts = getRandomItems(productsWithPhotos, 5);
-                console.log('🎰 Выбраны товары для баннеров:', randomProducts.length);
-                
-                bannerCarousel.items = randomProducts;
-                bannerCarousel.currentIndex = 0;
-                bannerCarousel.lastUpdateTime = now;
-                
-                renderBannerCarousel();
-                startBannerAutoPlay();
-                
-            } catch (error) {
-                console.log('❌ Ошибка загрузки баннеров:', error);
-                createDemoBanners();
-            }
-        }
-
-        function getRandomItems(array, count) {
-            const shuffled = [...array].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, Math.min(count, array.length));
-        }
-
-        function createDemoBanners() {
-            console.log('🔄 Создание демо-баннеров');
-            
-            // Демо-данные для баннеров с правильной структурой
-            const demoBanners = [
-                {
-                    color: "Бетон М300 В22,5 П3 F150 W4",
-                    price: "3200 р.",
-                    photo_url: "",
-                    description: "Высококачественный бетон для фундаментов и монолитных работ",
-                    section: { id: "1", name: "Бетон" },
-                    category: { id: "1", name: "Товарный бетон" }
-                },
-                {
-                    color: "Песок карьерный мытый", 
-                    price: "750 р.",
-                    photo_url: "",
-                    description: "Мытый карьерный песок для строительных растворов",
-                    section: { id: "2", name: "Песок" },
-                    category: { id: "2", name: "Карьерный песок" }
-                },
-                {
-                    color: "Щебень гранитный 20-40",
-                    price: "1850 р.",
-                    photo_url: "",
-                    description: "Фракция 20-40 мм, высшего качества для бетона",
-                    section: { id: "3", name: "Щебень" },
-                    category: { id: "3", name: "Гранитный щебень" }
-                },
-                {
-                    color: "Цемент М500 Д0",
-                    price: "450 р.",
-                    photo_url: "",
-                    description: "Портландцемент без добавок для высокопрочных конструкций",
-                    section: { id: "4", name: "Цемент" },
-                    category: { id: "4", name: "Портландцемент" }
-                },
-                {
-                    color: "Кирпич керамический полнотелый",
-                    price: "25 р.",
-                    photo_url: "",
-                    description: "Стандартный керамический кирпич для кладки",
-                    section: { id: "5", name: "Кирпич" },
-                    category: { id: "5", name: "Керамический кирпич" }
-                }
-            ];
-            
-            bannerCarousel.items = demoBanners;
-            bannerCarousel.currentIndex = 0;
-            bannerCarousel.lastUpdateTime = Date.now();
-            renderBannerCarousel();
-            startBannerAutoPlay();
-        }
-
-        function renderBannerCarousel() {
-            if (!bannerCarousel.items || bannerCarousel.items.length === 0) {
-                console.log('❌ Нет товаров для баннера');
-                return;
-            }
-
-            console.log('🎨 Рендерим баннер с товарами:', bannerCarousel.items.length);
-
-            const bannerHTML = `
-                <div class="banner-carousel" id="bannerCarousel">
-                    <div class="banner-slides-container">
-                        ${bannerCarousel.items.map((product, index) => {
-                            const isActive = index === bannerCarousel.currentIndex;
-                            const imageUrl = extractPhotoFilenameFromUrl(product.photo_url);
-                            const priceText = product.price ? formatPriceForBadge(product.price) : '';
-                            const productColor = product.color || 'Товар';
-                            const productDescription = product.description || (product.section ? product.section.name : '');
-                            const productId = generateProductId(product);
-                            const isFavorite = favorites.some(fav => fav.id === productId);
-                            
-                            return `
-                            <div class="banner-slide ${isActive ? 'active' : ''}" data-index="${index}" 
-                                 onclick="handleBannerClick(${index})">
-                                
-                                <!-- КНОПКА ИЗБРАННОГО В БАННЕРЕ -->
-                                <div class="banner-favorite-button ${isFavorite ? 'active' : ''}" 
-                                     onclick="event.stopPropagation(); toggleBannerFavorite(${index})">
-                                    <i data-feather="heart"></i>
-                                </div>
-                                
-                                ${imageUrl ? `
-                                    <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(productColor)}" 
-                                         class="banner-image"
-                                         onerror="handleBannerImageError(this, ${index})"
-                                         onload="handleBannerImageLoad(this)"
-                                         loading="lazy"
-                                         crossorigin="anonymous">
-                                ` : `
-                                    <div class="banner-placeholder">
-                                        <i data-feather="package" class="w-12 h-12 mb-2"></i>
-                                        <div class="banner-title">${escapeHtml(productColor)}</div>
-                                        ${priceText ? `<div class="banner-price">${priceText}</div>` : ''}
-                                        <div class="banner-section">${escapeHtml(productDescription)}</div>
-                                    </div>
-                                `}
-                                
-                                <div class="banner-content">
-                                    <div class="banner-title">${escapeHtml(productColor)}</div>
-                                    ${priceText ? `
-                                        <div class="banner-price">${priceText}</div>
-                                    ` : ''}
-                                    <div class="banner-section">${escapeHtml(productDescription)}</div>
-                                </div>
-                            </div>
-                        `}).join('')}
-                    </div>
-                    
-                    <!-- Навигационные кнопки -->
-                    ${bannerCarousel.items.length > 1 ? `
-                        <button class="banner-nav banner-prev" onclick="event.stopPropagation(); prevBanner()">
-                            <i data-feather="chevron-left" class="w-4 h-4"></i>
-                        </button>
-                        <button class="banner-nav banner-next" onclick="event.stopPropagation(); nextBanner()">
-                            <i data-feather="chevron-right" class="w-4 h-4"></i>
-                        </button>
-                    ` : ''}
-                    
-                    <!-- Индикаторы -->
-                    ${bannerCarousel.items.length > 1 ? `
-                        <div class="banner-indicators">
-                            ${bannerCarousel.items.map((_, index) => `
-                                <div class="banner-indicator ${index === bannerCarousel.currentIndex ? 'active' : ''}" 
-                                     onclick="event.stopPropagation(); goToBanner(${index})"></div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-
-            // Вставляем баннер в начало контента
-            const content = elements.content;
-            const existingBanner = content.querySelector('.banner-carousel');
-            if (existingBanner) {
-                existingBanner.remove();
-            }
-            
-            // Добавляем баннер только на главной странице
-            const isMainPage = navigationStack.length <= 1;
-            if (isMainPage) {
-                content.insertAdjacentHTML('afterbegin', bannerHTML);
-                initBannerSwipe();
-            }
-            
-            scheduleFeatherReplace();
-        }
-
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДОБАВЛЕНИЯ В ИЗБРАННОЕ ДЛЯ БАННЕРОВ
-        function toggleBannerFavorite(bannerIndex) {
-            const product = bannerCarousel.items[bannerIndex];
-            if (!product) return;
-            
-            const productId = generateProductId(product);
-            const isFavorite = favorites.some(fav => fav.id === productId);
-            
-            if (isFavorite) {
-                favorites = favorites.filter(fav => fav.id !== productId);
-                showNotification('Товар удален из избранного');
-            } else {
-                const navigation = getCurrentNavigation();
-                favorites.push({
-                    id: productId,
-                    product: product,
-                    navigation: navigation,
-                    timestamp: Date.now()
-                });
-                showNotification('Товар добавлен в избранное');
-            }
-            
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            // Обновляем кнопку в баннере
-            const favoriteButton = document.querySelector(`.banner-slide[data-index="${bannerIndex}"] .banner-favorite-button`);
-            if (favoriteButton) {
-                if (isFavorite) {
-                    favoriteButton.classList.remove('active');
-                } else {
-                    favoriteButton.classList.add('active');
-                }
-                scheduleFeatherReplace();
-            }
-        }
-
-        function handleBannerClick(index) {
-            const product = bannerCarousel.items[index];
-            if (product && product.section) {
-                console.log('👆 Клик по баннеру:', product.section.name);
-                
-                // Для демо-баннеров загружаем соответствующий раздел
-                if (product.section.id && product.section.name) {
-                    loadCategories(product.section.id, product.section.name);
-                }
-            }
-        }
-
-        function handleBannerImageError(imgElement, index) {
-            console.log(`❌ Ошибка загрузки изображения для баннера ${index}`);
-            const product = bannerCarousel.items[index];
-            const alternativeUrls = getAlternativeImageUrls(product.photo_url);
-            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
-            
-            if (alternativeUrls.length > triedAlternative) {
-                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
-                imgElement.src = alternativeUrls[triedAlternative];
-                return;
-            }
-            
-            // Если изображение не загрузилось, показываем placeholder
-            const slide = imgElement.closest('.banner-slide');
-            if (slide) {
-                const placeholder = slide.querySelector('.banner-placeholder');
-                if (placeholder) {
-                    placeholder.style.display = 'flex';
-                }
-                imgElement.style.display = 'none';
-            }
-        }
-
-        function handleBannerImageLoad(imgElement) {
-            imgElement.style.display = 'block';
-            const slide = imgElement.closest('.banner-slide');
-            if (slide) {
-                const placeholder = slide.querySelector('.banner-placeholder');
-                if (placeholder) {
-                    placeholder.style.display = 'none';
-                }
-            }
-        }
-
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ СВАЙПОВ
-        function initBannerSwipe() {
-            const carousel = document.getElementById('bannerCarousel');
-            if (!carousel) return;
-            
-            let touchStartX = 0;
-            let touchEndX = 0;
-            const minSwipeDistance = 50;
-            
-            carousel.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-                carousel.classList.add('touch-active');
-                stopBannerAutoPlay();
-            }, { passive: true });
-            
-            carousel.addEventListener('touchmove', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-            }, { passive: true });
-            
-            carousel.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                carousel.classList.remove('touch-active');
-                const diff = touchStartX - touchEndX;
-                
-                if (Math.abs(diff) > minSwipeDistance) {
-                    if (diff > 0) {
-                        nextBanner();
-                    } else {
-                        prevBanner();
-                    }
-                }
-                startBannerAutoPlay();
-            });
-        }
-
-        function nextBanner() {
-            if (bannerCarousel.isAnimating || bannerCarousel.items.length <= 1) return;
-            
-            bannerCarousel.isAnimating = true;
-            const nextIndex = (bannerCarousel.currentIndex + 1) % bannerCarousel.items.length;
-            goToBanner(nextIndex);
-            
-            setTimeout(() => {
-                bannerCarousel.isAnimating = false;
-            }, 500);
-        }
-
-        function prevBanner() {
-            if (bannerCarousel.isAnimating || bannerCarousel.items.length <= 1) return;
-            
-            bannerCarousel.isAnimating = true;
-            const prevIndex = bannerCarousel.currentIndex === 0 ? 
-                bannerCarousel.items.length - 1 : bannerCarousel.currentIndex - 1;
-            goToBanner(prevIndex);
-            
-            setTimeout(() => {
-                bannerCarousel.isAnimating = false;
-            }, 500);
-        }
-
-        function goToBanner(index) {
-            if (bannerCarousel.isAnimating || index === bannerCarousel.currentIndex) return;
-            
-            bannerCarousel.currentIndex = index;
-            
-            // Обновляем отображение
-            const slides = document.querySelectorAll('.banner-slide');
-            const indicators = document.querySelectorAll('.banner-indicator');
-            
-            slides.forEach(slide => {
-                slide.classList.remove('active');
-            });
-            
-            indicators.forEach(indicator => {
-                indicator.classList.remove('active');
-            });
-            
-            if (slides[bannerCarousel.currentIndex]) {
-                slides[bannerCarousel.currentIndex].classList.add('active');
-            }
-            
-            if (indicators[bannerCarousel.currentIndex]) {
-                indicators[bannerCarousel.currentIndex].classList.add('active');
-            }
-            
-            resetBannerAutoPlay();
-        }
-
-        function startBannerAutoPlay() {
-            // Останавливаем предыдущий интервал
-            if (bannerCarousel.autoPlayInterval) {
-                clearInterval(bannerCarousel.autoPlayInterval);
-            }
-            
-            // Автопрокрутка только если больше одного слайда
-            if (bannerCarousel.items.length > 1) {
-                bannerCarousel.autoPlayInterval = setInterval(() => {
-                    if (bannerCarousel.items.length > 1) {
-                        nextBanner();
-                    }
-                }, bannerCarousel.autoPlayDelay);
-            }
-            
-            // Запускаем обновление фото каждые 5 секунд
-            startPhotoRotation();
-        }
-
-        function startPhotoRotation() {
-            // Останавливаем предыдущий интервал обновления фото
-            if (bannerCarousel.photoRotationInterval) {
-                clearInterval(bannerCarousel.photoRotationInterval);
-            }
-            
-            // Обновляем фото каждые 5 секунд
-            bannerCarousel.photoRotationInterval = setInterval(() => {
-                rotateBannerPhotos();
-            }, bannerCarousel.photoUpdateDelay || 5000);
-        }
-
-        function rotateBannerPhotos() {
-            if (!bannerCarousel.items || bannerCarousel.items.length === 0) return;
-            
-            const currentSlide = document.querySelector('.banner-slide.active');
-            if (!currentSlide) return;
-            
-            const imgElement = currentSlide.querySelector('.banner-image');
-            if (!imgElement) return;
-            
-            const currentIndex = parseInt(currentSlide.dataset.index);
-            const product = bannerCarousel.items[currentIndex];
-            if (!product || !product.photo_url) return;
-            
-            // Добавляем временную метку для обхода кэша
-            const timestamp = new Date().getTime();
-            const newSrc = extractPhotoFilenameFromUrl(product.photo_url) + '?t=' + timestamp;
-            
-            // Показываем анимацию загрузки
-            imgElement.style.opacity = '0.7';
-            
-            setTimeout(() => {
-                imgElement.src = newSrc;
-                imgElement.style.opacity = '1';
-            }, 300);
-        }
-
-        function resetBannerAutoPlay() {
-            if (bannerCarousel.autoPlayInterval) {
-                clearInterval(bannerCarousel.autoPlayInterval);
-                startBannerAutoPlay();
-            }
-        }
-
-        function stopBannerAutoPlay() {
-            if (bannerCarousel.autoPlayInterval) {
-                clearInterval(bannerCarousel.autoPlayInterval);
-                bannerCarousel.autoPlayInterval = null;
-            }
-            if (bannerCarousel.photoRotationInterval) {
-                clearInterval(bannerCarousel.photoRotationInterval);
-                bannerCarousel.photoRotationInterval = null;
-            }
-        }
-
-        // ========== ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS ==========
-
+        // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
             const phoneNumber = CONTACT_INFO.phone;
             if (tg) {
@@ -1371,8 +741,7 @@
             }
         }
 
-        // ========== ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ ==========
-
+        // ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ
         function callTaxi() {
             const address = encodeURIComponent(CONTACT_INFO.address);
             const lat = CONTACT_INFO.coordinates.lat;
@@ -1421,6 +790,7 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
+            // Ссылка для Яндекс Такси с координатами
             const yandexTaxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lon}&end-text=${address}&appmetrica_tracking_id=1178268795219780156`;
             
             if (tg) {
@@ -1435,6 +805,7 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
+            // Ссылка для Uber с координатами
             const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${address}&dropoff[latitude]=${lat}&dropoff[longitude]=${lon}`;
             
             if (tg) {
@@ -1444,12 +815,13 @@
             }
         }
 
-        // ========== ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН ==========
-
+        // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
         function installPWA() {
             if (deferredPrompt) {
+                // Показываем запрос на установку
                 deferredPrompt.prompt();
                 
+                // Ждем ответа пользователя
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('Пользователь принял установку');
@@ -1462,9 +834,11 @@
                         console.log('Пользователь отклонил установку');
                     }
                     
+                    // Сбрасываем deferredPrompt после использования
                     deferredPrompt = null;
                 });
             } else {
+                // Если deferredPrompt недоступен, показываем инструкции
                 showInstallInstructions();
             }
         }
@@ -1546,16 +920,23 @@
             scheduleFeatherReplace();
         }
 
-        // ========== ФУНКЦИИ ДЛЯ ИЗБРАННОГО ==========
+        function showInstallPrompt() {
+            installPWA();
+        }
 
+        // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
         function toggleFavorite(product, productIndex) {
             const productId = generateProductId(product);
             const isFavorite = favorites.some(fav => fav.id === productId);
             
             if (isFavorite) {
+                // Удаляем из избранного
                 favorites = favorites.filter(fav => fav.id !== productId);
-                showNotification('Товар удален из избранного');
+                if (tg) {
+                    tg.showAlert('Товар удален из избранного');
+                }
             } else {
+                // Добавляем в избранное
                 const navigation = getCurrentNavigation();
                 favorites.push({
                     id: productId,
@@ -1563,14 +944,20 @@
                     navigation: navigation,
                     timestamp: Date.now()
                 });
-                showNotification('Товар добавлен в избранное');
+                if (tg) {
+                    tg.showAlert('Товар добавлен в избранное');
+                }
             }
             
+            // Сохраняем в localStorage
             localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // Обновляем отображение кнопки
             updateFavoriteButton(productId, productIndex);
         }
 
         function generateProductId(product) {
+            // Создаем уникальный идентификатор на основе данных товара
             return btoa(encodeURIComponent(
                 `${product.color || ''}-${product.price || ''}-${product.photo_url || ''}`
             )).substring(0, 20);
@@ -1658,6 +1045,7 @@
                             <div class="text-center text-gray-400">
                                 <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Не удалось загрузить фото</div>
+                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
                             </div>
                         </div>
                     `;
@@ -1667,6 +1055,7 @@
                             <div class="text-center text-gray-400">
                                 <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Фото не доступно</div>
+                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
                             </div>
                         </div>
                     `;
@@ -1807,18 +1196,14 @@
                 if (!url || typeof url !== 'string') return null;
 
                 url = url.trim();
-                if (!url) return null;
 
-                // Если URL уже полный и ведет на изображение
                 if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
                     return url.startsWith('http') ? url : null;
                 }
 
-                // Обработка Google Drive ссылок
                 if (url.includes('drive.google.com')) {
                     let fileId = null;
 
-                    // Различные форматы Google Drive ссылок
                     if (url.includes('/file/d/')) {
                         const match = url.match(/\/file\/d\/([^\/]+)/);
                         if (match && match[1]) {
@@ -1836,13 +1221,12 @@
                     }
 
                     if (fileId) {
-                        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+                        return `https://drive.google.com/uc?export=download&id=${fileId}`;
                     }
                 }
 
-                // Если это просто имя файла без пути, возможно это ID
-                if (url.match(/^[a-zA-Z0-9_-]+$/)) {
-                    return `https://drive.google.com/uc?export=view&id=${url}`;
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
                 }
 
                 return null;
@@ -1860,7 +1244,6 @@
             try {
                 let fileId = null;
                 
-                // Парсим ID файла из различных форматов Google Drive
                 const match1 = originalUrl.match(/\/file\/d\/([^\/]+)/);
                 if (match1 && match1[1]) {
                     fileId = match1[1];
@@ -1879,14 +1262,9 @@
                         fileId = match3[1];
                     }
                 }
-
-                // Если это просто ID
-                if (!fileId && originalUrl.match(/^[a-zA-Z0-9_-]+$/)) {
-                    fileId = originalUrl;
-                }
                 
                 if (fileId) {
-                    urls.push(`https://drive.google.com/uc?export=view&id=${fileId}`);
+                    urls.push(`https://drive.google.com/uc?export=download&id=${fileId}`);
                     urls.push(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`);
                     urls.push(`https://docs.google.com/uc?id=${fileId}`);
                     urls.push(`https://lh3.googleusercontent.com/d/${fileId}=w1000`);
@@ -1924,14 +1302,6 @@
             }
         }
 
-        function showNotification(message) {
-            if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.showAlert(message);
-            } else {
-                alert(message);
-            }
-        }
-
         // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
 
         function initTelegramApp() {
@@ -1949,6 +1319,8 @@
 
         async function apiFetch(endpoint) {
             const url = `${API_BASE}${endpoint}`;
+            
+            showLoading();
             
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
@@ -1976,18 +1348,22 @@
                     throw new Error('Пустой ответ от сервера');
                 }
                 
+                hideLoading();
                 return data;
                 
             } catch (error) {
                 clearTimeout(timeoutId);
+                let errorMessage = error.message;
                 
                 if (error.name === 'AbortError') {
-                    throw new Error(`Таймаут запроса (${API_TIMEOUT/1000} секунд)`);
+                    errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    throw new Error('Ошибка сети');
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
                 }
                 
-                throw error;
+                hideLoading();
+                showError(`Ошибка загрузки: ${errorMessage}`);
+                return { error: errorMessage };
             }
         }
 
@@ -2001,9 +1377,12 @@
                 updateBreadcrumbs([{ name: 'Главная', action: 'loadSections' }]);
                 elements.pageTitle.textContent = 'Каталог товаров';
                 
-                showLoading();
                 const data = await apiFetch('/sections');
-                hideLoading();
+                
+                if (data?.error) {
+                    showEmptyState('Ошибка загрузки разделов');
+                    return;
+                }
                 
                 if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
                     showEmptyState('Разделы не найдены');
@@ -2012,47 +1391,28 @@
 
                 renderSections(data.sections);
                 updateBackButton();
-                
-                // Загружаем баннер после основных разделов
-                setTimeout(() => {
-                    loadBannerCarousel();
-                }, 100);
             } catch (error) {
-                hideLoading();
-                // Если API недоступно, показываем демо-данные
-                showDemoSections();
+                showError('Не удалось загрузить разделы');
             }
-        }
-
-        function showDemoSections() {
-            const demoData = {
-                sections: [
-                    { id: "1", name: "Бетон", min_price: 2500 },
-                    { id: "2", name: "Песок", min_price: 800 },
-                    { id: "3", name: "Щебень", min_price: 1800 },
-                    { id: "4", name: "Цемент", min_price: 450 },
-                    { id: "5", name: "Кирпич", min_price: 25 }
-                ]
-            };
-            
-            renderSections(demoData.sections);
-            updateBackButton();
-            loadBannerCarousel();
         }
 
         async function loadCategories(sectionId, sectionName) {
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
+                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
                 
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = sectionName;
                 
-                showLoading();
                 const data = await apiFetch(`/categories/${sectionId}`);
-                hideLoading();
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
                 
                 if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
@@ -2072,11 +1432,106 @@
 
                 renderCategories(data.categories, sectionId, sectionName);
                 updateBackButton();
-                
             } catch (error) {
-                hideLoading();
-                // Если API недоступно, переходим сразу к товарам
                 await loadProductsDirect(sectionId, null, null, null, sectionName);
+            }
+        }
+
+        async function loadModels(sectionId, sectionName, categoryId, categoryName) {
+            lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
+            
+            try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
+                navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = categoryName;
+                
+                const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.models) || data.models.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                if (data.models.length === 1 && data.models[0].name === "Без модели") {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                const filteredModels = data.models.filter(model => model.name !== "Без модели");
+                
+                if (filteredModels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+            }
+        }
+
+        async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
+            lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
+            
+            try {
+                // Очищаем стек навигации от более глубоких уровней
+                navigationStack = navigationStack.filter(item => item.type !== 'submodels');
+                navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = modelName;
+                
+                const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
+                
+                if (filteredSubmodels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+            }
+        }
+
+        async function loadProducts(sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName) {
+            lastAction = { type: 'loadProducts', sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName };
+            
+            try {
+                navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = submodelName;
+                
+                await loadProductsDirect(sectionId, categoryId, modelId, submodelId, submodelName);
+            } catch (error) {
+                showError('Не удалось загрузить товары');
             }
         }
 
@@ -2089,29 +1544,27 @@
             const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
             elements.pageTitle.textContent = currentName;
             
-            try {
-                showLoading();
-                const data = await apiFetch(endpoint);
-                hideLoading();
-                
-                if (!data || !Array.isArray(data.products) || data.products.length === 0) {
-                    showEmptyState(`Товары не найдены для: ${currentName}`);
-                    return;
-                }
-
-                currentProducts = data.products.filter(product => product != null);
-                
-                if (currentProducts.length === 0) {
-                    showEmptyState(`Товары не найдены для: ${currentName}`);
-                    return;
-                }
-
-                renderAllProducts();
-                updateBackButton();
-            } catch (error) {
-                hideLoading();
-                showEmptyState(`Не удалось загрузить товары для: ${currentName}`);
+            const data = await apiFetch(endpoint);
+            
+            if (data?.error) {
+                showEmptyState(`Ошибка загрузки товаров для: ${currentName}`);
+                return;
             }
+            
+            if (!data || !Array.isArray(data.products) || data.products.length === 0) {
+                showEmptyState(`Товары не найдены для: ${currentName}`);
+                return;
+            }
+
+            currentProducts = data.products.filter(product => product != null);
+            
+            if (currentProducts.length === 0) {
+                showEmptyState(`Товары не найдены для: ${currentName}`);
+                return;
+            }
+
+            renderAllProducts();
+            updateBackButton();
         }
 
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
@@ -2179,6 +1632,21 @@
             
             html += '</div>';
             
+            if (!html) {
+                showEmptyState('Нет доступных разделов');
+                return;
+            }
+            
+            // Кнопка "Назад" показывается только если есть куда возвращаться
+            if (navigationStack.length > 0) {
+                html += `
+                    <button onclick="goBack()" class="back-button">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад
+                    </button>
+                `;
+            }
+            
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
         }
@@ -2195,7 +1663,7 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadProductsDirect('${escapeHtml(sectionId)}', '${safeId}', null, null, '${safeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
@@ -2212,6 +1680,11 @@
             
             html += '</div>';
             
+            if (!html) {
+                showEmptyState('Нет доступных категорий');
+                return;
+            }
+            
             html += `
                 <button onclick="goBack()" class="back-button">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
@@ -2221,6 +1694,149 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+        }
+
+        function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
+            let html = '<div class="space-y-3">';
+            
+            models.forEach(model => {
+                if (!model) return;
+                
+                const safeId = escapeHtml(model.id);
+                const safeName = escapeHtml(model.name);
+                const minPrice = safeNumber(model.min_price);
+                const priceText = formatPriceText(minPrice);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (!html) {
+                showEmptyState('Нет доступных моделей');
+                return;
+            }
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
+            let html = '<div class="space-y-3">';
+            
+            submodels.forEach(submodel => {
+                if (!submodel) return;
+                
+                const safeId = escapeHtml(submodel.id);
+                const safeName = escapeHtml(submodel.name);
+                const minPrice = safeNumber(submodel.min_price);
+                const priceText = formatPriceText(minPrice);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (!html) {
+                showEmptyState('Нет доступных подмоделей');
+                return;
+            }
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function renderProductBreadcrumbs(navigation) {
+            if (!navigation.section && !navigation.category && !navigation.model && !navigation.submodel) {
+                return '';
+            }
+
+            const breadcrumbs = [];
+            
+            if (navigation.section) {
+                breadcrumbs.push({
+                    name: navigation.section.name,
+                    action: `loadCategories('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.category) {
+                breadcrumbs.push({
+                    name: navigation.category.name,
+                    action: `loadModels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.model && navigation.model.name !== "Без модели") {
+                breadcrumbs.push({
+                    name: navigation.model.name,
+                    action: `loadSubmodels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.submodel && navigation.submodel.name !== "Без подмодели") {
+                breadcrumbs.push({
+                    name: navigation.submodel.name,
+                    action: `loadProducts('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}', '${navigation.submodel.id}', '${navigation.submodel.name.replace(/'/g, "\\'")}')`
+                });
+            }
+
+            if (breadcrumbs.length === 0) {
+                return '';
+            }
+
+            let html = '<div class="mb-4 p-3 bg-gray-50 rounded-lg">';
+            html += '<div class="flex items-center flex-wrap text-sm text-gray-600">';
+            
+            breadcrumbs.forEach((crumb, index) => {
+                if (index > 0) {
+                    html += '<span class="breadcrumb-separator">→</span>';
+                }
+                html += `<span class="breadcrumb-item" onclick="${crumb.action}">${escapeHtml(crumb.name)}</span>`;
+            });
+
+            html += '</div></div>';
+            return html;
         }
 
         function renderAllProducts() {
@@ -2237,6 +1853,8 @@
                     <h2 class="text-lg font-semibold text-contrast">Найдено товаров: ${currentProducts.length}</h2>
                 </div>
             `;
+            
+            html += renderProductBreadcrumbs(navigation);
 
             currentProducts.forEach((product, index) => {
                 if (!product) return;
@@ -2258,6 +1876,7 @@
 
                 // Кнопка избранного
                 html += `
+                    <div class="favorite-label">В избранное</div>
                     <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
                         <i data-feather="heart"></i>
                     </div>
@@ -2277,6 +1896,7 @@
                             <div class="text-center text-gray-400">
                                 <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Не удалось загрузить фото</div>
+                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
                             </div>
                         </div>
                     `;
@@ -2286,6 +1906,7 @@
                             <div class="text-center text-gray-400">
                                 <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Фото не доступно</div>
+                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
                             </div>
                         </div>
                     `;
@@ -2398,6 +2019,12 @@
                     case 'categories':
                         navigation.category = { id: item.id, name: item.name };
                         break;
+                    case 'models':
+                        navigation.model = { id: item.id, name: item.name };
+                        break;
+                    case 'submodels':
+                        navigation.submodel = { id: item.id, name: item.name };
+                        break;
                 }
             });
 
@@ -2505,6 +2132,25 @@
                         loadSections();
                     }
                     break;
+                case 'models':
+                    const sectionForModel = navigationStack.find(item => item.type === 'sections');
+                    const category = navigationStack.find(item => item.type === 'categories');
+                    if (sectionForModel && category) {
+                        loadModels(sectionForModel.id, sectionForModel.name, category.id, category.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
+                case 'submodels':
+                    const sectionForSubmodel = navigationStack.find(item => item.type === 'sections');
+                    const categoryForSubmodel = navigationStack.find(item => item.type === 'categories');
+                    const model = navigationStack.find(item => item.type === 'models');
+                    if (sectionForSubmodel && categoryForSubmodel && model) {
+                        loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
+                    } else {
+                        loadSections();
+                    }
+                    break;
                 default:
                     loadSections();
             }
@@ -2577,8 +2223,14 @@
                 case 'loadCategories':
                     loadCategories(lastAction.sectionId, lastAction.sectionName);
                     break;
+                case 'loadModels':
+                    loadModels(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName);
+                    break;
+                case 'loadSubmodels':
+                    loadSubmodels(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName);
+                    break;
                 case 'loadProducts':
-                    loadProductsDirect(lastAction.sectionId, lastAction.categoryId, lastAction.modelId, lastAction.submodelId, lastAction.currentName);
+                    loadProducts(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName, lastAction.submodelId, lastAction.submodelName);
                     break;
                 default:
                     loadSections();
@@ -2617,8 +2269,11 @@
 
                 // Обработчик события beforeinstallprompt для PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
+                    // Предотвращаем автоматическое отображение подсказки
                     e.preventDefault();
+                    // Сохраняем событие для использования позже
                     deferredPrompt = e;
+                    // Показываем кнопку установки
                     if (installButton) {
                         installButton.style.display = 'flex';
                     }
@@ -2626,17 +2281,12 @@
 
                 // Обработчик события appinstalled
                 window.addEventListener('appinstalled', (e) => {
+                    // Приложение было установлено
                     deferredPrompt = null;
                     if (installButton) {
                         installButton.style.display = 'none';
                     }
                 });
-                
-                // Автоматическое обновление баннеров каждые 10 минут
-                setInterval(() => {
-                    console.log('🔄 Автоматическое обновление баннеров...');
-                    loadBannerCarousel();
-                }, 10 * 60 * 1000);
                 
                 setTimeout(() => {
                     loadSections();
@@ -2644,19 +2294,21 @@
                 
             } catch (error) {
                 console.error('Ошибка инициализации:', error);
-                showDemoSections();
+                showError('Ошибка загрузки приложения');
             }
         });
 
         // Глобальные функции
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
+        window.loadModels = loadModels;
+        window.loadSubmodels = loadSubmodels;
+        window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
         window.toggleFavorite = toggleFavorite;
         window.toggleFavoriteFromFavorites = toggleFavoriteFromFavorites;
-        window.toggleBannerFavorite = toggleBannerFavorite;
         window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
         window.openTelegramChannel = openTelegramChannel;
@@ -2665,19 +2317,15 @@
         window.openYandexTaxi = openYandexTaxi;
         window.openUber = openUber;
         window.installPWA = installPWA;
+        window.showInstallPrompt = showInstallPrompt;
         window.showInstallInstructions = showInstallInstructions;
+        window.renderAllProducts = renderAllProducts;
         window.goBack = goBack;
         window.openSideMenu = openSideMenu;
         window.closeSideMenu = closeSideMenu;
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
-        // Функции баннера
-        window.loadBannerCarousel = loadBannerCarousel;
-        window.prevBanner = prevBanner;
-        window.nextBanner = nextBanner;
-        window.goToBanner = goToBanner;
-        window.handleBannerClick = handleBannerClick;
     </script>
 </body>
 </html>
