@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Все стили остаются такими же как в вашем оригинальном коде */
         :root {
             --tg-theme-bg-color: #ffffff;
             --tg-theme-text-color: #000000;
@@ -23,7 +22,424 @@
             color: var(--tg-theme-button-text-color, #ffffff);
         }
         
-        /* ... остальные стили ... */
+        .tg-theme-text {
+            color: var(--tg-theme-text-color, #000000) !important;
+        }
+        
+        .tg-theme-hint {
+            color: var(--tg-theme-hint-color, #999999);
+        }
+        
+        .tg-theme-secondary-bg {
+            background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #f3f4f6;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .external-link {
+            color: #3B82F6;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .price-badge {
+            background-color: #10B981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .image-loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #3B82F6 !important;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb-item:hover {
+            color: #1D4ED8 !important;
+            text-decoration: underline;
+        }
+        
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: #6B7280;
+        }
+        
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .category-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .retry-button {
+            background-color: #3B82F6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .retry-button:hover {
+            background-color: #2563EB;
+        }
+
+        /* Стили для кнопок под фото */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .action-button {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white !important;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .phone-button {
+            background-color: #10B981;
+            color: white;
+        }
+        
+        .phone-button:hover {
+            background-color: #059669;
+        }
+        
+        .gis-button {
+            background-color: #F59E0B;
+            color: white;
+        }
+        
+        .gis-button:hover {
+            background-color: #D97706;
+        }
+
+        .taxi-button {
+            background-color: #8B5CF6;
+            color: white;
+        }
+        
+        .taxi-button:hover {
+            background-color: #7C3AED;
+        }
+        
+        .back-button {
+            background-color: #6B7280;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .back-button:hover {
+            background-color: #4B5563;
+            transform: translateY(-1px);
+        }
+
+        .clickable-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clickable-card:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Исправляем цвета текста для всех элементов */
+        body {
+            color: #000000;
+            background-color: #f9fafb;
+        }
+
+        header {
+            background-color: white;
+            color: #000000;
+        }
+
+        /* Явно задаем цвета для всех текстовых элементов */
+        h1, h2, h3, h4, h5, h6, p, span, div {
+            color: #000000;
+        }
+
+        /* Убедимся, что все кнопки имеют читаемый текст */
+        button {
+            color: inherit;
+        }
+
+        /* Улучшаем видимость иконок */
+        [data-feather] {
+            color: inherit;
+        }
+
+        /* Гарантируем контрастность для важных элементов */
+        .text-contrast {
+            color: #000000 !important;
+        }
+
+        .bg-contrast {
+            background-color: #ffffff !important;
+        }
+
+        /* Стили для зеленой кнопки меню */
+        .menu-button {
+            background-color: #10B981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-button:hover {
+            background-color: #059669;
+            transform: scale(1.05);
+        }
+
+        /* Стили для кнопки добавления на главный экран */
+        .install-button {
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .install-button:hover {
+            background-color: #2563EB;
+            transform: scale(1.05);
+        }
+
+        /* Стили для пунктов меню */
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1F2937;
+        }
+
+        .menu-item:hover {
+            background-color: #F3F4F6;
+            transform: translateX(4px);
+        }
+
+        .menu-item i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #E5E7EB;
+            margin: 8px 0;
+        }
+
+        /* Стили для кнопок такси */
+        .taxi-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .taxi-service-button {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white !important;
+        }
+        
+        .taxi-service-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .yandex-taxi {
+            background-color: #FFCC00;
+            color: #000 !important;
+        }
+        
+        .yandex-taxi:hover {
+            background-color: #E6B800;
+        }
+        
+        .uber-taxi {
+            background-color: #000000;
+            color: white !important;
+        }
+        
+        .uber-taxi:hover {
+            background-color: #333333;
+        }
+
+        /* Стили для заголовка с подзаголовком */
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            font-size: 1.125rem;
+            color: #6B7280;
+            font-weight: 400;
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        /* Стили для кнопки избранного */
+        .favorite-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .favorite-button:hover {
+            background-color: #f9fafb;
+            transform: scale(1.1);
+        }
+
+        .favorite-button.active {
+            background-color: #EF4444;
+            border-color: #EF4444;
+        }
+
+        .favorite-button.active i {
+            color: white;
+        }
+
+        .favorite-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #374151;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -107,7 +523,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
                             </div>
                         </div>
                         
@@ -164,20 +580,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Меню поделиться -->
-        <div id="shareMenuOverlay" class="share-menu-overlay" onclick="closeShareMenu()"></div>
-        <div id="shareMenu" class="share-menu">
-            <div class="share-menu-title">Поделиться товаром</div>
-            <div class="share-option" onclick="shareToTelegram()">
-                <i data-feather="send"></i>
-                <span class="share-option-text">Отправить в Telegram</span>
-            </div>
-            <div class="share-option" onclick="copyProductLink()">
-                <i data-feather="copy"></i>
-                <span class="share-option-text">Скопировать ссылку</span>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -195,7 +597,6 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentShareProduct = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -220,9 +621,7 @@
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
             pageTitle: document.getElementById('pageTitle'),
-            installButton: document.getElementById('installButton'),
-            shareMenu: document.getElementById('shareMenu'),
-            shareMenuOverlay: document.getElementById('shareMenuOverlay')
+            installButton: document.getElementById('installButton')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -632,13 +1031,6 @@
                     </div>
                 `;
 
-                // Кнопка поделиться
-                html += `
-                    <div class="share-button" onclick="openShareMenu(${index}, true)">
-                        <i data-feather="share-2"></i>
-                    </div>
-                `;
-
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
@@ -793,150 +1185,10 @@
             const message = `Здравствуйте! Интересует товар из избранного: ${productInfo}. Подскажите подробности.`;
             
             if (tg) {
-                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
             } else {
-                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
             }
-        }
-
-        // ФУНКЦИИ ДЛЯ ПОДЕЛИТЬСЯ - ИСПРАВЛЕННЫЕ
-        function openShareMenu(productIndex, isFromFavorites = false) {
-            if (isFromFavorites) {
-                currentShareProduct = favorites[productIndex];
-            } else {
-                currentShareProduct = currentProducts[productIndex];
-            }
-            
-            elements.shareMenu.classList.add('open');
-            elements.shareMenuOverlay.classList.add('open');
-        }
-
-        function closeShareMenu() {
-            elements.shareMenu.classList.remove('open');
-            elements.shareMenuOverlay.classList.remove('open');
-            currentShareProduct = null;
-        }
-
-        async function shareToTelegram() {
-            const product = currentShareProduct.product || currentShareProduct;
-            const navigation = currentShareProduct.navigation || getCurrentNavigation();
-            
-            // Формируем информацию о товаре
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price && product.price !== 'Цена не указана' ? product.price : ''
-            ].filter(Boolean).join(' → ');
-
-            // Получаем URL фото
-            const photoUrl = product.photo_url ? extractPhotoFilenameFromUrl(product.photo_url) : null;
-            const description = product.photo_description || product.description || '';
-            
-            // Формируем данные для отправки боту
-            const shareData = {
-                action: 'share_product',
-                product_info: productInfo,
-                photo_url: photoUrl,
-                description: description,
-                timestamp: Date.now()
-            };
-            
-            try {
-                // Используем метод openTelegramLink вместо sendData, чтобы Mini App не закрывался
-                const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
-                const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
-                
-                if (tg) {
-                    // Открываем ссылку в Telegram, но не закрываем Mini App
-                    tg.openTelegramLink(botDeepLink);
-                    
-                    // Показываем уведомление пользователю
-                    tg.showAlert("📤 Карточка товара отправлена в чат с ботом!");
-                } else {
-                    window.open(botDeepLink, '_blank');
-                    alert("📤 Карточка товара отправлена в чат с ботом!");
-                }
-                
-            } catch (error) {
-                console.error('Ошибка при отправке товара:', error);
-                if (tg) {
-                    tg.showAlert("❌ Ошибка при отправке товара. Попробуйте снова.");
-                } else {
-                    alert("❌ Ошибка при отправке товара. Попробуйте снова.");
-                }
-            }
-            
-            closeShareMenu();
-        }
-
-        function copyProductLink() {
-            const message = generateProductLink();
-            const fullMessage = message + '\n\n' + window.location.origin + window.location.pathname;
-            
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(fullMessage).then(() => {
-                    if (tg) {
-                        tg.showAlert('Ссылка скопирована в буфер обмена');
-                    } else {
-                        alert('Ссылка скопирована в буфер обмена');
-                    }
-                }).catch(err => {
-                    fallbackCopyToClipboard(fullMessage);
-                });
-            } else {
-                fallbackCopyToClipboard(fullMessage);
-            }
-            
-            closeShareMenu();
-        }
-
-        function generateProductLink() {
-            if (!currentShareProduct) return '';
-            
-            const product = currentShareProduct.product || currentShareProduct;
-            const navigation = currentShareProduct.navigation || getCurrentNavigation();
-            
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price && product.price !== 'Цена не указана' ? product.price : ''
-            ].filter(Boolean).join(' → ');
-
-            const message = `Посмотрите этот товар из каталога Скидка Сервис:\n\n${productInfo}\n\nДля просмотра в каталоге нажмите кнопку ниже:`;
-            
-            return message;
-        }
-
-        function fallbackCopyToClipboard(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                if (tg) {
-                    tg.showAlert('Ссылка скопирована в буфер обмена');
-                } else {
-                    alert('Ссылка скопирована в буфер обмена');
-                }
-            } catch (err) {
-                console.error('Ошибка копирования: ', err);
-                if (tg) {
-                    tg.showAlert('Не удалось скопировать ссылку');
-                } else {
-                    alert('Не удалось скопировать ссылку');
-                }
-            }
-            
-            document.body.removeChild(textArea);
         }
 
         function extractPhotoFilenameFromUrl(url) {
@@ -1630,13 +1882,6 @@
                     </div>
                 `;
 
-                // Кнопка поделиться
-                html += `
-                    <div class="share-button" onclick="openShareMenu(${index})">
-                        <i data-feather="share-2"></i>
-                    </div>
-                `;
-
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
@@ -1750,9 +1995,9 @@
             const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
             
             if (tg) {
-                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+                tg.openTelegramLink(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`);
             } else {
-                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+                window.open(`https://t.me/SidkaService01?text=${encodeURIComponent(message)}`, '_blank');
             }
         }
 
@@ -2081,10 +2326,6 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
-        window.openShareMenu = openShareMenu;
-        window.closeShareMenu = closeShareMenu;
-        window.shareToTelegram = shareToTelegram;
-        window.copyProductLink = copyProductLink;
     </script>
 </body>
 </html>
