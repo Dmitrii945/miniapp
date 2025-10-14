@@ -686,19 +686,11 @@
             <div class="share-menu-title">Поделиться товаром</div>
             <div class="share-option" onclick="shareToTelegram()">
                 <i data-feather="send"></i>
-                <span class="share-option-text">Telegram</span>
-            </div>
-            <div class="share-option" onclick="shareToWhatsApp()">
-                <i data-feather="message-circle"></i>
-                <span class="share-option-text">WhatsApp</span>
+                <span class="share-option-text">Отправить в Telegram</span>
             </div>
             <div class="share-option" onclick="copyProductLink()">
                 <i data-feather="copy"></i>
                 <span class="share-option-text">Скопировать ссылку</span>
-            </div>
-            <div class="share-option" onclick="shareViaSystem()">
-                <i data-feather="share-2"></i>
-                <span class="share-option-text">Другие приложения</span>
             </div>
         </div>
     </div>
@@ -1361,26 +1353,36 @@
         }
 
         function shareToTelegram() {
-            const message = generateProductLink();
-            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin + window.location.pathname)}&text=${encodeURIComponent(message)}`;
+            const product = currentShareProduct.product || currentShareProduct;
+            const navigation = currentShareProduct.navigation || getCurrentNavigation();
             
-            if (tg) {
-                tg.openLink(telegramUrl);
-            } else {
-                window.open(telegramUrl, '_blank');
-            }
-            
-            closeShareMenu();
-        }
+            // Формируем информацию о товаре
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
 
-        function shareToWhatsApp() {
-            const message = generateProductLink();
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + '\n\n' + window.location.origin + window.location.pathname)}`;
+            // Получаем URL фото
+            const photoUrl = product.photo_url ? extractPhotoFilenameFromUrl(product.photo_url) : null;
+            
+            // Формируем сообщение для бота
+            const message = `Поделиться товаром: ${productInfo}`;
+            
+            // Создаем ссылку для бота с параметрами
+            const botUrl = `https://t.me/SSERVICE72_bot?start=share_${btoa(encodeURIComponent(JSON.stringify({
+                product_info: productInfo,
+                photo_url: photoUrl,
+                description: product.photo_description || product.description || ''
+            })))}`;
             
             if (tg) {
-                tg.openLink(whatsappUrl);
+                tg.openLink(botUrl);
             } else {
-                window.open(whatsappUrl, '_blank');
+                window.open(botUrl, '_blank');
             }
             
             closeShareMenu();
@@ -1431,27 +1433,6 @@
             }
             
             document.body.removeChild(textArea);
-        }
-
-        function shareViaSystem() {
-            const message = generateProductLink();
-            const fullMessage = message + '\n\n' + window.location.origin + window.location.pathname;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Товар из каталога Скидка Сервис',
-                    text: message,
-                    url: window.location.origin + window.location.pathname
-                }).then(() => {
-                    console.log('Успешный шаринг');
-                }).catch(err => {
-                    console.log('Ошибка шаринга:', err);
-                });
-            } else {
-                copyProductLink();
-            }
-            
-            closeShareMenu();
         }
 
         function extractPhotoFilenameFromUrl(url) {
@@ -2599,9 +2580,7 @@
         window.openShareMenu = openShareMenu;
         window.closeShareMenu = closeShareMenu;
         window.shareToTelegram = shareToTelegram;
-        window.shareToWhatsApp = shareToWhatsApp;
         window.copyProductLink = copyProductLink;
-        window.shareViaSystem = shareViaSystem;
     </script>
 </body>
 </html>
