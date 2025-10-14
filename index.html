@@ -627,6 +627,7 @@
         // Конфигурация
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
+        const SHARE_BOT_API = 'https://dmitrii2613.pythonanywhere.com/api/share-product'; // Ваш эндпоинт для шаринга
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
@@ -665,10 +666,10 @@
             installButton: document.getElementById('installButton')
         };
 
-        // ========== НОВЫЕ ФУНКЦИИ ДЛЯ КНОПКИ "ПОДЕЛИТЬСЯ" ==========
+        // ========== ОБНОВЛЕННЫЕ ФУНКЦИИ ДЛЯ КНОПКИ "ПОДЕЛИТЬСЯ" ==========
 
         /**
-         * Функция для отправки сообщения с товаром через бота
+         * Основная функция для отправки товара через бота
          */
         async function shareProduct(product, productIndex) {
             try {
@@ -695,16 +696,13 @@
                     product: product,
                     navigation: navigation,
                     imageUrl: finalImageUrl,
-                    productInfo: productInfo
+                    productInfo: productInfo,
+                    user: tg?.initDataUnsafe?.user,
+                    miniAppUrl: generateMiniAppUrl(navigation)
                 };
 
-                // Если мы в Telegram Mini App, используем Telegram API для отправки
-                if (tg) {
-                    await shareViaTelegramBot(shareData);
-                } else {
-                    // Альтернативный метод для браузера
-                    await shareViaBrowser(shareData);
-                }
+                // Отправляем через бота
+                await sendProductViaBot(shareData);
 
             } catch (error) {
                 console.error('Ошибка при отправке товара:', error);
@@ -717,71 +715,91 @@
         }
 
         /**
-         * Отправка через Telegram Bot
+         * Генерация ссылки на мини-приложение
          */
-        async function shareViaTelegramBot(shareData) {
+        function generateMiniAppUrl(navigation) {
+            const params = new URLSearchParams();
+            
+            if (navigation.section?.id) params.append('section', navigation.section.id);
+            if (navigation.category?.id) params.append('category', navigation.category.id);
+            if (navigation.model?.id) params.append('model', navigation.model.id);
+            if (navigation.submodel?.id) params.append('submodel', navigation.submodel.id);
+            
+            // Используем схему t.me для открытия мини-приложения :cite[4]
+            return `https://t.me/your_bot_name/your_mini_app?startapp=${encodeURIComponent(params.toString())}`;
+        }
+
+        /**
+         * Отправка товара через Telegram бота
+         */
+        async function sendProductViaBot(shareData) {
             try {
-                // Получаем текущего пользователя Telegram
-                const user = tg.initDataUnsafe?.user;
-                const userId = user?.id;
-                
-                if (!userId) {
-                    tg.showAlert('Не удалось получить информацию о пользователе');
-                    return;
+                // Показываем уведомление о начале отправки
+                if (tg) {
+                    tg.showAlert('Отправляем товар через бота...');
                 }
 
-                // Показываем уведомление о начале отправки
-                tg.showAlert('Отправляем товар...');
-
                 // Отправляем запрос на сервер для отправки сообщения через бота
-                const response = await fetch(`${API_BASE}/share-product`, {
+                const response = await fetch(SHARE_BOT_API, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        user_id: userId,
-                        product_data: shareData
+                        user_data: shareData.user,
+                        product_data: {
+                            product: shareData.product,
+                            navigation: shareData.navigation,
+                            image_url: shareData.imageUrl,
+                            product_info: shareData.productInfo,
+                            mini_app_url: shareData.miniAppUrl
+                        },
+                        timestamp: Date.now()
                     })
                 });
 
                 if (response.ok) {
-                    tg.showAlert('Товар успешно отправлен!');
+                    const result = await response.json();
+                    
+                    if (tg) {
+                        tg.showAlert('Товар успешно отправлен! Проверьте чат с ботом.');
+                    } else {
+                        alert('Товар успешно отправлен! Проверьте чат с ботом.');
+                    }
+                    
+                    // Если бот вернул ссылку на сообщение, открываем ее
+                    if (result.message_link) {
+                        if (tg) {
+                            tg.openLink(result.message_link);
+                        } else {
+                            window.open(result.message_link, '_blank');
+                        }
+                    }
+                    
                 } else {
-                    throw new Error('Ошибка сервера');
+                    throw new Error('Ошибка сервера при отправке');
                 }
 
             } catch (error) {
-                console.error('Ошибка отправки через Telegram:', error);
-                // Резервный метод - отправка через ссылку
-                await shareViaLink(shareData);
+                console.error('Ошибка отправки через бота:', error);
+                // Резервный метод - используем Telegram Share URL :cite[4]
+                await shareViaTelegramUrl(shareData);
             }
         }
 
         /**
-         * Резервный метод - отправка через ссылку share/url
+         * Резервный метод - отправка через Telegram Share URL
          */
-        async function shareViaLink(shareData) {
+        async function shareViaTelegramUrl(shareData) {
             try {
-                const navigation = shareData.navigation;
-                
-                // Создаем ссылку для открытия категории в Mini App
-                let miniAppUrl = `https://t.me/your_bot_name/your_mini_app?startapp=`;
-                
-                // Добавляем параметры навигации
-                const params = new URLSearchParams();
-                if (navigation.section?.id) params.append('section', navigation.section.id);
-                if (navigation.category?.id) params.append('category', navigation.category.id);
-                if (navigation.model?.id) params.append('model', navigation.model.id);
-                if (navigation.submodel?.id) params.append('submodel', navigation.submodel.id);
-                
-                miniAppUrl += encodeURIComponent(params.toString());
+                const messageText = `🏪 *Товар из каталога Скидка Сервис*\n\n` +
+                                  `📦 *${shareData.productInfo}*\n\n` +
+                                  `📍 *Категория:* ${shareData.navigation.section?.name || ''} → ${shareData.navigation.category?.name || ''}\n` +
+                                  `💰 *Цена:* ${shareData.product.price || 'Уточняйте'}\n\n` +
+                                  `🔗 *Открыть в каталоге:* ${shareData.miniAppUrl}`;
 
-                // Создаем текст сообщения
-                const message = `Посмотри этот товар: ${shareData.productInfo}\n\n${miniAppUrl}`;
-
-                // Используем Telegram share/url схему :cite[6]
-                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(miniAppUrl)}&text=${encodeURIComponent(message)}`;
+                // Используем Telegram share/url схему :cite[4]
+                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareData.miniAppUrl)}&text=${encodeURIComponent(messageText)}`;
 
                 // Открываем ссылку для шаринга
                 if (tg) {
@@ -792,41 +810,86 @@
 
             } catch (error) {
                 console.error('Ошибка отправки через ссылку:', error);
-                tg.showAlert('Не удалось отправить товар. Попробуйте еще раз.');
+                // Финальный резервный метод - копирование в буфер обмена
+                await shareViaClipboard(shareData);
             }
         }
 
         /**
-         * Метод для браузера (если не в Telegram)
+         * Финальный резервный метод - копирование в буфер обмена
          */
-        async function shareViaBrowser(shareData) {
+        async function shareViaClipboard(shareData) {
             try {
-                const navigation = shareData.navigation;
-                const productInfo = shareData.productInfo;
+                const messageText = `Товар из каталога Скидка Сервис:\n${shareData.productInfo}\n\nКатегория: ${shareData.navigation.section?.name || ''} → ${shareData.navigation.category?.name || ''}\nЦена: ${shareData.product.price || 'Уточняйте'}\n\nСсылка на товар: ${shareData.miniAppUrl}`;
                 
-                // Создаем текст для шаринга
-                const shareText = `Посмотри этот товар: ${productInfo}\n\nКатегория: ${navigation.section?.name} → ${navigation.category?.name}`;
-
-                // Пытаемся использовать Web Share API
-                if (navigator.share) {
-                    await navigator.share({
-                        title: 'Товар из каталога',
-                        text: shareText,
-                        url: window.location.href
-                    });
+                await navigator.clipboard.writeText(messageText);
+                
+                if (tg) {
+                    tg.showAlert('Информация о товаре скопирована в буфер обмена! Вставьте ее в любой чат.');
                 } else {
-                    // Fallback - копируем в буфер обмена
-                    await navigator.clipboard.writeText(shareText);
-                    alert('Информация о товаре скопирована в буфер обмена!');
+                    alert('Информация о товаре скопирована в буфер обмена! Вставьте ее в любой чат.');
                 }
             } catch (error) {
-                console.error('Ошибка шаринга в браузере:', error);
-                // Final fallback
-                const shareText = `Посмотри этот товар: ${shareData.productInfo}`;
-                await navigator.clipboard.writeText(shareText);
-                alert('Информация о товаре скопирована в буфер обмена!');
+                console.error('Ошибка копирования в буфер:', error);
+                if (tg) {
+                    tg.showAlert('Не удалось отправить товар. Попробуйте еще раз.');
+                }
             }
         }
+
+        // ========== ПРИМЕР СЕРВЕРНОЙ ЧАСТИ (для справки) ==========
+        /*
+        // Пример Python кода для обработки запроса на сервере:
+        
+        from telegram import Bot, InputMediaPhoto
+        from telegram.ext import Application
+        
+        async def share_product(request):
+            data = await request.json()
+            user_data = data.get('user_data')
+            product_data = data.get('product_data')
+            
+            bot_token = "YOUR_BOT_TOKEN"
+            bot = Bot(token=bot_token)
+            
+            # Формируем сообщение с фото и кнопкой
+            caption = f"🏪 *Товар из каталога Скидка Сервис*\n\n" \
+                     f"📦 *{product_data['product_info']}*\n\n" \
+                     f"📍 *Категория:* {product_data['navigation']['section']['name']} → {product_data['navigation']['category']['name']}\n" \
+                     f"💰 *Цена:* {product_data['product']['price'] or 'Уточняйте'}\n\n" \
+                     f"👇 *Нажмите кнопку ниже чтобы открыть каталог*"
+            
+            # Создаем клавиатуру с кнопкой
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("📖 Открыть каталог", url=product_data['mini_app_url'])]
+            ])
+            
+            # Отправляем сообщение пользователю
+            try:
+                if product_data['image_url']:
+                    message = await bot.send_photo(
+                        chat_id=user_data['id'],
+                        photo=product_data['image_url'],
+                        caption=caption,
+                        reply_markup=keyboard,
+                        parse_mode='Markdown'
+                    )
+                else:
+                    message = await bot.send_message(
+                        chat_id=user_data['id'],
+                        text=caption,
+                        reply_markup=keyboard,
+                        parse_mode='Markdown'
+                    )
+                
+                return json_response({
+                    'status': 'success',
+                    'message_link': f"https://t.me/c/{str(message.chat.id).replace('-100', '')}/{message.message_id}"
+                })
+                
+            except Exception as e:
+                return json_response({'status': 'error', 'message': str(e)})
+        */
 
         // ========== СУЩЕСТВУЮЩИЕ ФУНКЦИИ (остаются без изменений) ==========
 
@@ -925,7 +988,7 @@
             if (tg) {
                 tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
             } else {
-                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позбоните нам!`);
             }
         }
 
@@ -1570,7 +1633,7 @@
                 if (error.name === 'AbortError') {
                     errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.`;
                 }
                 
                 hideLoading();
@@ -2094,7 +2157,7 @@
                     </div>
                 `;
 
-                // НОВАЯ КНОПКА "ПОДЕЛИТЬСЯ"
+                // КНОПКА "ПОДЕЛИТЬСЯ" - ОБНОВЛЕННАЯ
                 html += `
                     <div class="share-label">Поделиться</div>
                     <div class="share-button" onclick="shareProduct(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
@@ -2547,11 +2610,11 @@
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
 
-        // НОВЫЕ ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ КНОПКИ "ПОДЕЛИТЬСЯ"
+        // ОБНОВЛЕННЫЕ ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ КНОПКИ "ПОДЕЛИТЬСЯ"
         window.shareProduct = shareProduct;
-        window.shareViaTelegramBot = shareViaTelegramBot;
-        window.shareViaLink = shareViaLink;
-        window.shareViaBrowser = shareViaBrowser;
+        window.sendProductViaBot = sendProductViaBot;
+        window.shareViaTelegramUrl = shareViaTelegramUrl;
+        window.shareViaClipboard = shareViaClipboard;
     </script>
 </body>
 </html>
