@@ -1360,29 +1360,18 @@
             };
             
             try {
-                if (tg && tg.sendData) {
-                    // Отправляем данные через Telegram Web App API
-                    tg.sendData(JSON.stringify(shareData));
+                // Используем метод openTelegramLink вместо sendData, чтобы Mini App не закрывался
+                const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
+                const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
+                
+                if (tg) {
+                    // Открываем ссылку в Telegram, но не закрываем Mini App
+                    tg.openTelegramLink(botDeepLink);
                     
                     // Показываем уведомление пользователю
                     tg.showAlert("📤 Карточка товара отправлена в чат с ботом!");
-                    
-                    // Закрываем Mini App после отправки
-                    setTimeout(() => {
-                        tg.close();
-                    }, 1500);
-                    
                 } else {
-                    // Fallback для браузера или если sendData недоступен
-                    const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
-                    const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
-                    
-                    if (tg) {
-                        tg.openTelegramLink(botDeepLink);
-                    } else {
-                        window.open(botDeepLink, '_blank');
-                    }
-                    
+                    window.open(botDeepLink, '_blank');
                     alert("📤 Карточка товара отправлена в чат с ботом!");
                 }
                 
