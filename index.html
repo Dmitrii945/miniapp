@@ -622,7 +622,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
+                                <div class="text-sm text-gray-600">60-01-60</div>
                             </div>
                         </div>
                         
@@ -1314,7 +1314,7 @@
             }
         }
 
-        // ФУНКЦИИ ДЛЯ ПОДЕЛИТЬСЯ
+        // ФУНКЦИИ ДЛЯ ПОДЕЛИТЬСЯ - ИСПРАВЛЕННЫЕ
         function openShareMenu(productIndex, isFromFavorites = false) {
             if (isFromFavorites) {
                 currentShareProduct = favorites[productIndex];
@@ -1352,31 +1352,38 @@
             
             // Формируем данные для отправки боту
             const shareData = {
+                action: 'share_product',
                 product_info: productInfo,
                 photo_url: photoUrl,
                 description: description,
                 timestamp: Date.now()
             };
             
-            // Кодируем данные в base64 для передачи через deep link
-            const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
-            
-            // Создаем deep link для бота
-            const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
-            
             try {
-                // Показываем уведомление пользователю
-                if (tg) {
-                    tg.showAlert("📤 Наш Telegram бот отправил вам карточку товара! Теперь можете её переслать.");
+                if (tg && tg.sendData) {
+                    // Отправляем данные через Telegram Web App API
+                    tg.sendData(JSON.stringify(shareData));
+                    
+                    // Показываем уведомление пользователю
+                    tg.showAlert("📤 Карточка товара отправлена в чат с ботом!");
+                    
+                    // Закрываем Mini App после отправки
+                    setTimeout(() => {
+                        tg.close();
+                    }, 1500);
+                    
                 } else {
-                    alert("📤 Наш Telegram бот отправил вам карточку товара! Теперь можете её переслать.");
-                }
-                
-                // Открываем deep link - это запустит бота с параметрами товара
-                if (tg) {
-                    tg.openTelegramLink(botDeepLink);
-                } else {
-                    window.open(botDeepLink, '_blank');
+                    // Fallback для браузера или если sendData недоступен
+                    const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
+                    const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
+                    
+                    if (tg) {
+                        tg.openTelegramLink(botDeepLink);
+                    } else {
+                        window.open(botDeepLink, '_blank');
+                    }
+                    
+                    alert("📤 Карточка товара отправлена в чат с ботом!");
                 }
                 
             } catch (error) {
