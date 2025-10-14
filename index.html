@@ -1332,27 +1332,7 @@
             currentShareProduct = null;
         }
 
-        function generateProductLink() {
-            if (!currentShareProduct) return '';
-            
-            const product = currentShareProduct.product || currentShareProduct;
-            const navigation = currentShareProduct.navigation || getCurrentNavigation();
-            
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price && product.price !== 'Цена не указана' ? product.price : ''
-            ].filter(Boolean).join(' → ');
-
-            const message = `Посмотрите этот товар из каталога Скидка Сервис:\n\n${productInfo}\n\nДля просмотра в каталоге нажмите кнопку ниже:`;
-            
-            return message;
-        }
-
-        function shareToTelegram() {
+        async function shareToTelegram() {
             const product = currentShareProduct.product || currentShareProduct;
             const navigation = currentShareProduct.navigation || getCurrentNavigation();
             
@@ -1368,21 +1348,44 @@
 
             // Получаем URL фото
             const photoUrl = product.photo_url ? extractPhotoFilenameFromUrl(product.photo_url) : null;
+            const description = product.photo_description || product.description || '';
             
-            // Формируем сообщение для бота
-            const message = `Поделиться товаром: ${productInfo}`;
-            
-            // Создаем ссылку для бота с параметрами
-            const botUrl = `https://t.me/SSERVICE72_bot?start=share_${btoa(encodeURIComponent(JSON.stringify({
+            // Формируем данные для отправки боту
+            const shareData = {
                 product_info: productInfo,
                 photo_url: photoUrl,
-                description: product.photo_description || product.description || ''
-            })))}`;
+                description: description,
+                timestamp: Date.now()
+            };
             
-            if (tg) {
-                tg.openLink(botUrl);
-            } else {
-                window.open(botUrl, '_blank');
+            // Кодируем данные в base64 для передачи через deep link
+            const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
+            
+            // Создаем deep link для бота
+            const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
+            
+            try {
+                // Показываем уведомление пользователю
+                if (tg) {
+                    tg.showAlert("📤 Наш Telegram бот отправил вам карточку товара! Теперь можете её переслать.");
+                } else {
+                    alert("📤 Наш Telegram бот отправил вам карточку товара! Теперь можете её переслать.");
+                }
+                
+                // Открываем deep link - это запустит бота с параметрами товара
+                if (tg) {
+                    tg.openTelegramLink(botDeepLink);
+                } else {
+                    window.open(botDeepLink, '_blank');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка при отправке товара:', error);
+                if (tg) {
+                    tg.showAlert("❌ Ошибка при отправке товара. Попробуйте снова.");
+                } else {
+                    alert("❌ Ошибка при отправке товара. Попробуйте снова.");
+                }
             }
             
             closeShareMenu();
@@ -1407,6 +1410,26 @@
             }
             
             closeShareMenu();
+        }
+
+        function generateProductLink() {
+            if (!currentShareProduct) return '';
+            
+            const product = currentShareProduct.product || currentShareProduct;
+            const navigation = currentShareProduct.navigation || getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Посмотрите этот товар из каталога Скидка Сервис:\n\n${productInfo}\n\nДля просмотра в каталоге нажмите кнопку ниже:`;
+            
+            return message;
         }
 
         function fallbackCopyToClipboard(text) {
