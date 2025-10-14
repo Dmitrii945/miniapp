@@ -440,6 +440,105 @@
             color: #374151;
             z-index: 10;
         }
+
+        /* Стили для кнопки поделиться */
+        .share-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .share-button:hover {
+            background-color: #f9fafb;
+            transform: scale(1.1);
+        }
+
+        .share-button.active {
+            background-color: #3B82F6;
+            border-color: #3B82F6;
+        }
+
+        .share-button.active i {
+            color: white;
+        }
+
+        /* Стили для меню поделиться */
+        .share-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .share-menu.open {
+            transform: translateY(0);
+        }
+
+        .share-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+            display: none;
+        }
+
+        .share-menu-overlay.open {
+            display: block;
+        }
+
+        .share-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .share-option:hover {
+            background-color: #f3f4f6;
+        }
+
+        .share-option i {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+
+        .share-option-text {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .share-menu-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+            color: #1f2937;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -580,6 +679,28 @@
                 </div>
             </div>
         </div>
+
+        <!-- Меню поделиться -->
+        <div id="shareMenuOverlay" class="share-menu-overlay" onclick="closeShareMenu()"></div>
+        <div id="shareMenu" class="share-menu">
+            <div class="share-menu-title">Поделиться товаром</div>
+            <div class="share-option" onclick="shareToTelegram()">
+                <i data-feather="send"></i>
+                <span class="share-option-text">Telegram</span>
+            </div>
+            <div class="share-option" onclick="shareToWhatsApp()">
+                <i data-feather="message-circle"></i>
+                <span class="share-option-text">WhatsApp</span>
+            </div>
+            <div class="share-option" onclick="copyProductLink()">
+                <i data-feather="copy"></i>
+                <span class="share-option-text">Скопировать ссылку</span>
+            </div>
+            <div class="share-option" onclick="shareViaSystem()">
+                <i data-feather="share-2"></i>
+                <span class="share-option-text">Другие приложения</span>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -597,6 +718,7 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        let currentShareProduct = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -621,7 +743,9 @@
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
             pageTitle: document.getElementById('pageTitle'),
-            installButton: document.getElementById('installButton')
+            installButton: document.getElementById('installButton'),
+            shareMenu: document.getElementById('shareMenu'),
+            shareMenuOverlay: document.getElementById('shareMenuOverlay')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -1031,6 +1155,13 @@
                     </div>
                 `;
 
+                // Кнопка поделиться
+                html += `
+                    <div class="share-button" onclick="openShareMenu(${index}, true)">
+                        <i data-feather="share-2"></i>
+                    </div>
+                `;
+
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
@@ -1189,6 +1320,138 @@
             } else {
                 window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
             }
+        }
+
+        // ФУНКЦИИ ДЛЯ ПОДЕЛИТЬСЯ
+        function openShareMenu(productIndex, isFromFavorites = false) {
+            if (isFromFavorites) {
+                currentShareProduct = favorites[productIndex];
+            } else {
+                currentShareProduct = currentProducts[productIndex];
+            }
+            
+            elements.shareMenu.classList.add('open');
+            elements.shareMenuOverlay.classList.add('open');
+        }
+
+        function closeShareMenu() {
+            elements.shareMenu.classList.remove('open');
+            elements.shareMenuOverlay.classList.remove('open');
+            currentShareProduct = null;
+        }
+
+        function generateProductLink() {
+            if (!currentShareProduct) return '';
+            
+            const product = currentShareProduct.product || currentShareProduct;
+            const navigation = currentShareProduct.navigation || getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Посмотрите этот товар из каталога Скидка Сервис:\n\n${productInfo}\n\nДля просмотра в каталоге нажмите кнопку ниже:`;
+            
+            return message;
+        }
+
+        function shareToTelegram() {
+            const message = generateProductLink();
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin + window.location.pathname)}&text=${encodeURIComponent(message)}`;
+            
+            if (tg) {
+                tg.openLink(telegramUrl);
+            } else {
+                window.open(telegramUrl, '_blank');
+            }
+            
+            closeShareMenu();
+        }
+
+        function shareToWhatsApp() {
+            const message = generateProductLink();
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + '\n\n' + window.location.origin + window.location.pathname)}`;
+            
+            if (tg) {
+                tg.openLink(whatsappUrl);
+            } else {
+                window.open(whatsappUrl, '_blank');
+            }
+            
+            closeShareMenu();
+        }
+
+        function copyProductLink() {
+            const message = generateProductLink();
+            const fullMessage = message + '\n\n' + window.location.origin + window.location.pathname;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fullMessage).then(() => {
+                    if (tg) {
+                        tg.showAlert('Ссылка скопирована в буфер обмена');
+                    } else {
+                        alert('Ссылка скопирована в буфер обмена');
+                    }
+                }).catch(err => {
+                    fallbackCopyToClipboard(fullMessage);
+                });
+            } else {
+                fallbackCopyToClipboard(fullMessage);
+            }
+            
+            closeShareMenu();
+        }
+
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                if (tg) {
+                    tg.showAlert('Ссылка скопирована в буфер обмена');
+                } else {
+                    alert('Ссылка скопирована в буфер обмена');
+                }
+            } catch (err) {
+                console.error('Ошибка копирования: ', err);
+                if (tg) {
+                    tg.showAlert('Не удалось скопировать ссылку');
+                } else {
+                    alert('Не удалось скопировать ссылку');
+                }
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function shareViaSystem() {
+            const message = generateProductLink();
+            const fullMessage = message + '\n\n' + window.location.origin + window.location.pathname;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Товар из каталога Скидка Сервис',
+                    text: message,
+                    url: window.location.origin + window.location.pathname
+                }).then(() => {
+                    console.log('Успешный шаринг');
+                }).catch(err => {
+                    console.log('Ошибка шаринга:', err);
+                });
+            } else {
+                copyProductLink();
+            }
+            
+            closeShareMenu();
         }
 
         function extractPhotoFilenameFromUrl(url) {
@@ -1882,6 +2145,13 @@
                     </div>
                 `;
 
+                // Кнопка поделиться
+                html += `
+                    <div class="share-button" onclick="openShareMenu(${index})">
+                        <i data-feather="share-2"></i>
+                    </div>
+                `;
+
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
@@ -2326,6 +2596,12 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
+        window.openShareMenu = openShareMenu;
+        window.closeShareMenu = closeShareMenu;
+        window.shareToTelegram = shareToTelegram;
+        window.shareToWhatsApp = shareToWhatsApp;
+        window.copyProductLink = copyProductLink;
+        window.shareViaSystem = shareViaSystem;
     </script>
 </body>
 </html>
