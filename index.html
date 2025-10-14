@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Все существующие стили остаются без изменений */
         :root {
             --tg-theme-bg-color: #ffffff;
             --tg-theme-text-color: #000000;
@@ -440,6 +441,46 @@
             color: #374151;
             z-index: 10;
         }
+
+        /* НОВЫЕ СТИЛИ ДЛЯ КНОПКИ "ПОДЕЛИТЬСЯ" */
+        .share-button {
+            position: absolute;
+            top: 10px;
+            right: 50px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .share-button:hover {
+            background-color: #3B82F6;
+            transform: scale(1.1);
+        }
+
+        .share-button:hover i {
+            color: white;
+        }
+
+        .share-label {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #374151;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -624,7 +665,170 @@
             installButton: document.getElementById('installButton')
         };
 
-        // ========== УТИЛИТЫ ==========
+        // ========== НОВЫЕ ФУНКЦИИ ДЛЯ КНОПКИ "ПОДЕЛИТЬСЯ" ==========
+
+        /**
+         * Функция для отправки сообщения с товаром через бота
+         */
+        async function shareProduct(product, productIndex) {
+            try {
+                const navigation = getCurrentNavigation();
+                
+                // Собираем информацию о товаре для сообщения
+                const productInfo = [
+                    navigation.section?.name,
+                    navigation.category?.name,
+                    navigation.model?.name,
+                    navigation.submodel?.name,
+                    product?.color,
+                    product?.price && product.price !== 'Цена не указана' ? product.price : ''
+                ].filter(Boolean).join(' → ');
+
+                // Получаем URL изображения товара
+                const photoUrl = safeString(product.photo_url);
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+                const finalImageUrl = imageUrl || (alternativeUrls.length > 0 ? alternativeUrls[0] : null);
+
+                // Создаем данные для отправки
+                const shareData = {
+                    product: product,
+                    navigation: navigation,
+                    imageUrl: finalImageUrl,
+                    productInfo: productInfo
+                };
+
+                // Если мы в Telegram Mini App, используем Telegram API для отправки
+                if (tg) {
+                    await shareViaTelegramBot(shareData);
+                } else {
+                    // Альтернативный метод для браузера
+                    await shareViaBrowser(shareData);
+                }
+
+            } catch (error) {
+                console.error('Ошибка при отправке товара:', error);
+                if (tg) {
+                    tg.showAlert('Ошибка при отправке товара. Попробуйте еще раз.');
+                } else {
+                    alert('Ошибка при отправке товара. Попробуйте еще раз.');
+                }
+            }
+        }
+
+        /**
+         * Отправка через Telegram Bot
+         */
+        async function shareViaTelegramBot(shareData) {
+            try {
+                // Получаем текущего пользователя Telegram
+                const user = tg.initDataUnsafe?.user;
+                const userId = user?.id;
+                
+                if (!userId) {
+                    tg.showAlert('Не удалось получить информацию о пользователе');
+                    return;
+                }
+
+                // Показываем уведомление о начале отправки
+                tg.showAlert('Отправляем товар...');
+
+                // Отправляем запрос на сервер для отправки сообщения через бота
+                const response = await fetch(`${API_BASE}/share-product`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        product_data: shareData
+                    })
+                });
+
+                if (response.ok) {
+                    tg.showAlert('Товар успешно отправлен!');
+                } else {
+                    throw new Error('Ошибка сервера');
+                }
+
+            } catch (error) {
+                console.error('Ошибка отправки через Telegram:', error);
+                // Резервный метод - отправка через ссылку
+                await shareViaLink(shareData);
+            }
+        }
+
+        /**
+         * Резервный метод - отправка через ссылку share/url
+         */
+        async function shareViaLink(shareData) {
+            try {
+                const navigation = shareData.navigation;
+                
+                // Создаем ссылку для открытия категории в Mini App
+                let miniAppUrl = `https://t.me/your_bot_name/your_mini_app?startapp=`;
+                
+                // Добавляем параметры навигации
+                const params = new URLSearchParams();
+                if (navigation.section?.id) params.append('section', navigation.section.id);
+                if (navigation.category?.id) params.append('category', navigation.category.id);
+                if (navigation.model?.id) params.append('model', navigation.model.id);
+                if (navigation.submodel?.id) params.append('submodel', navigation.submodel.id);
+                
+                miniAppUrl += encodeURIComponent(params.toString());
+
+                // Создаем текст сообщения
+                const message = `Посмотри этот товар: ${shareData.productInfo}\n\n${miniAppUrl}`;
+
+                // Используем Telegram share/url схему :cite[6]
+                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(miniAppUrl)}&text=${encodeURIComponent(message)}`;
+
+                // Открываем ссылку для шаринга
+                if (tg) {
+                    tg.openLink(shareUrl);
+                } else {
+                    window.open(shareUrl, '_blank');
+                }
+
+            } catch (error) {
+                console.error('Ошибка отправки через ссылку:', error);
+                tg.showAlert('Не удалось отправить товар. Попробуйте еще раз.');
+            }
+        }
+
+        /**
+         * Метод для браузера (если не в Telegram)
+         */
+        async function shareViaBrowser(shareData) {
+            try {
+                const navigation = shareData.navigation;
+                const productInfo = shareData.productInfo;
+                
+                // Создаем текст для шаринга
+                const shareText = `Посмотри этот товар: ${productInfo}\n\nКатегория: ${navigation.section?.name} → ${navigation.category?.name}`;
+
+                // Пытаемся использовать Web Share API
+                if (navigator.share) {
+                    await navigator.share({
+                        title: 'Товар из каталога',
+                        text: shareText,
+                        url: window.location.href
+                    });
+                } else {
+                    // Fallback - копируем в буфер обмена
+                    await navigator.clipboard.writeText(shareText);
+                    alert('Информация о товаре скопирована в буфер обмена!');
+                }
+            } catch (error) {
+                console.error('Ошибка шаринга в браузере:', error);
+                // Final fallback
+                const shareText = `Посмотри этот товар: ${shareData.productInfo}`;
+                await navigator.clipboard.writeText(shareText);
+                alert('Информация о товаре скопирована в буфер обмена!');
+            }
+        }
+
+        // ========== СУЩЕСТВУЮЩИЕ ФУНКЦИИ (остаются без изменений) ==========
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -1028,6 +1232,14 @@
                     <div class="favorite-label">В избранном</div>
                     <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
                         <i data-feather="heart"></i>
+                    </div>
+                `;
+
+                // Кнопка поделиться для избранного
+                html += `
+                    <div class="share-label">Поделиться</div>
+                    <div class="share-button" onclick="shareProduct(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                        <i data-feather="share-2"></i>
                     </div>
                 `;
 
@@ -1882,6 +2094,14 @@
                     </div>
                 `;
 
+                // НОВАЯ КНОПКА "ПОДЕЛИТЬСЯ"
+                html += `
+                    <div class="share-label">Поделиться</div>
+                    <div class="share-button" onclick="shareProduct(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                        <i data-feather="share-2"></i>
+                    </div>
+                `;
+
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
@@ -2326,6 +2546,12 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
+
+        // НОВЫЕ ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ КНОПКИ "ПОДЕЛИТЬСЯ"
+        window.shareProduct = shareProduct;
+        window.shareViaTelegramBot = shareViaTelegramBot;
+        window.shareViaLink = shareViaLink;
+        window.shareViaBrowser = shareViaBrowser;
     </script>
 </body>
 </html>
