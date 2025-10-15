@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Скидка Сервис каталог</title>
+    <title>СКИДКА СЕРВИС Каталог</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -440,105 +441,6 @@
             color: #374151;
             z-index: 10;
         }
-
-        /* Стили для кнопки поделиться */
-        .share-button {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 10;
-        }
-
-        .share-button:hover {
-            background-color: #f9fafb;
-            transform: scale(1.1);
-        }
-
-        .share-button.active {
-            background-color: #3B82F6;
-            border-color: #3B82F6;
-        }
-
-        .share-button.active i {
-            color: white;
-        }
-
-        /* Стили для меню поделиться */
-        .share-menu {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 16px 16px 0 0;
-            padding: 20px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
-            z-index: 100;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .share-menu.open {
-            transform: translateY(0);
-        }
-
-        .share-menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
-            display: none;
-        }
-
-        .share-menu-overlay.open {
-            display: block;
-        }
-
-        .share-option {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 8px;
-        }
-
-        .share-option:hover {
-            background-color: #f3f4f6;
-        }
-
-        .share-option i {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-        }
-
-        .share-option-text {
-            font-weight: 500;
-            color: #1f2937;
-        }
-
-        .share-menu-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            text-align: center;
-            color: #1f2937;
-        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -622,7 +524,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
                             </div>
                         </div>
                         
@@ -679,20 +581,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Меню поделиться -->
-        <div id="shareMenuOverlay" class="share-menu-overlay" onclick="closeShareMenu()"></div>
-        <div id="shareMenu" class="share-menu">
-            <div class="share-menu-title">Поделиться товаром</div>
-            <div class="share-option" onclick="shareToTelegram()">
-                <i data-feather="send"></i>
-                <span class="share-option-text">Отправить в Telegram</span>
-            </div>
-            <div class="share-option" onclick="copyProductLink()">
-                <i data-feather="copy"></i>
-                <span class="share-option-text">Скопировать ссылку</span>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -710,7 +598,6 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentShareProduct = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -735,9 +622,7 @@
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
             pageTitle: document.getElementById('pageTitle'),
-            installButton: document.getElementById('installButton'),
-            shareMenu: document.getElementById('shareMenu'),
-            shareMenuOverlay: document.getElementById('shareMenuOverlay')
+            installButton: document.getElementById('installButton')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -1147,13 +1032,6 @@
                     </div>
                 `;
 
-                // Кнопка поделиться
-                html += `
-                    <div class="share-button" onclick="openShareMenu(${index}, true)">
-                        <i data-feather="share-2"></i>
-                    </div>
-                `;
-
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
@@ -1312,156 +1190,6 @@
             } else {
                 window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
             }
-        }
-
-        // ФУНКЦИИ ДЛЯ ПОДЕЛИТЬСЯ - ИСПРАВЛЕННЫЕ
-        function openShareMenu(productIndex, isFromFavorites = false) {
-            if (isFromFavorites) {
-                currentShareProduct = favorites[productIndex];
-            } else {
-                currentShareProduct = currentProducts[productIndex];
-            }
-            
-            elements.shareMenu.classList.add('open');
-            elements.shareMenuOverlay.classList.add('open');
-        }
-
-        function closeShareMenu() {
-            elements.shareMenu.classList.remove('open');
-            elements.shareMenuOverlay.classList.remove('open');
-            currentShareProduct = null;
-        }
-
-        async function shareToTelegram() {
-            const product = currentShareProduct.product || currentShareProduct;
-            const navigation = currentShareProduct.navigation || getCurrentNavigation();
-            
-            // Формируем информацию о товаре
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price && product.price !== 'Цена не указана' ? product.price : ''
-            ].filter(Boolean).join(' → ');
-
-            // Получаем URL фото - используем полный URL
-            const photoUrl = product.photo_url ? product.photo_url : null;
-            const description = product.photo_description || product.description || '';
-            
-            // Формируем данные для отправки боту
-            const shareData = {
-                action: 'share_product',
-                product_info: productInfo,
-                photo_url: photoUrl,
-                description: description,
-                timestamp: new Date().toISOString()
-            };
-            
-            try {
-                console.log('🔗 Отправляем данные:', shareData);
-                
-                // Правильное кодирование для совместимости с Python base64
-                const jsonString = JSON.stringify(shareData);
-                // Корректное кодирование для кириллицы и спецсимволов
-                const encodedData = btoa(unescape(encodeURIComponent(jsonString)));
-                const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
-                
-                console.log('🔗 Deep link:', botDeepLink);
-                
-                if (tg) {
-                    // Открываем ссылку в Telegram, но не закрываем Mini App
-                    tg.openTelegramLink(botDeepLink);
-                    
-                    // Показываем уведомление пользователю
-                    tg.showAlert("📤 Карточка товара отправлена в чат с ботом!");
-                } else {
-                    window.open(botDeepLink, '_blank');
-                    alert("📤 Карточка товара отправлена в чат с ботом!");
-                }
-                
-                // Закрываем меню поделиться
-                closeShareMenu();
-                
-            } catch (error) {
-                console.error('Ошибка при отправке товара:', error);
-                if (tg) {
-                    tg.showAlert("❌ Ошибка при отправке товара. Попробуйте снова.");
-                } else {
-                    alert("❌ Ошибка при отправке товара. Попробуйте снова.");
-                }
-                
-                // Закрываем меню даже при ошибке
-                closeShareMenu();
-            }
-        }
-
-        function copyProductLink() {
-            const message = generateProductLink();
-            const fullMessage = message + '\n\n' + window.location.origin + window.location.pathname;
-            
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(fullMessage).then(() => {
-                    if (tg) {
-                        tg.showAlert('Ссылка скопирована в буфер обмена');
-                    } else {
-                        alert('Ссылка скопирована в буфер обмена');
-                    }
-                }).catch(err => {
-                    fallbackCopyToClipboard(fullMessage);
-                });
-            } else {
-                fallbackCopyToClipboard(fullMessage);
-            }
-            
-            closeShareMenu();
-        }
-
-        function generateProductLink() {
-            if (!currentShareProduct) return '';
-            
-            const product = currentShareProduct.product || currentShareProduct;
-            const navigation = currentShareProduct.navigation || getCurrentNavigation();
-            
-            const productInfo = [
-                navigation.section?.name,
-                navigation.category?.name,
-                navigation.model?.name,
-                navigation.submodel?.name,
-                product?.color,
-                product?.price && product.price !== 'Цена не указана' ? product.price : ''
-            ].filter(Boolean).join(' → ');
-
-            const message = `Посмотрите этот товар из каталога Скидка Сервис:\n\n${productInfo}\n\nДля просмотра в каталоге нажмите кнопку ниже:`;
-            
-            return message;
-        }
-
-        function fallbackCopyToClipboard(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                if (tg) {
-                    tg.showAlert('Ссылка скопирована в буфер обмена');
-                } else {
-                    alert('Ссылка скопирована в буфер обмена');
-                }
-            } catch (err) {
-                console.error('Ошибка копирования: ', err);
-                if (tg) {
-                    tg.showAlert('Не удалось скопировать ссылку');
-                } else {
-                    alert('Не удалось скопировать ссылку');
-                }
-            }
-            
-            document.body.removeChild(textArea);
         }
 
         function extractPhotoFilenameFromUrl(url) {
@@ -2155,13 +1883,6 @@
                     </div>
                 `;
 
-                // Кнопка поделиться
-                html += `
-                    <div class="share-button" onclick="openShareMenu(${index})">
-                        <i data-feather="share-2"></i>
-                    </div>
-                `;
-
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
@@ -2606,10 +2327,6 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
-        window.openShareMenu = openShareMenu;
-        window.closeShareMenu = closeShareMenu;
-        window.shareToTelegram = shareToTelegram;
-        window.copyProductLink = copyProductLink;
     </script>
 </body>
 </html>
