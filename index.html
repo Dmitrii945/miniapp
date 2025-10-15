@@ -1340,8 +1340,26 @@
                 return;
             }
 
-            // Получаем данные пользователя из Telegram
-            const userData = tg?.initDataUnsafe?.user || {};
+            // Получаем данные пользователя из Telegram (используем initData)
+            let userData = {};
+            if (tg && tg.initData) {
+                try {
+                    // Парсим initData для получения user_id
+                    const params = new URLSearchParams(tg.initData);
+                    const userParam = params.get('user');
+                    if (userParam) {
+                        userData = JSON.parse(decodeURIComponent(userParam));
+                    }
+                } catch (error) {
+                    console.log('Ошибка парсинга initData:', error);
+                }
+            }
+
+            // Альтернативный способ получения user_id
+            if (!userData.id && tg?.initDataUnsafe?.user?.id) {
+                userData = tg.initDataUnsafe.user;
+            }
+
             console.log('Данные пользователя Telegram:', userData);
 
             // Формируем данные для отправки
@@ -1357,7 +1375,8 @@
                 navigation: navigation,
                 user_id: userData.id || null,
                 username: userData.username || null,
-                first_name: userData.first_name || null
+                first_name: userData.first_name || null,
+                init_data: tg?.initData || null // Отправляем всю initData для парсинга на сервере
             };
 
             console.log('Отправка данных для шаринга:', shareData);
@@ -1509,10 +1528,21 @@
                     tg.expand();
                     tg.enableClosingConfirmation();
                     
+                    // Запрашиваем необходимые права доступа
+                    if (tg.requestAccess) {
+                        tg.requestAccess();
+                    }
+                    
+                    // Логируем доступные данные
+                    console.log('Telegram Web App данные:');
+                    console.log('- initData:', tg.initData);
+                    console.log('- initDataUnsafe:', tg.initDataUnsafe);
+                    console.log('- platform:', tg.platform);
+                    console.log('- version:', tg.version);
+                    
                     // Обработчик данных от бота
                     tg.onEvent('webAppDataReceived', (event) => {
                         console.log('Данные получены от бота:', event);
-                        // Можно обработать ответ от бота если нужно
                     });
                 } catch (error) {
                     console.log('Ошибка инициализации Telegram Web App:', error);
@@ -1563,7 +1593,7 @@
                 if (error.name === 'AbortError') {
                     errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.`;
                 }
                 
                 hideLoading();
