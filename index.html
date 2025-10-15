@@ -1340,8 +1340,13 @@
                 return;
             }
 
+            // Получаем данные пользователя из Telegram
+            const userData = tg?.initDataUnsafe?.user || {};
+            console.log('Данные пользователя Telegram:', userData);
+
             // Формируем данные для отправки
             const shareData = {
+                action: 'share_product',
                 product: {
                     color: product.color,
                     price: product.price,
@@ -1350,21 +1355,25 @@
                     description: product.description
                 },
                 navigation: navigation,
-                user_id: tg?.initDataUnsafe?.user?.id,
-                username: tg?.initDataUnsafe?.user?.username
+                user_id: userData.id || null,
+                username: userData.username || null,
+                first_name: userData.first_name || null
             };
 
             console.log('Отправка данных для шаринга:', shareData);
 
             // Отправляем данные в бот через Telegram Web App
             if (tg) {
-                tg.sendData(JSON.stringify({
-                    action: 'share_product',
-                    ...shareData
-                }));
-                
-                // Показываем модальное окно об успешной отправке
-                showShareModal();
+                try {
+                    tg.sendData(JSON.stringify(shareData));
+                    
+                    // Показываем модальное окно об успешной отправке
+                    showShareModal();
+                } catch (error) {
+                    console.error('Ошибка отправки данных:', error);
+                    // Показываем модальное окно даже при ошибке
+                    showShareModal();
+                }
             } else {
                 // Для отладки вне Telegram
                 console.log('Данные для шаринга:', shareData);
