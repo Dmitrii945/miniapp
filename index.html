@@ -1364,7 +1364,8 @@
                 
                 // Правильное кодирование для совместимости с Python base64
                 const jsonString = JSON.stringify(shareData);
-                const encodedData = btoa(jsonString);
+                // Корректное кодирование для кириллицы и спецсимволов
+                const encodedData = btoa(unescape(encodeURIComponent(jsonString)));
                 const botDeepLink = `https://t.me/SSERVICE72_bot?start=share_${encodedData}`;
                 
                 console.log('🔗 Deep link:', botDeepLink);
