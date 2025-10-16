@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -197,6 +196,15 @@
         
         .taxi-button:hover {
             background-color: #7C3AED;
+        }
+
+        .share-button {
+            background-color: #EC4899;
+            color: white;
+        }
+        
+        .share-button:hover {
+            background-color: #DB2777;
         }
         
         .back-button {
@@ -441,6 +449,34 @@
             color: #374151;
             z-index: 10;
         }
+
+        /* Стили для двухколоночного расположения кнопок */
+        .two-column-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .large-button {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white !important;
+        }
+
+        .large-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -587,6 +623,7 @@
         // Конфигурация
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
+        const BOT_USERNAME = 'SSERVICE72_bot';
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
@@ -722,7 +759,7 @@
             if (tg) {
                 tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
             } else {
-                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позбоните нам!`);
             }
         }
 
@@ -1109,19 +1146,16 @@
 
                 html += `</div>`;
 
+                // Кнопки действий для избранного
                 html += `
-                    <div class="action-buttons">
-                        <button onclick="makePhoneCall()" class="action-button phone-button">
+                    <div class="two-column-buttons">
+                        <button onclick="makePhoneCall()" class="large-button phone-button">
                             <i data-feather="phone" class="w-4 h-4"></i>
                             ${CONTACT_INFO.phone}
                         </button>
-                        <button onclick="open2GIS()" class="action-button gis-button">
-                            <i data-feather="map-pin" class="w-4 h-4"></i>
-                            2GIS
-                        </button>
-                        <button onclick="callTaxi()" class="action-button taxi-button">
-                            <i data-feather="car" class="w-4 h-4"></i>
-                            Такси
+                        <button onclick="shareProductFromFavorites(${index})" class="large-button share-button">
+                            <i data-feather="share-2" class="w-4 h-4"></i>
+                            Поделиться
                         </button>
                     </div>
                 `;
@@ -1189,6 +1223,80 @@
                 tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
             } else {
                 window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        // ФУНКЦИЯ ДЛЯ ПОДЕЛИТЬСЯ ТОВАРОМ
+        function shareProduct(productIndex) {
+            const product = currentProducts[productIndex];
+            const navigation = getCurrentNavigation();
+            
+            if (!product || !navigation.section) {
+                if (tg) {
+                    tg.showAlert('Ошибка: не удалось получить данные товара');
+                }
+                return;
+            }
+
+            // Формируем параметры для команды /share
+            const sectionHash = navigation.section.id;
+            const categoryHash = navigation.category?.id || 'null';
+            const modelHash = navigation.model?.id || 'null';
+            const submodelHash = navigation.submodel?.id || 'null';
+            
+            // Создаем ссылку на бота с командой /share
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
+            
+            if (tg) {
+                // В Telegram WebApp используем native share
+                tg.openTelegramLink(shareUrl);
+            } else {
+                // В браузере показываем инструкцию
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
+                
+                if (navigator.share) {
+                    // Используем Web Share API если доступен
+                    navigator.share({
+                        title: `Товар: ${product.color || 'Без названия'}`,
+                        text: `Посмотрите этот товар в каталоге Скидка Сервис`,
+                        url: shareUrl
+                    }).catch(() => {
+                        // Fallback если share отменен
+                        alert(message);
+                    });
+                } else {
+                    alert(message);
+                }
+            }
+        }
+
+        function shareProductFromFavorites(favoriteIndex) {
+            const favorite = favorites[favoriteIndex];
+            const product = favorite.product;
+            const navigation = favorite.navigation;
+            
+            if (!product || !navigation.section) {
+                if (tg) {
+                    tg.showAlert('Ошибка: не удалось получить данные товара');
+                }
+                return;
+            }
+
+            // Формируем параметры для команды /share
+            const sectionHash = navigation.section.id;
+            const categoryHash = navigation.category?.id || 'null';
+            const modelHash = navigation.model?.id || 'null';
+            const submodelHash = navigation.submodel?.id || 'null';
+            
+            // Находим индекс товара в текущих продуктах (для избранного это сложнее)
+            // Вместо этого создаем специальную команду для избранного
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
+            
+            if (tg) {
+                tg.openTelegramLink(shareUrl);
+            } else {
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} 0`;
+                alert(message);
             }
         }
 
@@ -1877,7 +1985,6 @@
 
                 // Кнопка избранного
                 html += `
-                    <div class="favorite-label">В избранное</div>
                     <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
                         <i data-feather="heart"></i>
                     </div>
@@ -1935,19 +2042,16 @@
 
                 html += `</div>`;
 
+                // Двухколоночное расположение кнопок
                 html += `
-                    <div class="action-buttons">
-                        <button onclick="makePhoneCall()" class="action-button phone-button">
+                    <div class="two-column-buttons">
+                        <button onclick="makePhoneCall()" class="large-button phone-button">
                             <i data-feather="phone" class="w-4 h-4"></i>
                             ${CONTACT_INFO.phone}
                         </button>
-                        <button onclick="open2GIS()" class="action-button gis-button">
-                            <i data-feather="map-pin" class="w-4 h-4"></i>
-                            2GIS
-                        </button>
-                        <button onclick="callTaxi()" class="action-button taxi-button">
-                            <i data-feather="car" class="w-4 h-4"></i>
-                            Такси
+                        <button onclick="shareProduct(${index})" class="large-button share-button">
+                            <i data-feather="share-2" class="w-4 h-4"></i>
+                            Поделиться
                         </button>
                     </div>
                 `;
@@ -2310,6 +2414,8 @@
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
         window.toggleFavorite = toggleFavorite;
         window.toggleFavoriteFromFavorites = toggleFavoriteFromFavorites;
+        window.shareProduct = shareProduct;
+        window.shareProductFromFavorites = shareProductFromFavorites;
         window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
         window.openTelegramChannel = openTelegramChannel;
