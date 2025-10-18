@@ -605,11 +605,11 @@
 
                         <div class="menu-divider"></div>
 
-                        <!-- Главная -->
+                        <!-- МЕНЮ -->
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
                             <div>
-                                <div class="font-medium">Главная</div>
+                                <div class="font-medium">МЕНЮ</div>
                                 <div class="text-sm text-gray-600">Вернуться в каталог</div>
                             </div>
                         </div>
@@ -1483,7 +1483,7 @@
             
             try {
                 navigationStack = [];
-                updateBreadcrumbs([{ name: 'Главная', action: 'loadSections' }]);
+                updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
                 elements.pageTitle.textContent = 'Каталог товаров';
                 
                 const data = await apiFetch('/sections');
@@ -2137,7 +2137,7 @@
         }
 
         function updateBreadcrumbsFromStack() {
-            const items = [{ name: 'Главная', action: 'loadSections' }];
+            const items = [{ name: 'МЕНЮ', action: 'loadSections' }];
             
             navigationStack.forEach(item => {
                 if (item && item.name) {
