@@ -477,6 +477,50 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        /* Стили для статистики */
+        .stats-counter {
+            font-size: 0.75rem;
+            color: #6B7280;
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .admin-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1F2937;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -550,6 +594,15 @@
                             <div>
                                 <div class="font-medium">Избранное</div>
                                 <div class="text-sm text-gray-600">Сохраненные товары</div>
+                            </div>
+                        </div>
+
+                        <!-- Аналитика (только для админов) -->
+                        <div id="adminStatsMenuItem" class="menu-item hidden" onclick="loadAdminStats(); closeSideMenu();">
+                            <i data-feather="bar-chart-2"></i>
+                            <div>
+                                <div class="font-medium">Аналитика</div>
+                                <div class="text-sm text-gray-600">Статистика приложения</div>
                             </div>
                         </div>
 
@@ -628,6 +681,10 @@
         let debugMode = false;
         let featherTimeout;
 
+        // ID админов и разрешенных пользователей
+        const ADMIN_IDS = [1606292950]; // Добавьте сюда ID админов
+        const ALLOWED_USER_IDS = [1606292950]; // Добавьте сюда ID разрешенных пользователей
+
         // Состояние приложения
         let navigationStack = [];
         let currentProducts = [];
@@ -635,6 +692,23 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        let currentUser = null;
+        let isAdmin = false;
+
+        // Система аналитики
+        let analytics = JSON.parse(localStorage.getItem('analytics')) || {
+            buttonClicks: {
+                learnMore: 0,
+                phone: 0,
+                share: 0
+            },
+            userSessions: {},
+            userTypes: {
+                new: 0,
+                returning: 0
+            },
+            lastReset: new Date().toDateString()
+        };
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -659,8 +733,227 @@
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
             pageTitle: document.getElementById('pageTitle'),
-            installButton: document.getElementById('installButton')
+            installButton: document.getElementById('installButton'),
+            adminStatsMenuItem: document.getElementById('adminStatsMenuItem')
         };
+
+        // ========== СИСТЕМА АНАЛИТИКИ ==========
+
+        function initializeAnalytics() {
+            // Получаем информацию о пользователе из Telegram WebApp
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                currentUser = tg.initDataUnsafe.user;
+                isAdmin = ADMIN_IDS.includes(currentUser.id) || ALLOWED_USER_IDS.includes(currentUser.id);
+                
+                // Показываем пункт меню аналитики для админов
+                if (isAdmin && elements.adminStatsMenuItem) {
+                    elements.adminStatsMenuItem.classList.remove('hidden');
+                }
+
+                // Отслеживаем сессию пользователя
+                trackUserSession();
+            }
+
+            // Сохраняем аналитику при закрытии приложения
+            window.addEventListener('beforeunload', saveAnalytics);
+        }
+
+        function trackUserSession() {
+            if (!currentUser) return;
+
+            const today = new Date().toDateString();
+            const userId = currentUser.id;
+            
+            // Инициализируем сессии пользователя если нужно
+            if (!analytics.userSessions[userId]) {
+                analytics.userSessions[userId] = {
+                    firstVisit: today,
+                    lastVisit: today,
+                    totalVisits: 1,
+                    visitDates: [today]
+                };
+                
+                // Определяем тип пользователя
+                if (analytics.userSessions[userId].totalVisits === 1) {
+                    analytics.userTypes.new++;
+                }
+            } else {
+                // Обновляем существующую сессию
+                const userSession = analytics.userSessions[userId];
+                userSession.lastVisit = today;
+                userSession.totalVisits++;
+                
+                // Добавляем дату если её еще нет
+                if (!userSession.visitDates.includes(today)) {
+                    userSession.visitDates.push(today);
+                    
+                    // Если пользователь вернулся в другой день - считаем возвратным
+                    if (userSession.visitDates.length > 1 && analytics.userTypes.new > 0) {
+                        analytics.userTypes.new--;
+                        analytics.userTypes.returning++;
+                    }
+                }
+            }
+
+            saveAnalytics();
+        }
+
+        function trackButtonClick(buttonType) {
+            if (!isAdmin) { // Не отслеживаем клики админов
+                analytics.buttonClicks[buttonType]++;
+                saveAnalytics();
+                
+                // Показываем счетчик если пользователь админ
+                if (isAdmin) {
+                    updateButtonCounters();
+                }
+            }
+        }
+
+        function saveAnalytics() {
+            localStorage.setItem('analytics', JSON.stringify(analytics));
+        }
+
+        function resetAnalytics() {
+            analytics.buttonClicks = {
+                learnMore: 0,
+                phone: 0,
+                share: 0
+            };
+            analytics.lastReset = new Date().toDateString();
+            saveAnalytics();
+            
+            if (tg) {
+                tg.showAlert('Статистика сброшена');
+            }
+            
+            if (isAdmin) {
+                loadAdminStats();
+            }
+        }
+
+        function updateButtonCounters() {
+            // Обновляем счетчики на кнопках
+            document.querySelectorAll('.large-button').forEach(button => {
+                const buttonType = getButtonType(button);
+                if (buttonType && analytics.buttonClicks[buttonType] > 0) {
+                    let counter = button.parentNode.querySelector('.stats-counter');
+                    if (!counter) {
+                        counter = document.createElement('div');
+                        counter.className = 'stats-counter';
+                        button.parentNode.appendChild(counter);
+                    }
+                    counter.textContent = `${analytics.buttonClicks[buttonType]} нажатий`;
+                }
+            });
+        }
+
+        function getButtonType(button) {
+            if (button.classList.contains('phone-button')) return 'phone';
+            if (button.classList.contains('share-button')) return 'share';
+            if (button.textContent.includes('Узнать подробнее')) return 'learnMore';
+            return null;
+        }
+
+        function loadAdminStats() {
+            lastAction = { type: 'loadAdminStats' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Аналитика', action: 'loadAdminStats' }]);
+            elements.pageTitle.textContent = 'Статистика';
+
+            const totalUsers = Object.keys(analytics.userSessions).length;
+            const totalClicks = analytics.buttonClicks.learnMore + analytics.buttonClicks.phone + analytics.buttonClicks.share;
+            
+            let html = `
+                <div class="admin-panel">
+                    <h2 class="text-xl font-bold text-white mb-2">📊 Панель аналитики</h2>
+                    <p class="text-white opacity-90">Статистика использования приложения</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="stat-card">
+                        <div class="stat-number">${totalUsers}</div>
+                        <div class="stat-label">Всего пользователей</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${analytics.userTypes.new}</div>
+                        <div class="stat-label">Новых</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${analytics.userTypes.returning}</div>
+                        <div class="stat-label">Возвратных</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${totalClicks}</div>
+                        <div class="stat-label">Всего кликов</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="font-semibold mb-3">📈 Статистика кнопок</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span>Узнать подробнее:</span>
+                            <span class="font-semibold">${analytics.buttonClicks.learnMore}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Телефон:</span>
+                            <span class="font-semibold">${analytics.buttonClicks.phone}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Поделиться:</span>
+                            <span class="font-semibold">${analytics.buttonClicks.share}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="font-semibold mb-3">👥 Активность пользователей</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span>Всего сессий:</span>
+                            <span class="font-semibold">${Object.values(analytics.userSessions).reduce((sum, session) => sum + session.totalVisits, 0)}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Уникальных дней:</span>
+                            <span class="font-semibold">${new Set(Object.values(analytics.userSessions).flatMap(session => session.visitDates)).size}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mb-4">
+                    <button onclick="resetAnalytics()" class="flex-1 py-3 bg-red-500 text-white rounded-lg font-medium">
+                        Сбросить статистику
+                    </button>
+                    <button onclick="exportAnalytics()" class="flex-1 py-3 bg-green-500 text-white rounded-lg font-medium">
+                        Экспорт данных
+                    </button>
+                </div>
+
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function exportAnalytics() {
+            const dataStr = JSON.stringify(analytics, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `analytics-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            if (tg) {
+                tg.showAlert('Данные экспортированы в JSON файл');
+            }
+        }
 
         // ========== УТИЛИТЫ ==========
 
@@ -755,6 +1048,7 @@
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
+            trackButtonClick('phone');
             const phoneNumber = CONTACT_INFO.phone;
             if (tg) {
                 tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
@@ -1185,6 +1479,11 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
+            // Обновляем счетчики для админов
+            if (isAdmin) {
+                updateButtonCounters();
+            }
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1204,6 +1503,7 @@
         }
 
         function contactAboutSpecificProductFromFavorites(favoriteIndex) {
+            trackButtonClick('learnMore');
             const favorite = favorites[favoriteIndex];
             const product = favorite.product;
             const navigation = favorite.navigation;
@@ -1228,6 +1528,7 @@
 
         // ФУНКЦИЯ ДЛЯ ПОДЕЛИТЬСЯ ТОВАРОМ
         function shareProduct(productIndex) {
+            trackButtonClick('share');
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
             
@@ -1271,6 +1572,7 @@
         }
 
         function shareProductFromFavorites(favoriteIndex) {
+            trackButtonClick('share');
             const favorite = favorites[favoriteIndex];
             const product = favorite.product;
             const navigation = favorite.navigation;
@@ -1722,6 +2024,25 @@
                 </div>
             `;
 
+            // Добавляем кнопку аналитики для админов
+            if (isAdmin) {
+                html += `
+                    <div class="category-card fade-in" onclick="loadAdminStats()">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <i data-feather="bar-chart-2" class="w-5 h-5 mr-3 text-purple-600"></i>
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">Аналитика</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500">Статистика</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             // Добавляем кнопку вызова такси в главное меню
             html += `
                 <div class="category-card fade-in" onclick="callTaxi()">
@@ -2081,10 +2402,16 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
+            // Обновляем счетчики для админов
+            if (isAdmin) {
+                updateButtonCounters();
+            }
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function contactAboutSpecificProduct(productIndex) {
+            trackButtonClick('learnMore');
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
             
@@ -2348,6 +2675,7 @@
             try {
                 initTelegramApp();
                 fixMobileColors();
+                initializeAnalytics(); // Инициализируем аналитику
                 scheduleFeatherReplace();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
@@ -2410,6 +2738,7 @@
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
+        window.loadAdminStats = loadAdminStats;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
         window.toggleFavorite = toggleFavorite;
@@ -2433,6 +2762,9 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
+        window.trackButtonClick = trackButtonClick;
+        window.resetAnalytics = resetAnalytics;
+        window.exportAnalytics = exportAnalytics;
     </script>
 </body>
 </html>
