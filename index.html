@@ -528,6 +528,31 @@
             top: 8px;
             right: 8px;
         }
+
+        /* Стили для обычной карточки категории (без превью) */
+        .category-simple {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-simple-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category-simple-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6B7280;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -1497,35 +1522,56 @@
             }
         }
 
-        // Функция для рендеринга категории с превью
-        function renderCategoryWithPreview(category, sectionId, sectionName, onClickFunction, priceText = '') {
+        // Функция для рендеринга категории с превью (только для конечных категорий)
+        function renderCategoryWithPreview(category, sectionId, sectionName, onClickFunction, priceText = '', isFinalCategory = false) {
             const safeId = escapeHtml(category.id);
             const safeName = escapeHtml(category.name);
             
-            // Создаем карточку категории с превью
-            return `
-                <div class="category-card category-with-image fade-in" onclick="${onClickFunction}">
-                    <div class="category-image-container">
-                        <img src="/api/preview/${sectionId}/${safeId}" 
-                             alt="${safeName}"
-                             class="category-preview-image"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                             loading="lazy">
-                        <div class="w-full h-32 bg-gray-100 flex items-center justify-center hidden">
-                            <div class="text-center text-gray-400">
-                                <i data-feather="package" class="w-8 h-8 mx-auto mb-1"></i>
-                                <div class="text-xs">Нет фото</div>
+            // Если это конечная категория (ведет к товарам), показываем превью
+            if (isFinalCategory) {
+                // Создаем карточку категории с превью
+                return `
+                    <div class="category-card category-with-image fade-in" onclick="${onClickFunction}">
+                        <div class="category-image-container">
+                            <img src="/api/preview/${sectionId}/${safeId}" 
+                                 alt="${safeName}"
+                                 class="category-preview-image"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                 loading="lazy">
+                            <div class="w-full h-32 bg-gray-100 flex items-center justify-center hidden">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="package" class="w-8 h-8 mx-auto mb-1"></i>
+                                    <div class="text-xs">Нет фото</div>
+                                </div>
+                            </div>
+                            <div class="category-overlay">
+                                <div class="category-title">${safeName}</div>
+                            </div>
+                            ${priceText ? `
+                                <div class="category-price-overlay">${priceText.replace(' от ', '').replace(' р.', '')}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Если это промежуточная категория, показываем простую карточку
+                return `
+                    <div class="category-card category-simple fade-in" onclick="${onClickFunction}">
+                        <div class="category-simple-content">
+                            <div class="category-simple-icon">
+                                <i data-feather="folder"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-contrast">${safeName}</h3>
+                                ${priceText ? `<p class="text-sm text-gray-600 mt-1">${priceText}</p>` : ''}
                             </div>
                         </div>
-                        <div class="category-overlay">
-                            <div class="category-title">${safeName}</div>
+                        <div class="text-gray-400">
+                            <i data-feather="chevron-right"></i>
                         </div>
-                        ${priceText ? `
-                            <div class="category-price-overlay">${priceText.replace(' от ', '').replace(' р.', '')}</div>
-                        ` : ''}
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
 
         // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
@@ -1806,28 +1852,32 @@
                 const minPrice = safeNumber(section.min_price);
                 const priceText = formatPriceText(minPrice);
                 
-                // Используем новую функцию для рендеринга с превью
+                // Разделы - это промежуточные категории, поэтому без превью
                 html += renderCategoryWithPreview(
                     section,
                     safeId,
                     safeName,
                     `loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')`,
-                    priceText
+                    priceText,
+                    false // isFinalCategory = false - без превью
                 );
             });
 
             // Добавляем кнопку избранного в главное меню
             html += `
                 <div class="category-card fade-in" onclick="loadFavorites()">
-                    <div class="p-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center">
-                                <i data-feather="heart" class="w-5 h-5 mr-3 text-red-500"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Избранное</h3>
+                    <div class="category-simple">
+                        <div class="category-simple-content">
+                            <div class="category-simple-icon" style="background-color: #FEE2E2; color: #DC2626;">
+                                <i data-feather="heart"></i>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-500">${favorites.length} товаров</span>
+                            <div>
+                                <h3 class="font-semibold text-contrast">Избранное</h3>
+                                <p class="text-sm text-gray-600 mt-1">${favorites.length} товаров</p>
                             </div>
+                        </div>
+                        <div class="text-gray-400">
+                            <i data-feather="chevron-right"></i>
                         </div>
                     </div>
                 </div>
@@ -1836,15 +1886,18 @@
             // Добавляем кнопку вызова такси в главное меню
             html += `
                 <div class="category-card fade-in" onclick="callTaxi()">
-                    <div class="p-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center">
-                                <i data-feather="car" class="w-5 h-5 mr-3 text-purple-600"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Вызвать такси</h3>
+                    <div class="category-simple">
+                        <div class="category-simple-content">
+                            <div class="category-simple-icon" style="background-color: #EDE9FE; color: #7C3AED;">
+                                <i data-feather="car"></i>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-500">До магазина</span>
+                            <div>
+                                <h3 class="font-semibold text-contrast">Вызвать такси</h3>
+                                <p class="text-sm text-gray-600 mt-1">До магазина</p>
                             </div>
+                        </div>
+                        <div class="text-gray-400">
+                            <i data-feather="chevron-right"></i>
                         </div>
                     </div>
                 </div>
@@ -1882,13 +1935,16 @@
                 const minPrice = safeNumber(category.min_price);
                 const priceText = formatPriceText(minPrice);
                 
-                // Используем новую функцию для рендеринга с превью
+                // Проверяем, является ли эта категория конечной (ведет к товарам)
+                const isFinalCategory = checkIfFinalCategory(sectionId, safeId);
+                
                 html += renderCategoryWithPreview(
                     category,
                     sectionId,
                     sectionName,
                     `loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')`,
-                    priceText
+                    priceText,
+                    isFinalCategory
                 );
             });
             
@@ -1921,13 +1977,16 @@
                 const minPrice = safeNumber(model.min_price);
                 const priceText = formatPriceText(minPrice);
                 
-                // Используем новую функцию для рендеринга с превью
+                // Проверяем, является ли эта модель конечной (ведет к товарам)
+                const isFinalCategory = checkIfFinalModel(sectionId, categoryId, safeId);
+                
                 html += renderCategoryWithPreview(
                     model,
                     sectionId,
                     sectionName,
                     `loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')`,
-                    priceText
+                    priceText,
+                    isFinalCategory
                 );
             });
             
@@ -1960,13 +2019,14 @@
                 const minPrice = safeNumber(submodel.min_price);
                 const priceText = formatPriceText(minPrice);
                 
-                // Используем новую функцию для рендеринга с превью
+                // Подмодели всегда ведут к товарам, поэтому показываем превью
                 html += renderCategoryWithPreview(
                     submodel,
                     sectionId,
                     sectionName,
                     `loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')`,
-                    priceText
+                    priceText,
+                    true // isFinalCategory = true - с превью
                 );
             });
             
@@ -1986,6 +2046,43 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+        }
+
+        // Вспомогательные функции для проверки конечных категорий
+        async function checkIfFinalCategory(sectionId, categoryId) {
+            try {
+                const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
+                if (data?.error || !data?.models || data.models.length === 0) {
+                    return true; // Если нет моделей, значит это конечная категория
+                }
+                
+                // Если есть только одна модель "Без модели", то это конечная категория
+                if (data.models.length === 1 && data.models[0].name === "Без модели") {
+                    return true;
+                }
+                
+                return false; // Есть модели для выбора
+            } catch (error) {
+                return true; // В случае ошибки считаем конечной
+            }
+        }
+
+        async function checkIfFinalModel(sectionId, categoryId, modelId) {
+            try {
+                const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
+                if (data?.error || !data?.submodels || data.submodels.length === 0) {
+                    return true; // Если нет подмоделей, значит это конечная модель
+                }
+                
+                // Если есть только одна подмодель "Без подмодели", то это конечная модель
+                if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
+                    return true;
+                }
+                
+                return false; // Есть подмодели для выбора
+            } catch (error) {
+                return true; // В случае ошибки считаем конечной
+            }
         }
 
         function renderProductBreadcrumbs(navigation) {
