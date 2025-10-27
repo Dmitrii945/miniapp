@@ -548,6 +548,15 @@
             background-color: #F59E0B;
             color: white;
         }
+
+        .brigade-number {
+            background-color: #3B82F6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -649,7 +658,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
+                                <div class="text-sm text-gray-600">60-01-60</div>
                             </div>
                         </div>
                         
@@ -718,8 +727,8 @@
         let featherTimeout;
 
         // ID админов и разрешенных пользователей
-        const ADMIN_IDS = [1606292950]; // Добавьте сюда ID админов
-        const ALLOWED_USER_IDS = [1606292950]; // Добавьте сюда ID разрешенных пользователей
+        const ADMIN_IDS = [1606292950];
+        const ALLOWED_USER_IDS = [1606292950];
 
         // Состояние приложения
         let navigationStack = [];
@@ -776,21 +785,17 @@
         // ========== СИСТЕМА АНАЛИТИКИ ==========
 
         function initializeAnalytics() {
-            // Получаем информацию о пользователе из Telegram WebApp
             if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 currentUser = tg.initDataUnsafe.user;
                 isAdmin = ADMIN_IDS.includes(currentUser.id) || ALLOWED_USER_IDS.includes(currentUser.id);
                 
-                // Показываем пункт меню аналитики для админов
                 if (isAdmin && elements.adminStatsMenuItem) {
                     elements.adminStatsMenuItem.classList.remove('hidden');
                 }
 
-                // Отслеживаем сессию пользователя
                 trackUserSession();
             }
 
-            // Сохраняем аналитику при закрытии приложения
             window.addEventListener('beforeunload', saveAnalytics);
         }
 
@@ -800,7 +805,6 @@
             const today = new Date().toDateString();
             const userId = currentUser.id;
             
-            // Инициализируем сессии пользователя если нужно
             if (!analytics.userSessions[userId]) {
                 analytics.userSessions[userId] = {
                     firstVisit: today,
@@ -809,21 +813,17 @@
                     visitDates: [today]
                 };
                 
-                // Определяем тип пользователя
                 if (analytics.userSessions[userId].totalVisits === 1) {
                     analytics.userTypes.new++;
                 }
             } else {
-                // Обновляем существующую сессию
                 const userSession = analytics.userSessions[userId];
                 userSession.lastVisit = today;
                 userSession.totalVisits++;
                 
-                // Добавляем дату если её еще нет
                 if (!userSession.visitDates.includes(today)) {
                     userSession.visitDates.push(today);
                     
-                    // Если пользователь вернулся в другой день - считаем возвратным
                     if (userSession.visitDates.length > 1 && analytics.userTypes.new > 0) {
                         analytics.userTypes.new--;
                         analytics.userTypes.returning++;
@@ -835,11 +835,10 @@
         }
 
         function trackButtonClick(buttonType) {
-            if (!isAdmin) { // Не отслеживаем клики админов
+            if (!isAdmin) {
                 analytics.buttonClicks[buttonType]++;
                 saveAnalytics();
                 
-                // Показываем счетчик если пользователь админ
                 if (isAdmin) {
                     updateButtonCounters();
                 }
@@ -869,7 +868,6 @@
         }
 
         function updateButtonCounters() {
-            // Обновляем счетчики на кнопках
             document.querySelectorAll('.large-button').forEach(button => {
                 const buttonType = getButtonType(button);
                 if (buttonType && analytics.buttonClicks[buttonType] > 0) {
@@ -1008,7 +1006,7 @@
                 
                 hideLoading();
                 
-                if (data.error) {
+                if (data?.error) {
                     showEmptyState('Ошибка загрузки бригад');
                     return;
                 }
@@ -1069,7 +1067,7 @@
                                     <h3 class="font-semibold text-lg tg-theme-text text-contrast">${brigadeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm text-gray-500">Бригада ${brigadeNumber}</span>
+                                    <span class="brigade-number">Бригада ${brigadeNumber}</span>
                                 </div>
                             </div>
                         </div>
@@ -1105,7 +1103,7 @@
                 
                 hideLoading();
                 
-                if (data.error) {
+                if (data?.error) {
                     showEmptyState('Ошибка загрузки объектов бригады');
                     return;
                 }
@@ -1201,7 +1199,7 @@
                 
                 hideLoading();
                 
-                if (data.error) {
+                if (data?.error) {
                     showEmptyState('Ошибка загрузки деталей объекта');
                     return;
                 }
@@ -1482,7 +1480,6 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
-            // Ссылка для Яндекс Такси с координатами
             const yandexTaxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lon}&end-text=${address}&appmetrica_tracking_id=1178268795219780156`;
             
             if (tg) {
@@ -1497,7 +1494,6 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
-            // Ссылка для Uber с координатами
             const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${address}&dropoff[latitude]=${lat}&dropoff[longitude]=${lon}`;
             
             if (tg) {
@@ -1510,10 +1506,8 @@
         // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
         function installPWA() {
             if (deferredPrompt) {
-                // Показываем запрос на установку
                 deferredPrompt.prompt();
                 
-                // Ждем ответа пользователя
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('Пользователь принял установку');
@@ -1526,11 +1520,9 @@
                         console.log('Пользователь отклонил установку');
                     }
                     
-                    // Сбрасываем deferredPrompt после использования
                     deferredPrompt = null;
                 });
             } else {
-                // Если deferredPrompt недоступен, показываем инструкции
                 showInstallInstructions();
             }
         }
@@ -1622,13 +1614,11 @@
             const isFavorite = favorites.some(fav => fav.id === productId);
             
             if (isFavorite) {
-                // Удаляем из избранного
                 favorites = favorites.filter(fav => fav.id !== productId);
                 if (tg) {
                     tg.showAlert('Товар удален из избранного');
                 }
             } else {
-                // Добавляем в избранное
                 const navigation = getCurrentNavigation();
                 favorites.push({
                     id: productId,
@@ -1641,15 +1631,11 @@
                 }
             }
             
-            // Сохраняем в localStorage
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            // Обновляем отображение кнопки
             updateFavoriteButton(productId, productIndex);
         }
 
         function generateProductId(product) {
-            // Создаем уникальный идентификатор на основе данных товара
             return btoa(encodeURIComponent(
                 `${product.color || ''}-${product.price || ''}-${product.photo_url || ''}`
             )).substring(0, 20);
@@ -1715,7 +1701,6 @@
                     <div class="product-card fade-in" data-product-index="${index}">
                 `;
 
-                // Кнопка избранного
                 html += `
                     <div class="favorite-label">В избранном</div>
                     <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
@@ -1773,7 +1758,6 @@
                     html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
                 }
 
-                // Хлебные крошки для навигации
                 if (navigation) {
                     const breadcrumbs = [];
                     
@@ -1800,7 +1784,6 @@
 
                 html += `</div>`;
 
-                // Кнопки действий для избранного
                 html += `
                     <div class="two-column-buttons">
                         <button onclick="makePhoneCall()" class="large-button phone-button">
@@ -1817,7 +1800,7 @@
                 html += `
                     <div class="mt-3">
                         <button onclick="contactAboutSpecificProductFromFavorites(${index})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-content: center">
                             <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                             Узнать подробнее
                         </button>
@@ -1839,7 +1822,6 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
-            // Обновляем счетчики для админов
             if (isAdmin) {
                 updateButtonCounters();
             }
@@ -1899,30 +1881,24 @@
                 return;
             }
 
-            // Формируем параметры для команды /share
             const sectionHash = navigation.section.id;
             const categoryHash = navigation.category?.id || 'null';
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
-            // Создаем ссылку на бота с командой /share
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
             
             if (tg) {
-                // В Telegram WebApp используем native share
                 tg.openTelegramLink(shareUrl);
             } else {
-                // В браузере показываем инструкцию
                 const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
                 
                 if (navigator.share) {
-                    // Используем Web Share API если доступен
                     navigator.share({
                         title: `Товар: ${product.color || 'Без названия'}`,
                         text: `Посмотрите этот товар в каталоге Скидка Сервис`,
                         url: shareUrl
                     }).catch(() => {
-                        // Fallback если share отменен
                         alert(message);
                     });
                 } else {
@@ -1944,14 +1920,11 @@
                 return;
             }
 
-            // Формируем параметры для команды /share
             const sectionHash = navigation.section.id;
             const categoryHash = navigation.category?.id || 'null';
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
-            // Находим индекс товара в текущих продуктах (для избранного это сложнее)
-            // Вместо этого создаем специальную команду для избранного
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
             
             if (tg) {
@@ -2171,7 +2144,6 @@
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
                 
@@ -2212,7 +2184,6 @@
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
                 
@@ -2254,7 +2225,6 @@
             lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'submodels');
                 navigationStack.push({ type: 'models', id: modelId, name: modelName });
                 
@@ -2444,7 +2414,6 @@
                 return;
             }
             
-            // Кнопка "Назад" показывается только если есть куда возвращаться
             if (navigationStack.length > 0) {
                 html += `
                     <button onclick="goBack()" class="back-button">
@@ -2681,7 +2650,6 @@
                     <div class="product-card fade-in" data-product-index="${index}">
                 `;
 
-                // Кнопка избранного
                 html += `
                     <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
                         <i data-feather="heart"></i>
@@ -2740,7 +2708,6 @@
 
                 html += `</div>`;
 
-                // Двухколоночное расположение кнопок
                 html += `
                     <div class="two-column-buttons">
                         <button onclick="makePhoneCall()" class="large-button phone-button">
@@ -2779,7 +2746,6 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
-            // Обновляем счетчики для админов
             if (isAdmin) {
                 updateButtonCounters();
             }
@@ -3080,7 +3046,7 @@
             try {
                 initTelegramApp();
                 fixMobileColors();
-                initializeAnalytics(); // Инициализируем аналитику
+                initializeAnalytics();
                 scheduleFeatherReplace();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
@@ -3105,21 +3071,15 @@
                     }
                 });
 
-                // Обработчик события beforeinstallprompt для PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
-                    // Предотвращаем автоматическое отображение подсказки
                     e.preventDefault();
-                    // Сохраняем событие для использования позже
                     deferredPrompt = e;
-                    // Показываем кнопку установки
                     if (installButton) {
                         installButton.style.display = 'flex';
                     }
                 });
 
-                // Обработчик события appinstalled
                 window.addEventListener('appinstalled', (e) => {
-                    // Приложение было установлено
                     deferredPrompt = null;
                     if (installButton) {
                         installButton.style.display = 'none';
