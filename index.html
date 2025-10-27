@@ -477,86 +477,6 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
-        /* Стили для статистики */
-        .stats-counter {
-            font-size: 0.75rem;
-            color: #6B7280;
-            text-align: center;
-            margin-top: 4px;
-            font-weight: 500;
-        }
-
-        .admin-panel {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #1F2937;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6B7280;
-        }
-
-        .chart-container {
-            background: white;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* Стили для статусов бригад */
-        .status-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 10;
-        }
-
-        .status-sold {
-            background-color: #EF4444;
-            color: white;
-        }
-
-        .status-selling {
-            background-color: #10B981;
-            color: white;
-        }
-
-        .status-building {
-            background-color: #F59E0B;
-            color: white;
-        }
-
-        .brigade-number {
-            background-color: #3B82F6;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -633,24 +553,6 @@
                             </div>
                         </div>
 
-                        <!-- Бригады -->
-                        <div class="menu-item" onclick="loadBrigadeGroups(); closeSideMenu();">
-                            <i data-feather="users"></i>
-                            <div>
-                                <div class="font-medium">Бригады</div>
-                                <div class="text-sm text-gray-600">Наши строительные бригады</div>
-                            </div>
-                        </div>
-
-                        <!-- Аналитика (только для админов) -->
-                        <div id="adminStatsMenuItem" class="menu-item hidden" onclick="loadAdminStats(); closeSideMenu();">
-                            <i data-feather="bar-chart-2"></i>
-                            <div>
-                                <div class="font-medium">Аналитика</div>
-                                <div class="text-sm text-gray-600">Статистика приложения</div>
-                            </div>
-                        </div>
-
                         <div class="menu-divider"></div>
                         
                         <!-- Контакты -->
@@ -658,7 +560,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
                             </div>
                         </div>
                         
@@ -726,10 +628,6 @@
         let debugMode = false;
         let featherTimeout;
 
-        // ID админов и разрешенных пользователей
-        const ADMIN_IDS = [1606292950];
-        const ALLOWED_USER_IDS = [1606292950];
-
         // Состояние приложения
         let navigationStack = [];
         let currentProducts = [];
@@ -737,23 +635,6 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentUser = null;
-        let isAdmin = false;
-
-        // Система аналитики
-        let analytics = JSON.parse(localStorage.getItem('analytics')) || {
-            buttonClicks: {
-                learnMore: 0,
-                phone: 0,
-                share: 0
-            },
-            userSessions: {},
-            userTypes: {
-                new: 0,
-                returning: 0
-            },
-            lastReset: new Date().toDateString()
-        };
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -778,610 +659,8 @@
             errorMessage: document.getElementById('errorMessage'),
             sideMenu: document.getElementById('sideMenu'),
             pageTitle: document.getElementById('pageTitle'),
-            installButton: document.getElementById('installButton'),
-            adminStatsMenuItem: document.getElementById('adminStatsMenuItem')
+            installButton: document.getElementById('installButton')
         };
-
-        // ========== СИСТЕМА АНАЛИТИКИ ==========
-
-        function initializeAnalytics() {
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                currentUser = tg.initDataUnsafe.user;
-                isAdmin = ADMIN_IDS.includes(currentUser.id) || ALLOWED_USER_IDS.includes(currentUser.id);
-                
-                if (isAdmin && elements.adminStatsMenuItem) {
-                    elements.adminStatsMenuItem.classList.remove('hidden');
-                }
-
-                trackUserSession();
-            }
-
-            window.addEventListener('beforeunload', saveAnalytics);
-        }
-
-        function trackUserSession() {
-            if (!currentUser) return;
-
-            const today = new Date().toDateString();
-            const userId = currentUser.id;
-            
-            if (!analytics.userSessions[userId]) {
-                analytics.userSessions[userId] = {
-                    firstVisit: today,
-                    lastVisit: today,
-                    totalVisits: 1,
-                    visitDates: [today]
-                };
-                
-                if (analytics.userSessions[userId].totalVisits === 1) {
-                    analytics.userTypes.new++;
-                }
-            } else {
-                const userSession = analytics.userSessions[userId];
-                userSession.lastVisit = today;
-                userSession.totalVisits++;
-                
-                if (!userSession.visitDates.includes(today)) {
-                    userSession.visitDates.push(today);
-                    
-                    if (userSession.visitDates.length > 1 && analytics.userTypes.new > 0) {
-                        analytics.userTypes.new--;
-                        analytics.userTypes.returning++;
-                    }
-                }
-            }
-
-            saveAnalytics();
-        }
-
-        function trackButtonClick(buttonType) {
-            if (!isAdmin) {
-                analytics.buttonClicks[buttonType]++;
-                saveAnalytics();
-                
-                if (isAdmin) {
-                    updateButtonCounters();
-                }
-            }
-        }
-
-        function saveAnalytics() {
-            localStorage.setItem('analytics', JSON.stringify(analytics));
-        }
-
-        function resetAnalytics() {
-            analytics.buttonClicks = {
-                learnMore: 0,
-                phone: 0,
-                share: 0
-            };
-            analytics.lastReset = new Date().toDateString();
-            saveAnalytics();
-            
-            if (tg) {
-                tg.showAlert('Статистика сброшена');
-            }
-            
-            if (isAdmin) {
-                loadAdminStats();
-            }
-        }
-
-        function updateButtonCounters() {
-            document.querySelectorAll('.large-button').forEach(button => {
-                const buttonType = getButtonType(button);
-                if (buttonType && analytics.buttonClicks[buttonType] > 0) {
-                    let counter = button.parentNode.querySelector('.stats-counter');
-                    if (!counter) {
-                        counter = document.createElement('div');
-                        counter.className = 'stats-counter';
-                        button.parentNode.appendChild(counter);
-                    }
-                    counter.textContent = `${analytics.buttonClicks[buttonType]} нажатий`;
-                }
-            });
-        }
-
-        function getButtonType(button) {
-            if (button.classList.contains('phone-button')) return 'phone';
-            if (button.classList.contains('share-button')) return 'share';
-            if (button.textContent.includes('Узнать подробнее')) return 'learnMore';
-            return null;
-        }
-
-        function loadAdminStats() {
-            lastAction = { type: 'loadAdminStats' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Аналитика', action: 'loadAdminStats' }]);
-            elements.pageTitle.textContent = 'Статистика';
-
-            const totalUsers = Object.keys(analytics.userSessions).length;
-            const totalClicks = analytics.buttonClicks.learnMore + analytics.buttonClicks.phone + analytics.buttonClicks.share;
-            
-            let html = `
-                <div class="admin-panel">
-                    <h2 class="text-xl font-bold text-white mb-2">📊 Панель аналитики</h2>
-                    <p class="text-white opacity-90">Статистика использования приложения</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="stat-card">
-                        <div class="stat-number">${totalUsers}</div>
-                        <div class="stat-label">Всего пользователей</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${analytics.userTypes.new}</div>
-                        <div class="stat-label">Новых</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${analytics.userTypes.returning}</div>
-                        <div class="stat-label">Возвратных</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${totalClicks}</div>
-                        <div class="stat-label">Всего кликов</div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <h3 class="font-semibold mb-3">📈 Статистика кнопок</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span>Узнать подробнее:</span>
-                            <span class="font-semibold">${analytics.buttonClicks.learnMore}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span>Телефон:</span>
-                            <span class="font-semibold">${analytics.buttonClicks.phone}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span>Поделиться:</span>
-                            <span class="font-semibold">${analytics.buttonClicks.share}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <h3 class="font-semibold mb-3">👥 Активность пользователей</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span>Всего сессий:</span>
-                            <span class="font-semibold">${Object.values(analytics.userSessions).reduce((sum, session) => sum + session.totalVisits, 0)}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span>Уникальных дней:</span>
-                            <span class="font-semibold">${new Set(Object.values(analytics.userSessions).flatMap(session => session.visitDates)).size}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex gap-2 mb-4">
-                    <button onclick="resetAnalytics()" class="flex-1 py-3 bg-red-500 text-white rounded-lg font-medium">
-                        Сбросить статистику
-                    </button>
-                    <button onclick="exportAnalytics()" class="flex-1 py-3 bg-green-500 text-white rounded-lg font-medium">
-                        Экспорт данных
-                    </button>
-                </div>
-
-                <button onclick="loadSections()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад в каталог
-                </button>
-            `;
-
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        function exportAnalytics() {
-            const dataStr = JSON.stringify(analytics, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `analytics-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            if (tg) {
-                tg.showAlert('Данные экспортированы в JSON файл');
-            }
-        }
-
-        // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
-
-        async function loadBrigadeGroups() {
-            lastAction = { type: 'loadBrigadeGroups' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigadeGroups' }]);
-            elements.pageTitle.textContent = 'Наши бригады';
-            
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/brigade_groups`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data?.error) {
-                    showEmptyState('Ошибка загрузки групп бригад');
-                    return;
-                }
-                
-                if (!data.groups || data.groups.length === 0) {
-                    showEmptyState('Группы бригад не найдены');
-                    return;
-                }
-                
-                renderBrigadeGroups(data.groups);
-                updateBackButton();
-                
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки групп бригад');
-            }
-        }
-
-        function renderBrigadeGroups(groups) {
-            let html = '<div class="space-y-3">';
-            
-            groups.forEach(group => {
-                const groupId = escapeHtml(group.id);
-                const groupName = escapeHtml(group.name);
-                
-                html += `
-                    <div class="category-card fade-in" onclick="loadBrigadesInGroup('${groupId}', '${groupName.replace(/'/g, "\\'")}')">
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${groupName}</h3>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-gray-500">${group.brigade_count || 0} бригад</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            
-            html += `
-                <button onclick="loadSections()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад в каталог
-                </button>
-            `;
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        async function loadBrigadesInGroup(groupId, groupName) {
-            lastAction = { type: 'loadBrigadesInGroup', groupId, groupName };
-            
-            navigationStack.push({ type: 'brigade_groups', id: groupId, name: groupName });
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = groupName;
-            
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/brigades_in_group/${groupId}`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data?.error) {
-                    showEmptyState('Ошибка загрузки бригад');
-                    return;
-                }
-                
-                if (!data.brigades || data.brigades.length === 0) {
-                    showEmptyState('Бригады не найдены');
-                    return;
-                }
-                
-                renderBrigades(data.brigades, groupId, groupName);
-                updateBackButton();
-                
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки бригад');
-            }
-        }
-
-        function renderBrigades(brigades, groupId, groupName) {
-            let html = '<div class="space-y-3">';
-            
-            brigades.forEach(brigade => {
-                const brigadeId = escapeHtml(brigade.id);
-                const brigadeName = escapeHtml(brigade.name);
-                const brigadeNumber = escapeHtml(brigade.number);
-                const photoUrl = extractPhotoFilenameFromUrl(brigade.photo_url);
-                const alternativeUrls = getAlternativeImageUrls(brigade.photo_url);
-                
-                html += `
-                    <div class="category-card fade-in" onclick="loadBrigadeObjects('${groupId}', '${groupName.replace(/'/g, "\\'")}', '${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}')">
-                        <div class="relative">
-                            ${photoUrl ? `
-                                <img src="${escapeHtml(photoUrl)}" alt="${brigadeName}" 
-                                     class="product-image w-full h-48 object-cover"
-                                     onerror="handleImageError(this, '${escapeHtml(brigade.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                     onload="handleImageLoad(this)"
-                                     loading="lazy"
-                                     crossorigin="anonymous"
-                                     data-tried-alternative="0">
-                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                                    <div class="text-center text-gray-400">
-                                        <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                        <div class="text-sm">Не удалось загрузить фото</div>
-                                    </div>
-                                </div>
-                            ` : `
-                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                                    <div class="text-center text-gray-400">
-                                        <i data-feather="users" class="w-12 h-12 mx-auto mb-2"></i>
-                                        <div class="text-sm">Фото не доступно</div>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${brigadeName}</h3>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="brigade-number">Бригада ${brigadeNumber}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            
-            html += `
-                <button onclick="goBack()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад к группам
-                </button>
-            `;
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        async function loadBrigadeObjects(groupId, groupName, brigadeId, brigadeName) {
-            lastAction = { type: 'loadBrigadeObjects', groupId, groupName, brigadeId, brigadeName };
-            
-            navigationStack.push({ type: 'brigades', id: brigadeId, name: brigadeName });
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = brigadeName;
-            
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/brigade_objects/${groupId}/${brigadeId}`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data?.error) {
-                    showEmptyState('Ошибка загрузки объектов бригады');
-                    return;
-                }
-                
-                if (!data.objects || data.objects.length === 0) {
-                    showEmptyState('Объекты бригады не найдены');
-                    return;
-                }
-                
-                renderBrigadeObjects(data.objects, groupId, groupName, brigadeId, brigadeName);
-                updateBackButton();
-                
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки объектов бригады');
-            }
-        }
-
-        function renderBrigadeObjects(objects, groupId, groupName, brigadeId, brigadeName) {
-            let html = '<div class="space-y-3">';
-            
-            objects.forEach(object => {
-                const objectId = escapeHtml(object.id);
-                const objectNumber = escapeHtml(object.object_number);
-                const photoUrl = extractPhotoFilenameFromUrl(object.photo_url);
-                const alternativeUrls = getAlternativeImageUrls(object.photo_url);
-                const status = getStatusText(object.status);
-                const statusClass = getStatusClass(object.status);
-                
-                html += `
-                    <div class="category-card fade-in" onclick="loadBrigadeObjectDetails('${groupId}', '${groupName.replace(/'/g, "\\'")}', '${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}', '${objectId}', '${objectNumber.replace(/'/g, "\\'")}')">
-                        <div class="relative">
-                            ${photoUrl ? `
-                                <img src="${escapeHtml(photoUrl)}" alt="Объект ${objectNumber}" 
-                                     class="product-image w-full h-48 object-cover"
-                                     onerror="handleImageError(this, '${escapeHtml(object.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                     onload="handleImageLoad(this)"
-                                     loading="lazy"
-                                     crossorigin="anonymous"
-                                     data-tried-alternative="0">
-                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                                    <div class="text-center text-gray-400">
-                                        <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                        <div class="text-sm">Не удалось загрузить фото</div>
-                                    </div>
-                                </div>
-                            ` : `
-                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                                    <div class="text-center text-gray-400">
-                                        <i data-feather="home" class="w-12 h-12 mx-auto mb-2"></i>
-                                        <div class="text-sm">Фото не доступно</div>
-                                    </div>
-                                </div>
-                            `}
-                            <div class="status-badge ${statusClass}">${status}</div>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">Объект ${objectNumber}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            
-            html += `
-                <button onclick="goBack()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад к бригадам
-                </button>
-            `;
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        async function loadBrigadeObjectDetails(groupId, groupName, brigadeId, brigadeName, objectId, objectNumber) {
-            lastAction = { type: 'loadBrigadeObjectDetails', groupId, groupName, brigadeId, brigadeName, objectId, objectNumber };
-            
-            navigationStack.push({ type: 'brigade_objects', id: objectId, name: `Объект ${objectNumber}` });
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = `Объект ${objectNumber}`;
-            
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/brigade_object_details/${groupId}/${brigadeId}/${objectId}`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data?.error) {
-                    showEmptyState('Ошибка загрузки деталей объекта');
-                    return;
-                }
-                
-                if (!data.object_details) {
-                    showEmptyState('Детали объекта не найдены');
-                    return;
-                }
-                
-                renderBrigadeObjectDetails(data.object_details, groupId, groupName, brigadeId, brigadeName, objectId, objectNumber);
-                updateBackButton();
-                
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки деталей объекта');
-            }
-        }
-
-        function renderBrigadeObjectDetails(objectDetails, groupId, groupName, brigadeId, brigadeName, objectId, objectNumber) {
-            let html = '<div class="space-y-4">';
-            
-            // Описание объекта
-            if (objectDetails.description) {
-                html += `
-                    <div class="bg-white rounded-xl p-4 shadow-sm">
-                        <h3 class="font-semibold text-lg mb-2 text-contrast">Описание объекта</h3>
-                        <p class="text-gray-700 text-contrast">${escapeHtml(objectDetails.description)}</p>
-                    </div>
-                `;
-            }
-            
-            // Все фото объекта
-            if (objectDetails.photos && objectDetails.photos.length > 0) {
-                html += '<div class="space-y-3">';
-                
-                objectDetails.photos.forEach((photo, index) => {
-                    const photoUrl = extractPhotoFilenameFromUrl(photo.photo_url);
-                    const alternativeUrls = getAlternativeImageUrls(photo.photo_url);
-                    const status = getStatusText(photo.status);
-                    const statusClass = getStatusClass(photo.status);
-                    
-                    html += `
-                        <div class="product-card">
-                            <div class="relative">
-                                ${photoUrl ? `
-                                    <img src="${escapeHtml(photoUrl)}" alt="Фото объекта ${objectNumber}" 
-                                         class="product-image w-full h-48 object-cover"
-                                         onerror="handleImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                         onload="handleImageLoad(this)"
-                                         loading="lazy"
-                                         crossorigin="anonymous"
-                                         data-tried-alternative="0">
-                                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                                        <div class="text-center text-gray-400">
-                                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                            <div class="text-sm">Не удалось загрузить фото</div>
-                                        </div>
-                                    </div>
-                                ` : `
-                                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                                        <div class="text-center text-gray-400">
-                                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                            <div class="text-sm">Фото не доступно</div>
-                                        </div>
-                                    </div>
-                                `}
-                                <div class="status-badge ${statusClass}">${status}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += '</div>';
-            } else {
-                html += `
-                    <div class="bg-white rounded-xl p-8 text-center shadow-sm">
-                        <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-                        <p class="text-gray-500 text-contrast">Фотографии объекта отсутствуют</p>
-                    </div>
-                `;
-            }
-            
-            html += '</div>';
-            
-            html += `
-                <button onclick="goBack()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад к объектам
-                </button>
-            `;
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        function getStatusText(statusCode) {
-            switch (parseInt(statusCode)) {
-                case 0: return 'Продано';
-                case 1: return 'В продаже';
-                case 3: return 'Строится';
-                default: return 'Неизвестно';
-            }
-        }
-
-        function getStatusClass(statusCode) {
-            switch (parseInt(statusCode)) {
-                case 0: return 'status-sold';
-                case 1: return 'status-selling';
-                case 3: return 'status-building';
-                default: return 'status-selling';
-            }
-        }
 
         // ========== УТИЛИТЫ ==========
 
@@ -1476,7 +755,6 @@
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
-            trackButtonClick('phone');
             const phoneNumber = CONTACT_INFO.phone;
             if (tg) {
                 tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
@@ -1550,6 +828,7 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
+            // Ссылка для Яндекс Такси с координатами
             const yandexTaxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lon}&end-text=${address}&appmetrica_tracking_id=1178268795219780156`;
             
             if (tg) {
@@ -1564,6 +843,7 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
+            // Ссылка для Uber с координатами
             const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${address}&dropoff[latitude]=${lat}&dropoff[longitude]=${lon}`;
             
             if (tg) {
@@ -1576,8 +856,10 @@
         // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
         function installPWA() {
             if (deferredPrompt) {
+                // Показываем запрос на установку
                 deferredPrompt.prompt();
                 
+                // Ждем ответа пользователя
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('Пользователь принял установку');
@@ -1590,9 +872,11 @@
                         console.log('Пользователь отклонил установку');
                     }
                     
+                    // Сбрасываем deferredPrompt после использования
                     deferredPrompt = null;
                 });
             } else {
+                // Если deferredPrompt недоступен, показываем инструкции
                 showInstallInstructions();
             }
         }
@@ -1684,11 +968,13 @@
             const isFavorite = favorites.some(fav => fav.id === productId);
             
             if (isFavorite) {
+                // Удаляем из избранного
                 favorites = favorites.filter(fav => fav.id !== productId);
                 if (tg) {
                     tg.showAlert('Товар удален из избранного');
                 }
             } else {
+                // Добавляем в избранное
                 const navigation = getCurrentNavigation();
                 favorites.push({
                     id: productId,
@@ -1701,11 +987,15 @@
                 }
             }
             
+            // Сохраняем в localStorage
             localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // Обновляем отображение кнопки
             updateFavoriteButton(productId, productIndex);
         }
 
         function generateProductId(product) {
+            // Создаем уникальный идентификатор на основе данных товара
             return btoa(encodeURIComponent(
                 `${product.color || ''}-${product.price || ''}-${product.photo_url || ''}`
             )).substring(0, 20);
@@ -1771,6 +1061,7 @@
                     <div class="product-card fade-in" data-product-index="${index}">
                 `;
 
+                // Кнопка избранного
                 html += `
                     <div class="favorite-label">В избранном</div>
                     <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
@@ -1828,6 +1119,7 @@
                     html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
                 }
 
+                // Хлебные крошки для навигации
                 if (navigation) {
                     const breadcrumbs = [];
                     
@@ -1854,6 +1146,7 @@
 
                 html += `</div>`;
 
+                // Кнопки действий для избранного
                 html += `
                     <div class="two-column-buttons">
                         <button onclick="makePhoneCall()" class="large-button phone-button">
@@ -1870,7 +1163,7 @@
                 html += `
                     <div class="mt-3">
                         <button onclick="contactAboutSpecificProductFromFavorites(${index})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-content: center">
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                             Узнать подробнее
                         </button>
@@ -1892,10 +1185,6 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
-            if (isAdmin) {
-                updateButtonCounters();
-            }
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1915,7 +1204,6 @@
         }
 
         function contactAboutSpecificProductFromFavorites(favoriteIndex) {
-            trackButtonClick('learnMore');
             const favorite = favorites[favoriteIndex];
             const product = favorite.product;
             const navigation = favorite.navigation;
@@ -1940,7 +1228,6 @@
 
         // ФУНКЦИЯ ДЛЯ ПОДЕЛИТЬСЯ ТОВАРОМ
         function shareProduct(productIndex) {
-            trackButtonClick('share');
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
             
@@ -1951,24 +1238,30 @@
                 return;
             }
 
+            // Формируем параметры для команды /share
             const sectionHash = navigation.section.id;
             const categoryHash = navigation.category?.id || 'null';
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
+            // Создаем ссылку на бота с командой /share
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
             
             if (tg) {
+                // В Telegram WebApp используем native share
                 tg.openTelegramLink(shareUrl);
             } else {
+                // В браузере показываем инструкцию
                 const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
                 
                 if (navigator.share) {
+                    // Используем Web Share API если доступен
                     navigator.share({
                         title: `Товар: ${product.color || 'Без названия'}`,
                         text: `Посмотрите этот товар в каталоге Скидка Сервис`,
                         url: shareUrl
                     }).catch(() => {
+                        // Fallback если share отменен
                         alert(message);
                     });
                 } else {
@@ -1978,7 +1271,6 @@
         }
 
         function shareProductFromFavorites(favoriteIndex) {
-            trackButtonClick('share');
             const favorite = favorites[favoriteIndex];
             const product = favorite.product;
             const navigation = favorite.navigation;
@@ -1990,11 +1282,14 @@
                 return;
             }
 
+            // Формируем параметры для команды /share
             const sectionHash = navigation.section.id;
             const categoryHash = navigation.category?.id || 'null';
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
+            // Находим индекс товара в текущих продуктах (для избранного это сложнее)
+            // Вместо этого создаем специальную команду для избранного
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
             
             if (tg) {
@@ -2012,7 +1307,7 @@
                 url = url.trim();
 
                 if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
-                    return url if url.startsWith('http') ? url : null;
+                    return url.startsWith('http') ? url : null;
                 }
 
                 if (url.includes('drive.google.com')) {
@@ -2214,6 +1509,7 @@
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
+                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
                 
@@ -2254,6 +1550,7 @@
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
+                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
                 
@@ -2295,6 +1592,7 @@
             lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
             
             try {
+                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'submodels');
                 navigationStack.push({ type: 'models', id: modelId, name: modelName });
                 
@@ -2424,42 +1722,6 @@
                 </div>
             `;
 
-            // Добавляем кнопку бригад в главное меню
-            html += `
-                <div class="category-card fade-in" onclick="loadBrigadeGroups()">
-                    <div class="p-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center">
-                                <i data-feather="users" class="w-5 h-5 mr-3 text-blue-500"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Бригады</h3>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-500">Наши объекты</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Добавляем кнопку аналитики для админов
-            if (isAdmin) {
-                html += `
-                    <div class="category-card fade-in" onclick="loadAdminStats()">
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <i data-feather="bar-chart-2" class="w-5 h-5 mr-3 text-purple-600"></i>
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">Аналитика</h3>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-gray-500">Статистика</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
             // Добавляем кнопку вызова такси в главное меню
             html += `
                 <div class="category-card fade-in" onclick="callTaxi()">
@@ -2484,6 +1746,7 @@
                 return;
             }
             
+            // Кнопка "Назад" показывается только если есть куда возвращаться
             if (navigationStack.length > 0) {
                 html += `
                     <button onclick="goBack()" class="back-button">
@@ -2720,6 +1983,7 @@
                     <div class="product-card fade-in" data-product-index="${index}">
                 `;
 
+                // Кнопка избранного
                 html += `
                     <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
                         <i data-feather="heart"></i>
@@ -2778,6 +2042,7 @@
 
                 html += `</div>`;
 
+                // Двухколоночное расположение кнопок
                 html += `
                     <div class="two-column-buttons">
                         <button onclick="makePhoneCall()" class="large-button phone-button">
@@ -2816,15 +2081,10 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
-            if (isAdmin) {
-                updateButtonCounters();
-            }
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function contactAboutSpecificProduct(productIndex) {
-            trackButtonClick('learnMore');
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
             
@@ -2869,15 +2129,6 @@
                         break;
                     case 'submodels':
                         navigation.submodel = { id: item.id, name: item.name };
-                        break;
-                    case 'brigade_groups':
-                        navigation.brigade_group = { id: item.id, name: item.name };
-                        break;
-                    case 'brigades':
-                        navigation.brigade = { id: item.id, name: item.name };
-                        break;
-                    case 'brigade_objects':
-                        navigation.brigade_object = { id: item.id, name: item.name };
                         break;
                 }
             });
@@ -2926,8 +2177,6 @@
                     link.addEventListener('click', () => {
                         if (item.action === 'loadSections') {
                             loadSections();
-                        } else if (item.action === 'loadBrigadeGroups') {
-                            loadBrigadeGroups();
                         }
                     });
                 } else {
@@ -3005,26 +2254,6 @@
                         loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
                     } else {
                         loadSections();
-                    }
-                    break;
-                case 'brigade_groups':
-                    loadBrigadeGroups();
-                    break;
-                case 'brigades':
-                    const group = navigationStack.find(item => item.type === 'brigade_groups');
-                    if (group) {
-                        loadBrigadesInGroup(group.id, group.name);
-                    } else {
-                        loadBrigadeGroups();
-                    }
-                    break;
-                case 'brigade_objects':
-                    const groupForObjects = navigationStack.find(item => item.type === 'brigade_groups');
-                    const brigade = navigationStack.find(item => item.type === 'brigades');
-                    if (groupForObjects && brigade) {
-                        loadBrigadeObjects(groupForObjects.id, groupForObjects.name, brigade.id, brigade.name);
-                    } else {
-                        loadBrigadeGroups();
                     }
                     break;
                 default:
@@ -3108,18 +2337,6 @@
                 case 'loadProducts':
                     loadProducts(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName, lastAction.submodelId, lastAction.submodelName);
                     break;
-                case 'loadBrigadeGroups':
-                    loadBrigadeGroups();
-                    break;
-                case 'loadBrigadesInGroup':
-                    loadBrigadesInGroup(lastAction.groupId, lastAction.groupName);
-                    break;
-                case 'loadBrigadeObjects':
-                    loadBrigadeObjects(lastAction.groupId, lastAction.groupName, lastAction.brigadeId, lastAction.brigadeName);
-                    break;
-                case 'loadBrigadeObjectDetails':
-                    loadBrigadeObjectDetails(lastAction.groupId, lastAction.groupName, lastAction.brigadeId, lastAction.brigadeName, lastAction.objectId, lastAction.objectNumber);
-                    break;
                 default:
                     loadSections();
             }
@@ -3131,7 +2348,6 @@
             try {
                 initTelegramApp();
                 fixMobileColors();
-                initializeAnalytics();
                 scheduleFeatherReplace();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
@@ -3156,15 +2372,21 @@
                     }
                 });
 
+                // Обработчик события beforeinstallprompt для PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
+                    // Предотвращаем автоматическое отображение подсказки
                     e.preventDefault();
+                    // Сохраняем событие для использования позже
                     deferredPrompt = e;
+                    // Показываем кнопку установки
                     if (installButton) {
                         installButton.style.display = 'flex';
                     }
                 });
 
+                // Обработчик события appinstalled
                 window.addEventListener('appinstalled', (e) => {
+                    // Приложение было установлено
                     deferredPrompt = null;
                     if (installButton) {
                         installButton.style.display = 'none';
@@ -3188,11 +2410,6 @@
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
-        window.loadBrigadeGroups = loadBrigadeGroups;
-        window.loadBrigadesInGroup = loadBrigadesInGroup;
-        window.loadBrigadeObjects = loadBrigadeObjects;
-        window.loadBrigadeObjectDetails = loadBrigadeObjectDetails;
-        window.loadAdminStats = loadAdminStats;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
         window.toggleFavorite = toggleFavorite;
@@ -3216,9 +2433,7 @@
         window.retryLastAction = retryLastAction;
         window.handleImageError = handleImageError;
         window.handleImageLoad = handleImageLoad;
-        window.trackButtonClick = trackButtonClick;
-        window.resetAnalytics = resetAnalytics;
-        window.exportAnalytics = exportAnalytics;
     </script>
 </body>
+
 </html>
