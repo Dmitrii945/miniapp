@@ -634,7 +634,7 @@
                         </div>
 
                         <!-- Бригады -->
-                        <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
+                        <div class="menu-item" onclick="loadBrigadeGroups(); closeSideMenu();">
                             <i data-feather="users"></i>
                             <div>
                                 <div class="font-medium">Бригады</div>
@@ -991,17 +991,87 @@
 
         // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
 
-        async function loadBrigades() {
-            lastAction = { type: 'loadBrigades' };
+        async function loadBrigadeGroups() {
+            lastAction = { type: 'loadBrigadeGroups' };
             
             navigationStack = [];
-            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
+            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigadeGroups' }]);
             elements.pageTitle.textContent = 'Наши бригады';
             
             showLoading();
             
             try {
-                const response = await fetch(`${API_BASE}/brigades`);
+                const response = await fetch(`${API_BASE}/brigade_groups`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data?.error) {
+                    showEmptyState('Ошибка загрузки групп бригад');
+                    return;
+                }
+                
+                if (!data.groups || data.groups.length === 0) {
+                    showEmptyState('Группы бригад не найдены');
+                    return;
+                }
+                
+                renderBrigadeGroups(data.groups);
+                updateBackButton();
+                
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки групп бригад');
+            }
+        }
+
+        function renderBrigadeGroups(groups) {
+            let html = '<div class="space-y-3">';
+            
+            groups.forEach(group => {
+                const groupId = escapeHtml(group.id);
+                const groupName = escapeHtml(group.name);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadBrigadesInGroup('${groupId}', '${groupName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${groupName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500">${group.brigade_count || 0} бригад</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        async function loadBrigadesInGroup(groupId, groupName) {
+            lastAction = { type: 'loadBrigadesInGroup', groupId, groupName };
+            
+            navigationStack.push({ type: 'brigade_groups', id: groupId, name: groupName });
+            updateBreadcrumbsFromStack();
+            elements.pageTitle.textContent = groupName;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/brigades_in_group/${groupId}`);
                 const data = await response.json();
                 
                 hideLoading();
@@ -1016,7 +1086,7 @@
                     return;
                 }
                 
-                renderBrigades(data.brigades);
+                renderBrigades(data.brigades, groupId, groupName);
                 updateBackButton();
                 
             } catch (error) {
@@ -1025,7 +1095,7 @@
             }
         }
 
-        function renderBrigades(brigades) {
+        function renderBrigades(brigades, groupId, groupName) {
             let html = '<div class="space-y-3">';
             
             brigades.forEach(brigade => {
@@ -1036,7 +1106,7 @@
                 const alternativeUrls = getAlternativeImageUrls(brigade.photo_url);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadBrigadeObjects('${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="loadBrigadeObjects('${groupId}', '${groupName.replace(/'/g, "\\'")}', '${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}')">
                         <div class="relative">
                             ${photoUrl ? `
                                 <img src="${escapeHtml(photoUrl)}" alt="${brigadeName}" 
@@ -1078,9 +1148,9 @@
             html += '</div>';
             
             html += `
-                <button onclick="loadSections()" class="back-button">
+                <button onclick="goBack()" class="back-button">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад в каталог
+                    Назад к группам
                 </button>
             `;
             
@@ -1088,8 +1158,8 @@
             scheduleFeatherReplace();
         }
 
-        async function loadBrigadeObjects(brigadeId, brigadeName) {
-            lastAction = { type: 'loadBrigadeObjects', brigadeId, brigadeName };
+        async function loadBrigadeObjects(groupId, groupName, brigadeId, brigadeName) {
+            lastAction = { type: 'loadBrigadeObjects', groupId, groupName, brigadeId, brigadeName };
             
             navigationStack.push({ type: 'brigades', id: brigadeId, name: brigadeName });
             updateBreadcrumbsFromStack();
@@ -1098,7 +1168,7 @@
             showLoading();
             
             try {
-                const response = await fetch(`${API_BASE}/brigade_objects/${brigadeId}`);
+                const response = await fetch(`${API_BASE}/brigade_objects/${groupId}/${brigadeId}`);
                 const data = await response.json();
                 
                 hideLoading();
@@ -1113,7 +1183,7 @@
                     return;
                 }
                 
-                renderBrigadeObjects(data.objects, brigadeId, brigadeName);
+                renderBrigadeObjects(data.objects, groupId, groupName, brigadeId, brigadeName);
                 updateBackButton();
                 
             } catch (error) {
@@ -1122,7 +1192,7 @@
             }
         }
 
-        function renderBrigadeObjects(objects, brigadeId, brigadeName) {
+        function renderBrigadeObjects(objects, groupId, groupName, brigadeId, brigadeName) {
             let html = '<div class="space-y-3">';
             
             objects.forEach(object => {
@@ -1134,7 +1204,7 @@
                 const statusClass = getStatusClass(object.status);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadBrigadeObjectDetails('${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}', '${objectId}', '${objectNumber.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="loadBrigadeObjectDetails('${groupId}', '${groupName.replace(/'/g, "\\'")}', '${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}', '${objectId}', '${objectNumber.replace(/'/g, "\\'")}')">
                         <div class="relative">
                             ${photoUrl ? `
                                 <img src="${escapeHtml(photoUrl)}" alt="Объект ${objectNumber}" 
@@ -1184,8 +1254,8 @@
             scheduleFeatherReplace();
         }
 
-        async function loadBrigadeObjectDetails(brigadeId, brigadeName, objectId, objectNumber) {
-            lastAction = { type: 'loadBrigadeObjectDetails', brigadeId, brigadeName, objectId, objectNumber };
+        async function loadBrigadeObjectDetails(groupId, groupName, brigadeId, brigadeName, objectId, objectNumber) {
+            lastAction = { type: 'loadBrigadeObjectDetails', groupId, groupName, brigadeId, brigadeName, objectId, objectNumber };
             
             navigationStack.push({ type: 'brigade_objects', id: objectId, name: `Объект ${objectNumber}` });
             updateBreadcrumbsFromStack();
@@ -1194,7 +1264,7 @@
             showLoading();
             
             try {
-                const response = await fetch(`${API_BASE}/brigade_object_details/${brigadeId}/${objectId}`);
+                const response = await fetch(`${API_BASE}/brigade_object_details/${groupId}/${brigadeId}/${objectId}`);
                 const data = await response.json();
                 
                 hideLoading();
@@ -1209,7 +1279,7 @@
                     return;
                 }
                 
-                renderBrigadeObjectDetails(data.object_details, brigadeId, brigadeName, objectId, objectNumber);
+                renderBrigadeObjectDetails(data.object_details, groupId, groupName, brigadeId, brigadeName, objectId, objectNumber);
                 updateBackButton();
                 
             } catch (error) {
@@ -1218,7 +1288,7 @@
             }
         }
 
-        function renderBrigadeObjectDetails(objectDetails, brigadeId, brigadeName, objectId, objectNumber) {
+        function renderBrigadeObjectDetails(objectDetails, groupId, groupName, brigadeId, brigadeName, objectId, objectNumber) {
             let html = '<div class="space-y-4">';
             
             // Описание объекта
@@ -1942,7 +2012,7 @@
                 url = url.trim();
 
                 if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
-                    return url.startsWith('http') ? url : null;
+                    return url if url.startsWith('http') ? url : null;
                 }
 
                 if (url.includes('drive.google.com')) {
@@ -2356,7 +2426,7 @@
 
             // Добавляем кнопку бригад в главное меню
             html += `
-                <div class="category-card fade-in" onclick="loadBrigades()">
+                <div class="category-card fade-in" onclick="loadBrigadeGroups()">
                     <div class="p-4">
                         <div class="flex justify-between items-center">
                             <div class="flex items-center">
@@ -2800,6 +2870,9 @@
                     case 'submodels':
                         navigation.submodel = { id: item.id, name: item.name };
                         break;
+                    case 'brigade_groups':
+                        navigation.brigade_group = { id: item.id, name: item.name };
+                        break;
                     case 'brigades':
                         navigation.brigade = { id: item.id, name: item.name };
                         break;
@@ -2853,8 +2926,8 @@
                     link.addEventListener('click', () => {
                         if (item.action === 'loadSections') {
                             loadSections();
-                        } else if (item.action === 'loadBrigades') {
-                            loadBrigades();
+                        } else if (item.action === 'loadBrigadeGroups') {
+                            loadBrigadeGroups();
                         }
                     });
                 } else {
@@ -2934,15 +3007,24 @@
                         loadSections();
                     }
                     break;
+                case 'brigade_groups':
+                    loadBrigadeGroups();
+                    break;
                 case 'brigades':
-                    loadBrigades();
+                    const group = navigationStack.find(item => item.type === 'brigade_groups');
+                    if (group) {
+                        loadBrigadesInGroup(group.id, group.name);
+                    } else {
+                        loadBrigadeGroups();
+                    }
                     break;
                 case 'brigade_objects':
+                    const groupForObjects = navigationStack.find(item => item.type === 'brigade_groups');
                     const brigade = navigationStack.find(item => item.type === 'brigades');
-                    if (brigade) {
-                        loadBrigadeObjects(brigade.id, brigade.name);
+                    if (groupForObjects && brigade) {
+                        loadBrigadeObjects(groupForObjects.id, groupForObjects.name, brigade.id, brigade.name);
                     } else {
-                        loadBrigades();
+                        loadBrigadeGroups();
                     }
                     break;
                 default:
@@ -3026,14 +3108,17 @@
                 case 'loadProducts':
                     loadProducts(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName, lastAction.submodelId, lastAction.submodelName);
                     break;
-                case 'loadBrigades':
-                    loadBrigades();
+                case 'loadBrigadeGroups':
+                    loadBrigadeGroups();
+                    break;
+                case 'loadBrigadesInGroup':
+                    loadBrigadesInGroup(lastAction.groupId, lastAction.groupName);
                     break;
                 case 'loadBrigadeObjects':
-                    loadBrigadeObjects(lastAction.brigadeId, lastAction.brigadeName);
+                    loadBrigadeObjects(lastAction.groupId, lastAction.groupName, lastAction.brigadeId, lastAction.brigadeName);
                     break;
                 case 'loadBrigadeObjectDetails':
-                    loadBrigadeObjectDetails(lastAction.brigadeId, lastAction.brigadeName, lastAction.objectId, lastAction.objectNumber);
+                    loadBrigadeObjectDetails(lastAction.groupId, lastAction.groupName, lastAction.brigadeId, lastAction.brigadeName, lastAction.objectId, lastAction.objectNumber);
                     break;
                 default:
                     loadSections();
@@ -3103,7 +3188,8 @@
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
-        window.loadBrigades = loadBrigades;
+        window.loadBrigadeGroups = loadBrigadeGroups;
+        window.loadBrigadesInGroup = loadBrigadesInGroup;
         window.loadBrigadeObjects = loadBrigadeObjects;
         window.loadBrigadeObjectDetails = loadBrigadeObjectDetails;
         window.loadAdminStats = loadAdminStats;
