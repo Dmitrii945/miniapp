@@ -521,6 +521,33 @@
             margin-bottom: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        /* Стили для статусов бригад */
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .status-sold {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .status-selling {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .status-building {
+            background-color: #F59E0B;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -594,6 +621,15 @@
                             <div>
                                 <div class="font-medium">Избранное</div>
                                 <div class="text-sm text-gray-600">Сохраненные товары</div>
+                            </div>
+                        </div>
+
+                        <!-- Бригады -->
+                        <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
+                            <i data-feather="users"></i>
+                            <div>
+                                <div class="font-medium">Бригады</div>
+                                <div class="text-sm text-gray-600">Наши строительные бригады</div>
                             </div>
                         </div>
 
@@ -952,6 +988,330 @@
             
             if (tg) {
                 tg.showAlert('Данные экспортированы в JSON файл');
+            }
+        }
+
+        // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
+
+        async function loadBrigades() {
+            lastAction = { type: 'loadBrigades' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
+            elements.pageTitle.textContent = 'Наши бригады';
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/brigades`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.error) {
+                    showEmptyState('Ошибка загрузки бригад');
+                    return;
+                }
+                
+                if (!data.brigades || data.brigades.length === 0) {
+                    showEmptyState('Бригады не найдены');
+                    return;
+                }
+                
+                renderBrigades(data.brigades);
+                updateBackButton();
+                
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки бригад');
+            }
+        }
+
+        function renderBrigades(brigades) {
+            let html = '<div class="space-y-3">';
+            
+            brigades.forEach(brigade => {
+                const brigadeId = escapeHtml(brigade.id);
+                const brigadeName = escapeHtml(brigade.name);
+                const brigadeNumber = escapeHtml(brigade.number);
+                const photoUrl = extractPhotoFilenameFromUrl(brigade.photo_url);
+                const alternativeUrls = getAlternativeImageUrls(brigade.photo_url);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadBrigadeObjects('${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}')">
+                        <div class="relative">
+                            ${photoUrl ? `
+                                <img src="${escapeHtml(photoUrl)}" alt="${brigadeName}" 
+                                     class="product-image w-full h-48 object-cover"
+                                     onerror="handleImageError(this, '${escapeHtml(brigade.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                     onload="handleImageLoad(this)"
+                                     loading="lazy"
+                                     crossorigin="anonymous"
+                                     data-tried-alternative="0">
+                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                                    <div class="text-center text-gray-400">
+                                        <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                        <div class="text-sm">Не удалось загрузить фото</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                    <div class="text-center text-gray-400">
+                                        <i data-feather="users" class="w-12 h-12 mx-auto mb-2"></i>
+                                        <div class="text-sm">Фото не доступно</div>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${brigadeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500">Бригада ${brigadeNumber}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        async function loadBrigadeObjects(brigadeId, brigadeName) {
+            lastAction = { type: 'loadBrigadeObjects', brigadeId, brigadeName };
+            
+            navigationStack.push({ type: 'brigades', id: brigadeId, name: brigadeName });
+            updateBreadcrumbsFromStack();
+            elements.pageTitle.textContent = brigadeName;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/brigade_objects/${brigadeId}`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.error) {
+                    showEmptyState('Ошибка загрузки объектов бригады');
+                    return;
+                }
+                
+                if (!data.objects || data.objects.length === 0) {
+                    showEmptyState('Объекты бригады не найдены');
+                    return;
+                }
+                
+                renderBrigadeObjects(data.objects, brigadeId, brigadeName);
+                updateBackButton();
+                
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки объектов бригады');
+            }
+        }
+
+        function renderBrigadeObjects(objects, brigadeId, brigadeName) {
+            let html = '<div class="space-y-3">';
+            
+            objects.forEach(object => {
+                const objectId = escapeHtml(object.id);
+                const objectNumber = escapeHtml(object.object_number);
+                const photoUrl = extractPhotoFilenameFromUrl(object.photo_url);
+                const alternativeUrls = getAlternativeImageUrls(object.photo_url);
+                const status = getStatusText(object.status);
+                const statusClass = getStatusClass(object.status);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadBrigadeObjectDetails('${brigadeId}', '${brigadeName.replace(/'/g, "\\'")}', '${objectId}', '${objectNumber.replace(/'/g, "\\'")}')">
+                        <div class="relative">
+                            ${photoUrl ? `
+                                <img src="${escapeHtml(photoUrl)}" alt="Объект ${objectNumber}" 
+                                     class="product-image w-full h-48 object-cover"
+                                     onerror="handleImageError(this, '${escapeHtml(object.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                     onload="handleImageLoad(this)"
+                                     loading="lazy"
+                                     crossorigin="anonymous"
+                                     data-tried-alternative="0">
+                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                                    <div class="text-center text-gray-400">
+                                        <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                        <div class="text-sm">Не удалось загрузить фото</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                    <div class="text-center text-gray-400">
+                                        <i data-feather="home" class="w-12 h-12 mx-auto mb-2"></i>
+                                        <div class="text-sm">Фото не доступно</div>
+                                    </div>
+                                </div>
+                            `}
+                            <div class="status-badge ${statusClass}">${status}</div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">Объект ${objectNumber}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад к бригадам
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        async function loadBrigadeObjectDetails(brigadeId, brigadeName, objectId, objectNumber) {
+            lastAction = { type: 'loadBrigadeObjectDetails', brigadeId, brigadeName, objectId, objectNumber };
+            
+            navigationStack.push({ type: 'brigade_objects', id: objectId, name: `Объект ${objectNumber}` });
+            updateBreadcrumbsFromStack();
+            elements.pageTitle.textContent = `Объект ${objectNumber}`;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/brigade_object_details/${brigadeId}/${objectId}`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.error) {
+                    showEmptyState('Ошибка загрузки деталей объекта');
+                    return;
+                }
+                
+                if (!data.object_details) {
+                    showEmptyState('Детали объекта не найдены');
+                    return;
+                }
+                
+                renderBrigadeObjectDetails(data.object_details, brigadeId, brigadeName, objectId, objectNumber);
+                updateBackButton();
+                
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки деталей объекта');
+            }
+        }
+
+        function renderBrigadeObjectDetails(objectDetails, brigadeId, brigadeName, objectId, objectNumber) {
+            let html = '<div class="space-y-4">';
+            
+            // Описание объекта
+            if (objectDetails.description) {
+                html += `
+                    <div class="bg-white rounded-xl p-4 shadow-sm">
+                        <h3 class="font-semibold text-lg mb-2 text-contrast">Описание объекта</h3>
+                        <p class="text-gray-700 text-contrast">${escapeHtml(objectDetails.description)}</p>
+                    </div>
+                `;
+            }
+            
+            // Все фото объекта
+            if (objectDetails.photos && objectDetails.photos.length > 0) {
+                html += '<div class="space-y-3">';
+                
+                objectDetails.photos.forEach((photo, index) => {
+                    const photoUrl = extractPhotoFilenameFromUrl(photo.photo_url);
+                    const alternativeUrls = getAlternativeImageUrls(photo.photo_url);
+                    const status = getStatusText(photo.status);
+                    const statusClass = getStatusClass(photo.status);
+                    
+                    html += `
+                        <div class="product-card">
+                            <div class="relative">
+                                ${photoUrl ? `
+                                    <img src="${escapeHtml(photoUrl)}" alt="Фото объекта ${objectNumber}" 
+                                         class="product-image w-full h-48 object-cover"
+                                         onerror="handleImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                         onload="handleImageLoad(this)"
+                                         loading="lazy"
+                                         crossorigin="anonymous"
+                                         data-tried-alternative="0">
+                                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                                        <div class="text-center text-gray-400">
+                                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                            <div class="text-sm">Не удалось загрузить фото</div>
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                        <div class="text-center text-gray-400">
+                                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                            <div class="text-sm">Фото не доступно</div>
+                                        </div>
+                                    </div>
+                                `}
+                                <div class="status-badge ${statusClass}">${status}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            } else {
+                html += `
+                    <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+                        <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                        <p class="text-gray-500 text-contrast">Фотографии объекта отсутствуют</p>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад к объектам
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function getStatusText(statusCode) {
+            switch (parseInt(statusCode)) {
+                case 0: return 'Продано';
+                case 1: return 'В продаже';
+                case 3: return 'Строится';
+                default: return 'Неизвестно';
+            }
+        }
+
+        function getStatusClass(statusCode) {
+            switch (parseInt(statusCode)) {
+                case 0: return 'status-sold';
+                case 1: return 'status-selling';
+                case 3: return 'status-building';
+                default: return 'status-selling';
             }
         }
 
@@ -2024,6 +2384,23 @@
                 </div>
             `;
 
+            // Добавляем кнопку бригад в главное меню
+            html += `
+                <div class="category-card fade-in" onclick="loadBrigades()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="users" class="w-5 h-5 mr-3 text-blue-500"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Бригады</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">Наши объекты</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             // Добавляем кнопку аналитики для админов
             if (isAdmin) {
                 html += `
@@ -2457,6 +2834,12 @@
                     case 'submodels':
                         navigation.submodel = { id: item.id, name: item.name };
                         break;
+                    case 'brigades':
+                        navigation.brigade = { id: item.id, name: item.name };
+                        break;
+                    case 'brigade_objects':
+                        navigation.brigade_object = { id: item.id, name: item.name };
+                        break;
                 }
             });
 
@@ -2504,6 +2887,8 @@
                     link.addEventListener('click', () => {
                         if (item.action === 'loadSections') {
                             loadSections();
+                        } else if (item.action === 'loadBrigades') {
+                            loadBrigades();
                         }
                     });
                 } else {
@@ -2581,6 +2966,17 @@
                         loadSubmodels(sectionForSubmodel.id, sectionForSubmodel.name, categoryForSubmodel.id, categoryForSubmodel.name, model.id, model.name);
                     } else {
                         loadSections();
+                    }
+                    break;
+                case 'brigades':
+                    loadBrigades();
+                    break;
+                case 'brigade_objects':
+                    const brigade = navigationStack.find(item => item.type === 'brigades');
+                    if (brigade) {
+                        loadBrigadeObjects(brigade.id, brigade.name);
+                    } else {
+                        loadBrigades();
                     }
                     break;
                 default:
@@ -2664,6 +3060,15 @@
                 case 'loadProducts':
                     loadProducts(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName, lastAction.submodelId, lastAction.submodelName);
                     break;
+                case 'loadBrigades':
+                    loadBrigades();
+                    break;
+                case 'loadBrigadeObjects':
+                    loadBrigadeObjects(lastAction.brigadeId, lastAction.brigadeName);
+                    break;
+                case 'loadBrigadeObjectDetails':
+                    loadBrigadeObjectDetails(lastAction.brigadeId, lastAction.brigadeName, lastAction.objectId, lastAction.objectNumber);
+                    break;
                 default:
                     loadSections();
             }
@@ -2738,6 +3143,9 @@
         window.loadSubmodels = loadSubmodels;
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
+        window.loadBrigades = loadBrigades;
+        window.loadBrigadeObjects = loadBrigadeObjects;
+        window.loadBrigadeObjectDetails = loadBrigadeObjectDetails;
         window.loadAdminStats = loadAdminStats;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
