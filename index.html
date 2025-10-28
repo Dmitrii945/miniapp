@@ -2131,7 +2131,7 @@
                 if (error.name === 'AbortError') {
                     errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.`;
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
                 }
                 
                 hideLoading();
