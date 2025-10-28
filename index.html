@@ -6,7 +6,7 @@
     <title>СКИДКА СЕРВИС Каталог</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/3.3.0/tailwind.min.css"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --tg-theme-bg-color: #ffffff;
@@ -50,12 +50,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .external-link {
-            color: #3B82F6;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-        
         .price-badge {
             background-color: #10B981;
             color: white;
@@ -63,17 +57,6 @@
             border-radius: 9999px;
             font-size: 0.875rem;
             font-weight: 600;
-        }
-        
-        .image-loading {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
         }
         
         .breadcrumb-item {
@@ -129,83 +112,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
-        .retry-button {
-            background-color: #3B82F6;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .retry-button:hover {
-            background-color: #2563EB;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        
-        .action-button {
-            flex: 1;
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 500;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            color: white !important;
-        }
-        
-        .action-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .phone-button {
-            background-color: #10B981;
-            color: white;
-        }
-        
-        .phone-button:hover {
-            background-color: #059669;
-        }
-        
-        .gis-button {
-            background-color: #F59E0B;
-            color: white;
-        }
-        
-        .gis-button:hover {
-            background-color: #D97706;
-        }
-
-        .taxi-button {
-            background-color: #8B5CF6;
-            color: white;
-        }
-        
-        .taxi-button:hover {
-            background-color: #7C3AED;
-        }
-
-        .share-button {
-            background-color: #EC4899;
-            color: white;
-        }
-        
-        .share-button:hover {
-            background-color: #DB2777;
-        }
-        
         .back-button {
             background-color: #6B7280;
             color: white;
@@ -227,15 +133,6 @@
             transform: translateY(-1px);
         }
 
-        .clickable-card {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .clickable-card:hover {
-            background-color: #f8fafc;
-        }
-
         body {
             color: #000000;
             background-color: #f9fafb;
@@ -244,18 +141,6 @@
         header {
             background-color: white;
             color: #000000;
-        }
-
-        h1, h2, h3, h4, h5, h6, p, span, div {
-            color: #000000;
-        }
-
-        button {
-            color: inherit;
-        }
-
-        [data-feather] {
-            color: inherit;
         }
 
         .text-contrast {
@@ -465,7 +350,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Стили для бригад - УВЕЛИЧЕННЫЕ РАЗМЕРЫ */
+        /* Стили для бригад */
         .brigade-group {
             margin-bottom: 32px;
         }
@@ -983,13 +868,10 @@
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
         const BOT_USERNAME = 'SSERVICE72_bot';
         const API_TIMEOUT = 30000;
-        let debugMode = false;
-        let featherTimeout;
 
         // Состояние приложения
         let navigationStack = [];
         let currentProducts = [];
-        let catalogData = null;
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
@@ -1035,17 +917,6 @@
 
         // ========== УТИЛИТЫ ==========
 
-        function fixMobileColors() {
-            if (!window.Telegram?.WebApp) {
-                document.documentElement.style.setProperty('--tg-theme-bg-color', '#ffffff');
-                document.documentElement.style.setProperty('--tg-theme-text-color', '#000000');
-                document.documentElement.style.setProperty('--tg-theme-hint-color', '#666666');
-                document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', '#f3f4f6');
-                document.documentElement.style.setProperty('--tg-theme-button-color', '#3B82F6');
-                document.documentElement.style.setProperty('--tg-theme-button-text-color', '#ffffff');
-            }
-        }
-
         function escapeHtml(unsafe) {
             if (unsafe == null) return '';
             return String(unsafe)
@@ -1054,12 +925,6 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
-        }
-
-        function safeGet(obj, path, defaultValue = '') {
-            if (!obj) return defaultValue;
-            return path.split('.').reduce((acc, key) => 
-                acc && acc[key] !== undefined && acc[key] !== null ? acc[key] : defaultValue, obj);
         }
 
         function safeString(value, defaultValue = '') {
@@ -1074,8 +939,7 @@
         }
 
         function scheduleFeatherReplace() {
-            clearTimeout(featherTimeout);
-            featherTimeout = setTimeout(() => {
+            setTimeout(() => {
                 try {
                     feather.replace();
                 } catch (error) {
@@ -1321,10 +1185,6 @@
             
             elements.content.innerHTML = instructions;
             scheduleFeatherReplace();
-        }
-
-        function showInstallPrompt() {
-            installPWA();
         }
 
         // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
@@ -2180,45 +2040,6 @@
             updatePhotoGallery();
         }
 
-        // Обработчики свайпов для галереи
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        elements.galleryCurrentImage.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
-
-        elements.galleryCurrentImage.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            const swipeThreshold = 50;
-            const diff = touchStartX - touchEndX;
-            
-            if (Math.abs(diff) > swipeThreshold) {
-                if (diff > 0) {
-                    nextGalleryImage();
-                } else {
-                    prevGalleryImage();
-                }
-            }
-        }
-
-        // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
-
-        function initTelegramApp() {
-            if (tg) {
-                try {
-                    tg.expand();
-                    tg.enableClosingConfirmation();
-                } catch (error) {
-                    console.log('Ошибка инициализации Telegram Web App:', error);
-                }
-            }
-        }
-
         // ========== API ФУНКЦИИ ==========
 
         async function apiFetch(endpoint) {
@@ -2284,7 +2105,6 @@
                 
                 if (!data || data.error) {
                     console.error('Ошибка API:', data?.error);
-                    // Показать тестовые данные
                     showTestData();
                     return;
                 }
@@ -2298,7 +2118,7 @@
                 
             } catch (error) {
                 console.error('Критическая ошибка:', error);
-                showTestData(); // Показать тестовые данные при ошибке
+                showTestData();
             }
         }
         
@@ -3163,8 +2983,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
-                initTelegramApp();
-                fixMobileColors();
+                if (tg) {
+                    tg.expand();
+                    tg.enableClosingConfirmation();
+                }
+                
                 scheduleFeatherReplace();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
@@ -3242,7 +3065,6 @@
         window.openYandexTaxi = openYandexTaxi;
         window.openUber = openUber;
         window.installPWA = installPWA;
-        window.showInstallPrompt = showInstallPrompt;
         window.showInstallInstructions = showInstallInstructions;
         window.renderAllProducts = renderAllProducts;
         window.goBack = goBack;
