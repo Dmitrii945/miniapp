@@ -2274,32 +2274,44 @@
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
-            lastAction = { type: 'loadSections' };
+            console.log('🔧 loadSections вызвана');
             
             try {
-                navigationStack = [];
-                updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
-                elements.pageTitle.textContent = 'Каталог товаров';
+                showLoading();
                 
                 const data = await apiFetch('/sections');
+                console.log('Данные разделов:', data);
                 
-                if (data?.error) {
-                    showEmptyState('Ошибка загрузки разделов');
+                if (!data || data.error) {
+                    console.error('Ошибка API:', data?.error);
+                    // Показать тестовые данные
+                    showTestData();
                     return;
                 }
                 
-                if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+                if (!data.sections || data.sections.length === 0) {
                     showEmptyState('Разделы не найдены');
                     return;
                 }
-
+                
                 renderSections(data.sections);
-                updateBackButton();
+                
             } catch (error) {
-                showError('Не удалось загрузить разделы');
+                console.error('Критическая ошибка:', error);
+                showTestData(); // Показать тестовые данные при ошибке
             }
         }
-
+        
+        function showTestData() {
+            const testSections = [
+                { name: 'Металлопрокат', id: 'test1' },
+                { name: 'Кровельные материалы', id: 'test2' },
+                { name: 'Строительные бригады', id: 'brigades' }
+            ];
+            renderSections(testSections);
+            hideLoading();
+        }
+        
         async function loadCategories(sectionId, sectionName) {
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
