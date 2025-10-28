@@ -6,8 +6,145 @@
     <title>СКИДКА СЕРВИС Каталог</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Минифицированная версия Tailwind CSS для продакшена
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#6B7280',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        /* Минифицированные Tailwind утилиты */
+        .hidden { display: none; }
+        .block { display: block; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-col { flex-direction: column; }
+        .flex-wrap { flex-wrap: wrap; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .h-12 { height: 3rem; }
+        .h-16 { height: 4rem; }
+        .h-48 { height: 12rem; }
+        .max-w-md { max-width: 28rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mr-3 { margin-right: 0.75rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-8 { padding: 2rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+        .space-y-1 > * + * { margin-top: 0.25rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-3 > * + * { margin-top: 0.75rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-y-8 > * + * { margin-top: 2rem; }
+        .bg-white { background-color: white; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .bg-gray-500 { background-color: #6b7280; }
+        .bg-blue-500 { background-color: #3b82f6; }
+        .bg-green-500 { background-color: #10b981; }
+        .bg-red-500 { background-color: #ef4444; }
+        .bg-yellow-50 { background-color: #fffbeb; }
+        .bg-blue-50 { background-color: #eff6ff; }
+        .text-white { color: white; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-700 { color: #374151; }
+        .text-red-500 { color: #ef4444; }
+        .text-red-600 { color: #dc2626; }
+        .text-blue-500 { color: #3b82f6; }
+        .text-blue-700 { color: #1d4ed8; }
+        .text-yellow-700 { color: #a16207; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .rounded { border-radius: 0.25rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-full { border-radius: 9999px; }
+        .border { border-width: 1px; }
+        .border-b-2 { border-bottom-width: 2px; }
+        .border-blue-500 { border-color: #3b82f6; }
+        .border-e5e7eb { border-color: #e5e7eb; }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .object-cover { object-fit: cover; }
+        .object-contain { object-fit: contain; }
+        .overflow-hidden { overflow: hidden; }
+        .overflow-x-auto { overflow-x: auto; }
+        .whitespace-nowrap { white-space: nowrap; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .transition { transition: all 0.15s ease; }
+        .transition-all { transition: all 0.3s ease; }
+        .duration-300 { transition-duration: 300ms; }
+        .transform { transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1); }
+        .translate-x-full { transform: translateX(100%); }
+        .translate-y-2 { transform: translateY(0.5rem); }
+        .-translate-y-1 { transform: translateY(-0.25rem); }
+        .scale-105 { transform: scale(1.05); }
+        .hover\\:bg-gray-100:hover { background-color: #f3f4f6; }
+        .hover\\:bg-gray-700:hover { background-color: #374151; }
+        .hover\\:bg-blue-600:hover { background-color: #2563eb; }
+        .hover\\:bg-green-600:hover { background-color: #059669; }
+        .hover\\:bg-gray-600:hover { background-color: #4b5563; }
+        .hover\\:transform:hover { transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1); }
+        .hover\\:translate-y-1:hover { transform: translateY(-0.25rem); }
+        .hover\\:scale-105:hover { transform: scale(1.05); }
+        .focus\\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+        .sticky { position: sticky; }
+        .fixed { position: fixed; }
+        .absolute { position: absolute; }
+        .relative { position: relative; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .top-0 { top: 0; }
+        .right-0 { right: 0; }
+        .left-0 { left: 0; }
+        .z-10 { z-index: 10; }
+        .z-50 { z-index: 50; }
+        .z-1000 { z-index: 1000; }
+        .min-h-screen { min-height: 100vh; }
+        .max-w-120 { max-width: 120px; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Кастомные стили */
         :root {
             --tg-theme-bg-color: #ffffff;
             --tg-theme-text-color: #000000;
@@ -30,24 +167,10 @@
             color: var(--tg-theme-hint-color, #999999);
         }
         
-        .tg-theme-secondary-bg {
-            background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
-        }
-        
         .product-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
-            background-color: #f3f4f6;
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .price-badge {
@@ -62,12 +185,6 @@
         .breadcrumb-item {
             cursor: pointer;
             color: #3B82F6 !important;
-            transition: color 0.2s;
-        }
-        
-        .breadcrumb-item:hover {
-            color: #1D4ED8 !important;
-            text-decoration: underline;
         }
         
         .breadcrumb-separator {
@@ -122,7 +239,6 @@
             font-weight: 500;
             width: 100%;
             margin-top: 16px;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -133,24 +249,6 @@
             transform: translateY(-1px);
         }
 
-        body {
-            color: #000000;
-            background-color: #f9fafb;
-        }
-
-        header {
-            background-color: white;
-            color: #000000;
-        }
-
-        .text-contrast {
-            color: #000000 !important;
-        }
-
-        .bg-contrast {
-            background-color: #ffffff !important;
-        }
-
         .menu-button {
             background-color: #10B981;
             color: white;
@@ -158,7 +256,6 @@
             border-radius: 8px;
             padding: 8px;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -176,7 +273,6 @@
             border-radius: 8px;
             padding: 8px;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -203,11 +299,6 @@
             transform: translateX(4px);
         }
 
-        .menu-item i {
-            width: 18px;
-            height: 18px;
-        }
-
         .menu-divider {
             height: 1px;
             background-color: #E5E7EB;
@@ -228,7 +319,6 @@
             font-weight: 500;
             font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -246,17 +336,9 @@
             color: #000 !important;
         }
         
-        .yandex-taxi:hover {
-            background-color: #E6B800;
-        }
-        
         .uber-taxi {
             background-color: #000000;
             color: white !important;
-        }
-        
-        .uber-taxi:hover {
-            background-color: #333333;
         }
 
         .header-title {
@@ -292,7 +374,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
             z-index: 10;
         }
 
@@ -337,7 +418,6 @@
             font-weight: 500;
             font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -348,6 +428,14 @@
         .large-button:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .phone-button {
+            background-color: #10B981;
+        }
+        
+        .share-button {
+            background-color: #EC4899;
         }
 
         /* Стили для бригад */
@@ -401,7 +489,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s;
         }
 
         .brigade-image-placeholder {
@@ -597,7 +684,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
             font-size: 1.5rem;
         }
 
@@ -654,7 +740,6 @@
             font-weight: 500;
             width: 100%;
             margin-top: 16px;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -665,24 +750,10 @@
             transform: translateY(-1px);
         }
 
-        .image-error {
-            display: none;
-        }
-
-        .image-error.show {
-            display: flex;
-        }
-
         .no-photos {
             text-align: center;
             padding: 40px 20px;
             color: #6B7280;
-        }
-
-        .no-photos i {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -695,7 +766,7 @@
                     <i data-feather="menu"></i>
                 </button>
                 <div class="header-title">
-                    <h1 class="main-title tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
+                    <h1 class="main-title tg-theme-text" id="pageTitle">Каталог товаров</h1>
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
                 <button id="installButton" class="install-button" title="Добавить на главный экран">
@@ -710,13 +781,13 @@
         <!-- Loading -->
         <div id="loading" class="hidden p-8 text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p class="mt-4 tg-theme-hint text-contrast">Загрузка...</p>
+            <p class="mt-4 tg-theme-hint">Загрузка...</p>
         </div>
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden p-8 text-center">
-            <i data-feather="package" class="w-16 h-16 mx-auto tg-theme-hint mb-4 text-contrast"></i>
-            <p class="tg-theme-hint mb-4 text-contrast" id="emptyMessage">Товары не найдены</p>
+            <i data-feather="package" class="w-16 h-16 mx-auto tg-theme-hint mb-4"></i>
+            <p class="tg-theme-hint mb-4" id="emptyMessage">Товары не найдены</p>
             <button onclick="loadSections()" class="mt-4 py-2 px-4 tg-theme-button rounded-lg">
                 Вернуться в главную
             </button>
@@ -725,7 +796,7 @@
         <!-- Error State -->
         <div id="errorState" class="hidden p-8 text-center">
             <i data-feather="alert-triangle" class="w-16 h-16 mx-auto text-red-500 mb-4"></i>
-            <p class="text-red-600 mb-4 text-contrast" id="errorMessage">Произошла ошибка</p>
+            <p class="text-red-600 mb-4" id="errorMessage">Произошла ошибка</p>
             <button onclick="retryLastAction()" class="mt-4 py-2 px-4 bg-blue-500 text-white rounded-lg">
                 Попробовать снова
             </button>
@@ -769,7 +840,7 @@
             <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
                 <div class="p-4">
                     <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-lg font-semibold text-contrast">Меню</h2>
+                        <h2 class="text-lg font-semibold">Меню</h2>
                         <button id="closeMenu" class="p-2 rounded-lg hover:bg-gray-100">
                             <i data-feather="x"></i>
                         </button>
@@ -1022,8 +1093,8 @@
             
             let html = `
                 <div class="bg-white rounded-xl p-4 shadow-lg">
-                    <h3 class="text-lg font-semibold mb-4 text-contrast">Вызвать такси</h3>
-                    <p class="text-gray-600 mb-4 text-contrast">Выберите сервис такси для поездки в наш магазин:</p>
+                    <h3 class="text-lg font-semibold mb-4">Вызвать такси</h3>
+                    <p class="text-gray-600 mb-4">Выберите сервис такси для поездки в наш магазин:</p>
                     
                     <div class="taxi-buttons">
                         <button onclick="openYandexTaxi()" class="taxi-service-button yandex-taxi">
@@ -1119,7 +1190,7 @@
             if (isIOS) {
                 instructions = `
                     <div class="bg-white rounded-xl p-4 shadow-lg">
-                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран (iOS)</h3>
+                        <h3 class="text-lg font-semibold mb-4">Добавить на главный экран (iOS)</h3>
                         <div class="space-y-3 text-sm text-gray-700">
                             <div class="flex items-start gap-3">
                                 <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
@@ -1143,7 +1214,7 @@
             } else if (isAndroid) {
                 instructions = `
                     <div class="bg-white rounded-xl p-4 shadow-lg">
-                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран (Android)</h3>
+                        <h3 class="text-lg font-semibold mb-4">Добавить на главный экран (Android)</h3>
                         <div class="space-y-3 text-sm text-gray-700">
                             <div class="flex items-start gap-3">
                                 <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
@@ -1167,8 +1238,8 @@
             } else {
                 instructions = `
                     <div class="bg-white rounded-xl p-4 shadow-lg">
-                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран</h3>
-                        <p class="text-gray-600 mb-4 text-contrast">Используйте функцию "Добавить на главный экран" в меню вашего браузера.</p>
+                        <h3 class="text-lg font-semibold mb-4">Добавить на главный экран</h3>
+                        <p class="text-gray-600 mb-4">Используйте функцию "Добавить на главный экран" в меню вашего браузера.</p>
                         <div class="p-3 bg-yellow-50 rounded-lg mb-4">
                             <p class="text-sm text-yellow-700">
                                 <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
@@ -1257,7 +1328,7 @@
             
             html += `
                 <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
-                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
+                    <h2 class="text-lg font-semibold">Избранные товары: ${favorites.length}</h2>
                 </div>
             `;
 
@@ -1288,17 +1359,15 @@
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
                         <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
-                             class="product-image w-full h-48 object-cover"
+                             class="product-image"
                              onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
                              onload="handleImageLoad(this)"
                              loading="lazy"
-                             crossorigin="anonymous"
                              data-tried-alternative="0">
                         <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
                             <div class="text-center text-gray-400">
                                 <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Не удалось загрузить фото</div>
-                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
                             </div>
                         </div>
                     `;
@@ -1308,7 +1377,6 @@
                             <div class="text-center text-gray-400">
                                 <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Фото не доступно</div>
-                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
                             </div>
                         </div>
                     `;
@@ -1317,7 +1385,7 @@
                 html += `
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                <h3 class="font-semibold text-lg">${escapeHtml(color)}</h3>
                                 ${price && price !== 'Цена не указана' ? `
                                     <span class="price-badge">${escapeHtml(price)}</span>
                                 ` : ''}
@@ -1327,11 +1395,11 @@
                 `;
 
                 if (photoDescription) {
-                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
+                    html += `<p class="text-gray-700">${escapeHtml(photoDescription)}</p>`;
                 }
 
                 if (description) {
-                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
+                    html += `<p class="text-gray-500 text-sm">${escapeHtml(description)}</p>`;
                 }
 
                 if (navigation) {
@@ -1354,7 +1422,7 @@
                     }
 
                     if (breadcrumbs.length > 0) {
-                        html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
+                        html += `<p class="text-gray-400 text-xs">${breadcrumbs.join(' → ')}</p>`;
                     }
                 }
 
@@ -1376,7 +1444,7 @@
                 html += `
                     <div class="mt-3">
                         <button onclick="contactAboutSpecificProductFromFavorites(${index})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                                class="w-full py-3 tg-theme-button rounded-lg font-medium flex items-center justify-center">
                             <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                             Узнать подробнее
                         </button>
@@ -1397,8 +1465,6 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function toggleFavoriteFromFavorites(favoriteId) {
@@ -1735,8 +1801,6 @@
         function handleBrigadeImageError(imgElement, originalUrl = '', alternativeUrls = []) {
             const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
             
-            console.log('Ошибка загрузки изображения бригады, пробуем альтернативы:', alternativeUrls);
-            
             if (alternativeUrls.length > triedAlternative) {
                 imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
                 imgElement.src = alternativeUrls[triedAlternative];
@@ -1788,7 +1852,7 @@
                 html += `
                     <div class="bg-white rounded-xl p-8 text-center shadow-sm">
                         <i data-feather="inbox" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-                        <p class="text-gray-500 text-contrast">Объекты не найдены</p>
+                        <p class="text-gray-500">Объекты не найдены</p>
                     </div>
                 `;
             } else {
@@ -1892,7 +1956,7 @@
                 html += `
                     <div class="no-photos">
                         <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-                        <p class="text-gray-500 text-contrast">Фотографии отсутствуют</p>
+                        <p class="text-gray-500">Фотографии отсутствуют</p>
                     </div>
                 `;
             } else {
@@ -2318,7 +2382,7 @@
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
@@ -2335,7 +2399,7 @@
                         <div class="flex justify-between items-center">
                             <div class="flex items-center">
                                 <i data-feather="heart" class="w-5 h-5 mr-3 text-red-500"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Избранное</h3>
+                                <h3 class="font-semibold text-lg tg-theme-text">Избранное</h3>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-sm text-gray-500">${favorites.length} товаров</span>
@@ -2351,7 +2415,7 @@
                         <div class="flex justify-between items-center">
                             <div class="flex items-center">
                                 <i data-feather="users" class="w-5 h-5 mr-3 text-blue-500"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Бригады</h3>
+                                <h3 class="font-semibold text-lg tg-theme-text">Бригады</h3>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-sm text-gray-500">Строительные бригады</span>
@@ -2367,7 +2431,7 @@
                         <div class="flex justify-between items-center">
                             <div class="flex items-center">
                                 <i data-feather="car" class="w-5 h-5 mr-3 text-purple-600"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Вызвать такси</h3>
+                                <h3 class="font-semibold text-lg tg-theme-text">Вызвать такси</h3>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-sm text-gray-500">До магазина</span>
@@ -2404,7 +2468,7 @@
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
@@ -2449,7 +2513,7 @@
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
@@ -2494,7 +2558,7 @@
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                    <h3 class="font-semibold text-lg tg-theme-text">${safeName}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
@@ -2587,7 +2651,7 @@
             
             html += `
                 <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
-                    <h2 class="text-lg font-semibold text-contrast">Найдено товаров: ${currentProducts.length}</h2>
+                    <h2 class="text-lg font-semibold">Найдено товаров: ${currentProducts.length}</h2>
                 </div>
             `;
             
@@ -2618,17 +2682,15 @@
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
                         <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
-                             class="product-image w-full h-48 object-cover"
+                             class="product-image"
                              onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
                              onload="handleImageLoad(this)"
                              loading="lazy"
-                             crossorigin="anonymous"
                              data-tried-alternative="0">
                         <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
                             <div class="text-center text-gray-400">
                                 <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Не удалось загрузить фото</div>
-                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
                             </div>
                         </div>
                     `;
@@ -2638,7 +2700,6 @@
                             <div class="text-center text-gray-400">
                                 <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
                                 <div class="text-sm">Фото не доступно</div>
-                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
                             </div>
                         </div>
                     `;
@@ -2647,7 +2708,7 @@
                 html += `
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                <h3 class="font-semibold text-lg">${escapeHtml(color)}</h3>
                                 ${price && price !== 'Цена не указана' ? `
                                     <span class="price-badge">${escapeHtml(price)}</span>
                                 ` : ''}
@@ -2657,11 +2718,11 @@
                 `;
 
                 if (photoDescription) {
-                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
+                    html += `<p class="text-gray-700">${escapeHtml(photoDescription)}</p>`;
                 }
 
                 if (description) {
-                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
+                    html += `<p class="text-gray-500 text-sm">${escapeHtml(description)}</p>`;
                 }
 
                 html += `</div>`;
@@ -2682,7 +2743,7 @@
                 html += `
                     <div class="mt-3">
                         <button onclick="contactAboutSpecificProduct(${index})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                                class="w-full py-3 tg-theme-button rounded-lg font-medium flex items-center justify-center">
                             <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                             Узнать подробнее
                         </button>
@@ -2703,8 +2764,6 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function contactAboutSpecificProduct(productIndex) {
@@ -2785,13 +2844,13 @@
                 
                 if (index > 0) {
                     const separator = document.createElement('span');
-                    separator.className = 'mx-1 tg-theme-hint text-contrast';
+                    separator.className = 'mx-1 tg-theme-hint';
                     separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
                     elements.breadcrumbs.appendChild(separator);
                 }
                 
                 const link = document.createElement('span');
-                link.className = 'tg-theme-text text-sm truncate max-w-[120px] text-contrast';
+                link.className = 'tg-theme-text text-sm truncate max-w-120';
                 link.textContent = item.name;
                 link.title = item.name;
                 
