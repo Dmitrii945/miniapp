@@ -143,7 +143,6 @@
             background-color: #2563EB;
         }
 
-        /* Стили для кнопок под фото */
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -237,7 +236,6 @@
             background-color: #f8fafc;
         }
 
-        /* Исправляем цвета текста для всех элементов */
         body {
             color: #000000;
             background-color: #f9fafb;
@@ -248,22 +246,18 @@
             color: #000000;
         }
 
-        /* Явно задаем цвета для всех текстовых элементов */
         h1, h2, h3, h4, h5, h6, p, span, div {
             color: #000000;
         }
 
-        /* Убедимся, что все кнопки имеют читаемый текст */
         button {
             color: inherit;
         }
 
-        /* Улучшаем видимость иконок */
         [data-feather] {
             color: inherit;
         }
 
-        /* Гарантируем контрастность для важных элементов */
         .text-contrast {
             color: #000000 !important;
         }
@@ -272,7 +266,6 @@
             background-color: #ffffff !important;
         }
 
-        /* Стили для зеленой кнопки меню */
         .menu-button {
             background-color: #10B981;
             color: white;
@@ -291,7 +284,6 @@
             transform: scale(1.05);
         }
 
-        /* Стили для кнопки добавления на главный экран */
         .install-button {
             background-color: #3B82F6;
             color: white;
@@ -310,7 +302,6 @@
             transform: scale(1.05);
         }
 
-        /* Стили для пунктов меню */
         .menu-item {
             padding: 12px 16px;
             border-radius: 8px;
@@ -338,7 +329,6 @@
             margin: 8px 0;
         }
 
-        /* Стили для кнопок такси */
         .taxi-buttons {
             display: flex;
             gap: 8px;
@@ -384,7 +374,6 @@
             background-color: #333333;
         }
 
-        /* Стили для заголовка с подзаголовком */
         .header-title {
             display: flex;
             flex-direction: column;
@@ -405,7 +394,6 @@
             margin-top: 2px;
         }
 
-        /* Стили для кнопки избранного */
         .favorite-button {
             position: absolute;
             top: 10px;
@@ -450,7 +438,6 @@
             z-index: 10;
         }
 
-        /* Стили для двухколоночного расположения кнопок */
         .two-column-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -480,15 +467,17 @@
 
         /* Стили для бригад */
         .brigade-group {
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
         .brigade-group-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 16px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
             padding: 0 8px;
             color: #1F2937;
+            border-left: 4px solid #3B82F6;
+            padding-left: 12px;
         }
 
         .brigade-card {
@@ -499,7 +488,7 @@
             overflow: hidden;
             transition: all 0.2s;
             cursor: pointer;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .brigade-card:hover {
@@ -514,11 +503,11 @@
         }
 
         .brigade-content {
-            padding: 16px;
+            padding: 20px;
         }
 
         .brigade-title {
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 8px;
             color: #1F2937;
@@ -527,28 +516,69 @@
         .brigade-description {
             color: #6B7280;
             line-height: 1.5;
+            font-size: 0.95rem;
         }
 
-        /* Стили для галереи фото */
+        .object-count {
+            background-color: #3B82F6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .object-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .object-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .object-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1F2937;
+        }
+
+        .object-description {
+            color: #6B7280;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
         .gallery-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 1000;
             display: flex;
             flex-direction: column;
         }
 
         .gallery-header {
-            padding: 16px;
+            padding: 20px;
             background: rgba(0, 0, 0, 0.8);
             color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .gallery-title {
@@ -557,7 +587,7 @@
         }
 
         .gallery-status {
-            padding: 4px 12px;
+            padding: 6px 16px;
             border-radius: 20px;
             font-size: 0.875rem;
             font-weight: 500;
@@ -600,14 +630,15 @@
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 1.5rem;
         }
 
         .gallery-nav:hover {
@@ -615,35 +646,63 @@
         }
 
         .gallery-prev {
-            left: 16px;
+            left: 20px;
         }
 
         .gallery-next {
-            right: 16px;
+            right: 20px;
         }
 
         .gallery-footer {
-            padding: 16px;
+            padding: 20px;
             background: rgba(0, 0, 0, 0.8);
             color: white;
             text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .gallery-description {
-            font-size: 0.875rem;
-            line-height: 1.4;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .gallery-object-info {
+            font-size: 0.9rem;
+            color: #9CA3AF;
         }
 
         .gallery-counter {
             position: absolute;
-            top: 16px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 4px 12px;
+            padding: 6px 16px;
             border-radius: 20px;
             font-size: 0.875rem;
+        }
+
+        .back-to-brigades {
+            background-color: #6B7280;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-to-brigades:hover {
+            background-color: #4B5563;
+            transform: translateY(-1px);
         }
     </style>
 </head>
@@ -703,8 +762,8 @@
         <!-- Gallery Modal -->
         <div id="galleryModal" class="gallery-container hidden">
             <div class="gallery-header">
-                <button onclick="closeGallery()" class="text-white">
-                    <i data-feather="x"></i>
+                <button onclick="closeGallery()" class="text-white p-2 rounded-lg hover:bg-gray-700">
+                    <i data-feather="x" class="w-6 h-6"></i>
                 </button>
                 <div class="gallery-title" id="galleryCardTitle"></div>
                 <div class="gallery-status" id="galleryStatus"></div>
@@ -721,6 +780,7 @@
             </div>
             <div class="gallery-footer">
                 <div class="gallery-description" id="galleryDescription"></div>
+                <div class="gallery-object-info" id="galleryObjectInfo"></div>
             </div>
         </div>
 
@@ -842,6 +902,7 @@
         // Состояние для галереи бригад
         let currentGalleryData = null;
         let currentGalleryIndex = 0;
+        let currentBrigadeData = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -872,6 +933,7 @@
             galleryStatus: document.getElementById('galleryStatus'),
             galleryCurrentImage: document.getElementById('galleryCurrentImage'),
             galleryDescription: document.getElementById('galleryDescription'),
+            galleryObjectInfo: document.getElementById('galleryObjectInfo'),
             galleryCounter: document.getElementById('galleryCounter')
         };
 
@@ -966,337 +1028,13 @@
             return `${Math.round(numericPrice)} р.`;
         }
 
-        // ФУНКЦИИ ДЛЯ БРИГАД
-        async function loadBrigades() {
-            lastAction = { type: 'loadBrigades' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
-            elements.pageTitle.textContent = 'Бригады';
-            
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/brigades`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data.error) {
-                    showEmptyState('Ошибка загрузки данных бригад');
-                    return;
-                }
-                
-                if (!data.brigades || data.brigades.length === 0) {
-                    showEmptyState('Бригады не найдены');
-                    return;
-                }
-                
-                renderBrigades(data.brigades);
-                updateBackButton();
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки бригад');
-            }
-        }
-
-        function renderBrigades(brigades) {
-            let html = '<div class="space-y-6">';
-            
-            brigades.forEach(group => {
-                if (!group.group_name || !group.cards || group.cards.length === 0) return;
-                
-                html += `
-                    <div class="brigade-group">
-                        <h2 class="brigade-group-title">${escapeHtml(group.group_name)}</h2>
-                        <div class="space-y-3">
-                `;
-                
-                group.cards.forEach(card => {
-                    const imageUrl = extractPhotoFilenameFromUrl(card.photo_url);
-                    const alternativeUrls = getAlternativeImageUrls(card.photo_url);
-                    
-                    html += `
-                        <div class="brigade-card fade-in" onclick="openBrigadeCard('${escapeHtml(group.group_name)}', ${JSON.stringify(card).replace(/"/g, '&quot;')})">
-                    `;
-                    
-                    if (imageUrl || alternativeUrls.length > 0) {
-                        const finalImageUrl = imageUrl || alternativeUrls[0];
-                        html += `
-                            <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(card.card_title)}" 
-                                 class="brigade-image"
-                                 onerror="handleImageError(this, '${escapeHtml(card.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                 onload="handleImageLoad(this)"
-                                 loading="lazy"
-                                 crossorigin="anonymous"
-                                 data-tried-alternative="0">
-                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                                <div class="text-center text-gray-400">
-                                    <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                    <div class="text-sm">Не удалось загрузить фото</div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        html += `
-                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                                <div class="text-center text-gray-400">
-                                    <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                    <div class="text-sm">Фото не доступно</div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    html += `
-                            <div class="brigade-content">
-                                <h3 class="brigade-title">${escapeHtml(card.card_title)}</h3>
-                                <p class="brigade-description">${escapeHtml(card.card_description)}</p>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `
-                <button onclick="loadSections()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад в каталог
-                </button>
-            `;
-            
-            html += '</div>';
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        function openBrigadeCard(groupName, card) {
-            const imageUrl = extractPhotoFilenameFromUrl(card.photo_url);
-            const alternativeUrls = getAlternativeImageUrls(card.photo_url);
-            const status = getStatusText(card.status);
-            const statusClass = getStatusClass(card.status);
-            
-            let html = `
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div class="relative">
-            `;
-            
-            if (imageUrl || alternativeUrls.length > 0) {
-                const finalImageUrl = imageUrl || alternativeUrls[0];
-                html += `
-                    <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(card.card_title)}" 
-                         class="w-full h-64 object-cover"
-                         onerror="handleImageError(this, '${escapeHtml(card.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                         onload="handleImageLoad(this)"
-                         loading="lazy"
-                         crossorigin="anonymous"
-                         data-tried-alternative="0">
-                    <div class="w-full h-64 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                        <div class="text-center text-gray-400">
-                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                            <div class="text-sm">Не удалось загрузить фото</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="w-full h-64 bg-gray-100 flex items-center justify-center">
-                        <div class="text-center text-gray-400">
-                            <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                            <div class="text-sm">Фото не доступно</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            html += `
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-4">
-                            <h2 class="text-xl font-semibold text-contrast">${escapeHtml(card.card_title)}</h2>
-                            <span class="gallery-status ${statusClass}">${status}</span>
-                        </div>
-                        <p class="text-gray-600 mb-4 text-contrast">${escapeHtml(card.full_description)}</p>
-                        
-                        <div class="space-y-3">
-            `;
-            
-            // Показываем все фото для этой карточки
-            if (card.all_photos && card.all_photos.length > 0) {
-                card.all_photos.forEach((photo, index) => {
-                    const photoUrl = extractPhotoFilenameFromUrl(photo.photo_url);
-                    const photoAlts = getAlternativeImageUrls(photo.photo_url);
-                    
-                    if (photoUrl || photoAlts.length > 0) {
-                        const finalPhotoUrl = photoUrl || photoAlts[0];
-                        html += `
-                            <div class="brigade-card" onclick="openGallery('${escapeHtml(groupName)}', ${JSON.stringify(card).replace(/"/g, '&quot;')}, ${index})">
-                                <img src="${escapeHtml(finalPhotoUrl)}" alt="${escapeHtml(photo.description)}" 
-                                     class="brigade-image"
-                                     onerror="handleImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(photoAlts).replace(/"/g, '&quot;')})"
-                                     onload="handleImageLoad(this)"
-                                     loading="lazy"
-                                     crossorigin="anonymous"
-                                     data-tried-alternative="0">
-                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                                    <div class="text-center text-gray-400">
-                                        <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                        <div class="text-sm">Не удалось загрузить фото</div>
-                                    </div>
-                                </div>
-                                <div class="brigade-content">
-                                    <p class="brigade-description">${escapeHtml(photo.description)}</p>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-            }
-            
-            html += `
-                        </div>
-                        
-                        <div class="mt-6 space-y-3">
-                            <button onclick="makePhoneCall()" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center">
-                                <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                                ${CONTACT_INFO.phone}
-                            </button>
-                            
-                            <button onclick="loadBrigades()" class="back-button">
-                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                                Назад к бригадам
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        function getStatusText(status) {
-            switch (String(status)) {
-                case '0': return 'Продано';
-                case '1': return 'В продаже';
-                case '3': return 'Строится';
-                default: return 'Неизвестно';
-            }
-        }
-
-        function getStatusClass(status) {
-            switch (String(status)) {
-                case '0': return 'status-sold';
-                case '1': return 'status-sale';
-                case '3': return 'status-building';
-                default: return 'status-sold';
-            }
-        }
-
-        // ФУНКЦИИ ДЛЯ ГАЛЕРЕИ
-        function openGallery(groupName, card, startIndex = 0) {
-            if (!card.all_photos || card.all_photos.length === 0) return;
-            
-            currentGalleryData = card.all_photos;
-            currentGalleryIndex = startIndex;
-            
-            updateGallery();
-            elements.galleryModal.classList.remove('hidden');
-            
-            // Блокируем прокрутку body
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeGallery() {
-            elements.galleryModal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        function updateGallery() {
-            if (!currentGalleryData || currentGalleryData.length === 0) return;
-            
-            const currentPhoto = currentGalleryData[currentGalleryIndex];
-            const imageUrl = extractPhotoFilenameFromUrl(currentPhoto.photo_url);
-            const alternativeUrls = getAlternativeImageUrls(currentPhoto.photo_url);
-            const finalImageUrl = imageUrl || (alternativeUrls.length > 0 ? alternativeUrls[0] : '');
-            
-            elements.galleryCardTitle.textContent = currentGalleryData[0].card_title || 'Бригада';
-            elements.galleryStatus.textContent = getStatusText(currentGalleryData[0].status);
-            elements.galleryStatus.className = `gallery-status ${getStatusClass(currentGalleryData[0].status)}`;
-            elements.galleryCurrentImage.src = finalImageUrl;
-            elements.galleryCurrentImage.alt = currentPhoto.description || '';
-            elements.galleryDescription.textContent = currentPhoto.description || '';
-            elements.galleryCounter.textContent = `${currentGalleryIndex + 1} / ${currentGalleryData.length}`;
-            
-            // Обработчик ошибки загрузки изображения
-            elements.galleryCurrentImage.onerror = function() {
-                if (alternativeUrls.length > 0) {
-                    let tried = parseInt(this.dataset.triedAlternative || '0');
-                    if (tried < alternativeUrls.length) {
-                        this.dataset.triedAlternative = (tried + 1).toString();
-                        this.src = alternativeUrls[tried];
-                    }
-                }
-            };
-            
-            elements.galleryCurrentImage.dataset.triedAlternative = '0';
-        }
-
-        function prevGalleryImage() {
-            if (!currentGalleryData) return;
-            
-            currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryData.length) % currentGalleryData.length;
-            updateGallery();
-        }
-
-        function nextGalleryImage() {
-            if (!currentGalleryData) return;
-            
-            currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryData.length;
-            updateGallery();
-        }
-
-        // Обработчики свайпов для галереи
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        elements.galleryCurrentImage.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
-
-        elements.galleryCurrentImage.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            const swipeThreshold = 50;
-            const diff = touchStartX - touchEndX;
-            
-            if (Math.abs(diff) > swipeThreshold) {
-                if (diff > 0) {
-                    nextGalleryImage();
-                } else {
-                    prevGalleryImage();
-                }
-            }
-        }
-
-        // Остальные функции остаются без изменений...
-        // [Здесь должен быть остальной код из предыдущей версии]
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
             const phoneNumber = CONTACT_INFO.phone;
             if (tg) {
                 tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
             } else {
-                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позбоните нам!`);
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
             }
         }
 
@@ -1365,7 +1103,6 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
-            // Ссылка для Яндекс Такси с координатами
             const yandexTaxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lon}&end-text=${address}&appmetrica_tracking_id=1178268795219780156`;
             
             if (tg) {
@@ -1380,7 +1117,6 @@
             const lon = CONTACT_INFO.coordinates.lon;
             const address = encodeURIComponent(CONTACT_INFO.address);
             
-            // Ссылка для Uber с координатами
             const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${address}&dropoff[latitude]=${lat}&dropoff[longitude]=${lon}`;
             
             if (tg) {
@@ -1393,10 +1129,8 @@
         // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
         function installPWA() {
             if (deferredPrompt) {
-                // Показываем запрос на установку
                 deferredPrompt.prompt();
                 
-                // Ждем ответа пользователя
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('Пользователь принял установку');
@@ -1409,11 +1143,9 @@
                         console.log('Пользователь отклонил установку');
                     }
                     
-                    // Сбрасываем deferredPrompt после использования
                     deferredPrompt = null;
                 });
             } else {
-                // Если deferredPrompt недоступен, показываем инструкции
                 showInstallInstructions();
             }
         }
@@ -1505,13 +1237,11 @@
             const isFavorite = favorites.some(fav => fav.id === productId);
             
             if (isFavorite) {
-                // Удаляем из избранного
                 favorites = favorites.filter(fav => fav.id !== productId);
                 if (tg) {
                     tg.showAlert('Товар удален из избранного');
                 }
             } else {
-                // Добавляем в избранное
                 const navigation = getCurrentNavigation();
                 favorites.push({
                     id: productId,
@@ -1524,15 +1254,11 @@
                 }
             }
             
-            // Сохраняем в localStorage
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            // Обновляем отображение кнопки
             updateFavoriteButton(productId, productIndex);
         }
 
         function generateProductId(product) {
-            // Создаем уникальный идентификатор на основе данных товара
             return btoa(encodeURIComponent(
                 `${product.color || ''}-${product.price || ''}-${product.photo_url || ''}`
             )).substring(0, 20);
@@ -1596,14 +1322,10 @@
 
                 html += `
                     <div class="product-card fade-in" data-product-index="${index}">
-                `;
-
-                // Кнопка избранного
-                html += `
-                    <div class="favorite-label">В избранном</div>
-                    <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
-                        <i data-feather="heart"></i>
-                    </div>
+                        <div class="favorite-label">В избранном</div>
+                        <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
+                            <i data-feather="heart"></i>
+                        </div>
                 `;
 
                 if (imageUrl || alternativeUrls.length > 0) {
@@ -1656,7 +1378,6 @@
                     html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
                 }
 
-                // Хлебные крошки для навигации
                 if (navigation) {
                     const breadcrumbs = [];
                     
@@ -1683,7 +1404,6 @@
 
                 html += `</div>`;
 
-                // Кнопки действий для избранного
                 html += `
                     <div class="two-column-buttons">
                         <button onclick="makePhoneCall()" class="large-button phone-button">
@@ -1775,30 +1495,24 @@
                 return;
             }
 
-            // Формируем параметры для команды /share
             const sectionHash = navigation.section.id;
             const categoryHash = navigation.category?.id || 'null';
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
-            // Создаем ссылку на бота с командой /share
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
             
             if (tg) {
-                // В Telegram WebApp используем native share
                 tg.openTelegramLink(shareUrl);
             } else {
-                // В браузере показываем инструкцию
                 const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
                 
                 if (navigator.share) {
-                    // Используем Web Share API если доступен
                     navigator.share({
                         title: `Товар: ${product.color || 'Без названия'}`,
                         text: `Посмотрите этот товар в каталоге Скидка Сервис`,
                         url: shareUrl
                     }).catch(() => {
-                        // Fallback если share отменен
                         alert(message);
                     });
                 } else {
@@ -1819,14 +1533,11 @@
                 return;
             }
 
-            // Формируем параметры для команды /share
             const sectionHash = navigation.section.id;
             const categoryHash = navigation.category?.id || 'null';
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
-            // Находим индекс товара в текущих продуктах (для избранного это сложнее)
-            // Вместо этого создаем специальную команду для избранного
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
             
             if (tg) {
@@ -1948,6 +1659,342 @@
             }
         }
 
+        // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
+
+        async function loadBrigades() {
+            lastAction = { type: 'loadBrigades' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
+            elements.pageTitle.textContent = 'Бригады';
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/brigades`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.error) {
+                    showEmptyState('Ошибка загрузки данных бригад');
+                    return;
+                }
+                
+                if (!data.brigades || data.brigades.length === 0) {
+                    showEmptyState('Бригады не найдены');
+                    return;
+                }
+                
+                renderBrigadeGroups(data.brigades);
+                updateBackButton();
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки бригад');
+            }
+        }
+
+        function renderBrigadeGroups(brigadeGroups) {
+            let html = '<div class="space-y-8">';
+            
+            brigadeGroups.forEach(group => {
+                if (!group.group_name || !group.brigades || group.brigades.length === 0) return;
+                
+                html += `
+                    <div class="brigade-group">
+                        <h2 class="brigade-group-title">${escapeHtml(group.group_name)}</h2>
+                        <div class="space-y-4">
+                `;
+                
+                group.brigades.forEach(brigade => {
+                    const firstObject = brigade.objects && brigade.objects.length > 0 ? brigade.objects[0] : null;
+                    const imageUrl = firstObject ? extractPhotoFilenameFromUrl(firstObject.photo_url) : null;
+                    const alternativeUrls = firstObject ? getAlternativeImageUrls(firstObject.photo_url) : [];
+                    
+                    html += `
+                        <div class="brigade-card fade-in" onclick="openBrigade('${escapeHtml(group.group_name)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})">
+                    `;
+                    
+                    if (imageUrl || alternativeUrls.length > 0) {
+                        const finalImageUrl = imageUrl || alternativeUrls[0];
+                        html += `
+                            <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(brigade.brigade_name)}" 
+                                 class="brigade-image"
+                                 onerror="handleImageError(this, '${escapeHtml(firstObject.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                 onload="handleImageLoad(this)"
+                                 loading="lazy"
+                                 crossorigin="anonymous"
+                                 data-tried-alternative="0">
+                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Не удалось загрузить фото</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="users" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Фото не доступно</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                            <div class="brigade-content">
+                                <h3 class="brigade-title">${escapeHtml(brigade.brigade_name)}</h3>
+                                <p class="brigade-description">${escapeHtml(brigade.brigade_description || 'Строительная бригада')}</p>
+                                <div class="object-count">${brigade.objects ? brigade.objects.length : 0} объектов</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+            
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function openBrigade(groupName, brigade) {
+            currentBrigadeData = { groupName, brigade };
+            
+            navigationStack.push({ 
+                type: 'brigade', 
+                id: brigade.brigade_name, 
+                name: brigade.brigade_name 
+            });
+            
+            updateBreadcrumbsFromStack();
+            elements.pageTitle.textContent = brigade.brigade_name;
+            
+            renderBrigadeObjects(groupName, brigade);
+        }
+
+        function renderBrigadeObjects(groupName, brigade) {
+            let html = `
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl p-6 shadow-sm">
+                        <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
+                        <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
+                        ${brigade.brigade_description ? `<p class="text-gray-500 mt-2 text-contrast">${escapeHtml(brigade.brigade_description)}</p>` : ''}
+                    </div>
+            `;
+
+            if (!brigade.objects || brigade.objects.length === 0) {
+                html += `
+                    <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+                        <i data-feather="inbox" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                        <p class="text-gray-500 text-contrast">Объекты не найдены</p>
+                    </div>
+                `;
+            } else {
+                html += `<div class="space-y-4">`;
+                
+                brigade.objects.forEach((object, index) => {
+                    const imageUrl = extractPhotoFilenameFromUrl(object.photo_url);
+                    const alternativeUrls = getAlternativeImageUrls(object.photo_url);
+                    
+                    html += `
+                        <div class="object-card fade-in" onclick="openObjectGallery('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
+                    `;
+                    
+                    if (imageUrl || alternativeUrls.length > 0) {
+                        const finalImageUrl = imageUrl || alternativeUrls[0];
+                        html += `
+                            <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(object.object_name)}" 
+                                 class="brigade-image"
+                                 onerror="handleImageError(this, '${escapeHtml(object.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                 onload="handleImageLoad(this)"
+                                 loading="lazy"
+                                 crossorigin="anonymous"
+                                 data-tried-alternative="0">
+                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Не удалось загрузить фото</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="home" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Фото не доступно</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                            <div class="brigade-content">
+                                <h3 class="object-title">${escapeHtml(object.object_name)}</h3>
+                                <p class="object-description">${escapeHtml(object.object_description || 'Объект строительства')}</p>
+                                <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+
+            html += `
+                <div class="space-y-3">
+                    <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                        <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                        ${CONTACT_INFO.phone}
+                    </button>
+                    
+                    <button onclick="loadBrigades()" class="back-to-brigades">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад к бригадам
+                    </button>
+                </div>
+            </div>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function openObjectGallery(groupName, brigade, objectIndex) {
+            const object = brigade.objects[objectIndex];
+            if (!object || !object.all_photos || object.all_photos.length === 0) return;
+            
+            currentGalleryData = object.all_photos;
+            currentGalleryIndex = 0;
+            
+            updateObjectGallery(object, brigade.brigade_name);
+            elements.galleryModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function updateObjectGallery(object, brigadeName) {
+            if (!currentGalleryData || currentGalleryData.length === 0) return;
+            
+            const currentPhoto = currentGalleryData[currentGalleryIndex];
+            const imageUrl = extractPhotoFilenameFromUrl(currentPhoto.photo_url);
+            const alternativeUrls = getAlternativeImageUrls(currentPhoto.photo_url);
+            const finalImageUrl = imageUrl || (alternativeUrls.length > 0 ? alternativeUrls[0] : '');
+            
+            elements.galleryCardTitle.textContent = object.object_name;
+            elements.galleryStatus.textContent = getStatusText(object.status);
+            elements.galleryStatus.className = `gallery-status ${getStatusClass(object.status)}`;
+            elements.galleryCurrentImage.src = finalImageUrl;
+            elements.galleryCurrentImage.alt = currentPhoto.description || '';
+            elements.galleryDescription.textContent = currentPhoto.description || '';
+            elements.galleryObjectInfo.textContent = `${brigadeName} • ${object.object_name}`;
+            elements.galleryCounter.textContent = `${currentGalleryIndex + 1} / ${currentGalleryData.length}`;
+            
+            elements.galleryCurrentImage.onerror = function() {
+                if (alternativeUrls.length > 0) {
+                    let tried = parseInt(this.dataset.triedAlternative || '0');
+                    if (tried < alternativeUrls.length) {
+                        this.dataset.triedAlternative = (tried + 1).toString();
+                        this.src = alternativeUrls[tried];
+                    }
+                }
+            };
+            
+            elements.galleryCurrentImage.dataset.triedAlternative = '0';
+        }
+
+        function getStatusText(status) {
+            switch (String(status)) {
+                case '0': return 'Продано';
+                case '1': return 'В продаже';
+                case '3': return 'Строится';
+                default: return 'Неизвестно';
+            }
+        }
+
+        function getStatusClass(status) {
+            switch (String(status)) {
+                case '0': return 'status-sold';
+                case '1': return 'status-sale';
+                case '3': return 'status-building';
+                default: return 'status-sale';
+            }
+        }
+
+        // Функции галереи
+        function closeGallery() {
+            elements.galleryModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function prevGalleryImage() {
+            if (!currentGalleryData) return;
+            
+            currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryData.length) % currentGalleryData.length;
+            if (currentBrigadeData) {
+                const currentObject = currentBrigadeData.brigade.objects.find(obj => 
+                    obj.all_photos === currentGalleryData
+                );
+                if (currentObject) {
+                    updateObjectGallery(currentObject, currentBrigadeData.brigade.brigade_name);
+                }
+            }
+        }
+
+        function nextGalleryImage() {
+            if (!currentGalleryData) return;
+            
+            currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryData.length;
+            if (currentBrigadeData) {
+                const currentObject = currentBrigadeData.brigade.objects.find(obj => 
+                    obj.all_photos === currentGalleryData
+                );
+                if (currentObject) {
+                    updateObjectGallery(currentObject, currentBrigadeData.brigade.brigade_name);
+                }
+            }
+        }
+
+        // Обработчики свайпов для галереи
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        elements.galleryCurrentImage.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        elements.galleryCurrentImage.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextGalleryImage();
+                } else {
+                    prevGalleryImage();
+                }
+            }
+        }
+
         // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
 
         function initTelegramApp() {
@@ -2046,7 +2093,6 @@
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
                 
@@ -2087,7 +2133,6 @@
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
                 navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
                 
@@ -2129,7 +2174,6 @@
             lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
             
             try {
-                // Очищаем стек навигации от более глубоких уровней
                 navigationStack = navigationStack.filter(item => item.type !== 'submodels');
                 navigationStack.push({ type: 'models', id: modelId, name: modelName });
                 
@@ -2242,7 +2286,6 @@
                 `;
             });
 
-            // Добавляем кнопку избранного в главное меню
             html += `
                 <div class="category-card fade-in" onclick="loadFavorites()">
                     <div class="p-4">
@@ -2259,7 +2302,6 @@
                 </div>
             `;
 
-            // Добавляем кнопку бригад в главное меню
             html += `
                 <div class="category-card fade-in" onclick="loadBrigades()">
                     <div class="p-4">
@@ -2276,7 +2318,6 @@
                 </div>
             `;
 
-            // Добавляем кнопку вызова такси в главное меню
             html += `
                 <div class="category-card fade-in" onclick="callTaxi()">
                     <div class="p-4">
@@ -2300,7 +2341,6 @@
                 return;
             }
             
-            // Кнопка "Назад" показывается только если есть куда возвращаться
             if (navigationStack.length > 0) {
                 html += `
                     <button onclick="goBack()" class="back-button">
@@ -2535,13 +2575,9 @@
 
                 html += `
                     <div class="product-card fade-in" data-product-index="${index}">
-                `;
-
-                // Кнопка избранного
-                html += `
-                    <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
-                        <i data-feather="heart"></i>
-                    </div>
+                        <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                            <i data-feather="heart"></i>
+                        </div>
                 `;
 
                 if (imageUrl || alternativeUrls.length > 0) {
@@ -2596,7 +2632,6 @@
 
                 html += `</div>`;
 
-                // Двухколоночное расположение кнопок
                 html += `
                     <div class="two-column-buttons">
                         <button onclick="makePhoneCall()" class="large-button phone-button">
@@ -2613,7 +2648,7 @@
                 html += `
                     <div class="mt-3">
                         <button onclick="contactAboutSpecificProduct(${index})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-content: center">
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                             Узнать подробнее
                         </button>
@@ -2810,6 +2845,9 @@
                         loadSections();
                     }
                     break;
+                case 'brigade':
+                    loadBrigades();
+                    break;
                 default:
                     loadSections();
             }
@@ -2929,21 +2967,15 @@
                     }
                 });
 
-                // Обработчик события beforeinstallprompt для PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
-                    // Предотвращаем автоматическое отображение подсказки
                     e.preventDefault();
-                    // Сохраняем событие для использования позже
                     deferredPrompt = e;
-                    // Показываем кнопку установки
                     if (installButton) {
                         installButton.style.display = 'flex';
                     }
                 });
 
-                // Обработчик события appinstalled
                 window.addEventListener('appinstalled', (e) => {
-                    // Приложение было установлено
                     deferredPrompt = null;
                     if (installButton) {
                         installButton.style.display = 'none';
@@ -2968,8 +3000,8 @@
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
         window.loadBrigades = loadBrigades;
-        window.openBrigadeCard = openBrigadeCard;
-        window.openGallery = openGallery;
+        window.openBrigade = openBrigade;
+        window.openObjectGallery = openObjectGallery;
         window.closeGallery = closeGallery;
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
