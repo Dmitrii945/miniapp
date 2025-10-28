@@ -465,7 +465,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Стили для бригад */
+        /* Стили для бригад - УВЕЛИЧЕННЫЕ РАЗМЕРЫ */
         .brigade-group {
             margin-bottom: 32px;
         }
@@ -483,38 +483,40 @@
         .brigade-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
         }
 
         .brigade-card {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border: 1px solid #e5e7eb;
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.3s;
             cursor: pointer;
-            height: 140px;
+            height: 180px;
             display: flex;
             flex-direction: column;
         }
 
         .brigade-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
         .brigade-image-container {
             position: relative;
             width: 100%;
-            height: 80px;
+            height: 120px;
             overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .brigade-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s;
         }
 
         .brigade-image-placeholder {
@@ -528,7 +530,7 @@
         }
 
         .brigade-content {
-            padding: 12px;
+            padding: 16px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -536,9 +538,9 @@
         }
 
         .brigade-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
             color: #1F2937;
             line-height: 1.2;
             display: -webkit-box;
@@ -549,7 +551,7 @@
 
         .brigade-description {
             color: #6B7280;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             line-height: 1.2;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -560,33 +562,30 @@
         .object-count {
             background-color: #3B82F6;
             color: white;
-            padding: 2px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            margin-top: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 6px;
             display: inline-block;
         }
 
-        .object-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-            transition: all 0.2s;
-            cursor: pointer;
-            margin-bottom: 16px;
+        /* Стили для страницы объекта */
+        .object-page {
+            padding: 16px;
         }
 
-        .object-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        .object-header {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .object-title {
-            font-size: 1.125rem;
-            font-weight: 600;
+            font-size: 1.5rem;
+            font-weight: 700;
             margin-bottom: 8px;
             color: #1F2937;
         }
@@ -594,9 +593,69 @@
         .object-description {
             color: #6B7280;
             line-height: 1.5;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            margin-bottom: 12px;
         }
 
+        .object-status {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-sold {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .status-sale {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .status-building {
+            background-color: #F59E0B;
+            color: white;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .photo-image {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background: #f3f4f6;
+        }
+
+        .photo-description {
+            padding: 12px;
+            font-size: 0.875rem;
+            color: #4B5563;
+            line-height: 1.4;
+        }
+
+        /* Галерея */
         .gallery-container {
             position: fixed;
             top: 0;
@@ -622,28 +681,6 @@
         .gallery-title {
             font-size: 1.125rem;
             font-weight: 600;
-        }
-
-        .gallery-status {
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .status-sold {
-            background-color: #EF4444;
-            color: white;
-        }
-
-        .status-sale {
-            background-color: #10B981;
-            color: white;
-        }
-
-        .status-building {
-            background-color: #F59E0B;
-            color: white;
         }
 
         .gallery-content {
@@ -750,6 +787,18 @@
         .image-error.show {
             display: flex;
         }
+
+        .no-photos {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6B7280;
+        }
+
+        .no-photos i {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -801,7 +850,7 @@
         </div>
 
         <!-- Main Content -->
-        <main id="content" class="p-4 fade-in">
+        <main id="content" class="fade-in">
             <!-- Контент загружается динамически -->
         </main>
 
@@ -812,7 +861,7 @@
                     <i data-feather="x" class="w-6 h-6"></i>
                 </button>
                 <div class="gallery-title" id="galleryCardTitle"></div>
-                <div class="gallery-status" id="galleryStatus"></div>
+                <div class="object-status" id="galleryStatus"></div>
             </div>
             <div class="gallery-content">
                 <div class="gallery-counter" id="galleryCounter"></div>
@@ -949,6 +998,7 @@
         let currentGalleryData = null;
         let currentGalleryIndex = 0;
         let currentBrigadeData = null;
+        let currentObjectData = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -1748,7 +1798,7 @@
         }
 
         function renderBrigadeGroups(brigadeGroups) {
-            let html = '<div class="space-y-8">';
+            let html = '<div class="space-y-8 p-4">';
             
             brigadeGroups.forEach(group => {
                 if (!group.group_name || !group.brigades || group.brigades.length === 0) return;
@@ -1762,8 +1812,9 @@
                 group.brigades.forEach(brigade => {
                     const objectCount = brigade.objects ? brigade.objects.length : 0;
                     const firstObject = brigade.objects && brigade.objects.length > 0 ? brigade.objects[0] : null;
-                    const imageUrl = firstObject ? extractPhotoFilenameFromUrl(firstObject.photo_url) : null;
-                    const alternativeUrls = firstObject ? getAlternativeImageUrls(firstObject.photo_url) : [];
+                    const firstPhoto = firstObject && firstObject.all_photos && firstObject.all_photos.length > 0 ? firstObject.all_photos[0] : null;
+                    const imageUrl = firstPhoto ? extractPhotoFilenameFromUrl(firstPhoto.photo_url) : null;
+                    const alternativeUrls = firstPhoto ? getAlternativeImageUrls(firstPhoto.photo_url) : [];
                     
                     html += `
                         <div class="brigade-card fade-in" onclick="openBrigade('${escapeHtml(group.group_name)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})">
@@ -1775,18 +1826,18 @@
                         html += `
                             <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(brigade.brigade_name)}" 
                                  class="brigade-image"
-                                 onerror="handleBrigadeImageError(this, '${escapeHtml(firstObject ? firstObject.photo_url : '')}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                 onerror="handleBrigadeImageError(this, '${escapeHtml(firstPhoto ? firstPhoto.photo_url : '')}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
                                  onload="handleBrigadeImageLoad(this)"
                                  loading="lazy"
                                  data-tried-alternative="0">
                             <div class="brigade-image-placeholder hidden">
-                                <i data-feather="users" class="w-6 h-6 text-white"></i>
+                                <i data-feather="users" class="w-8 h-8 text-white"></i>
                             </div>
                         `;
                     } else {
                         html += `
                             <div class="brigade-image-placeholder">
-                                <i data-feather="users" class="w-6 h-6 text-white"></i>
+                                <i data-feather="users" class="w-8 h-8 text-white"></i>
                             </div>
                         `;
                     }
@@ -1865,11 +1916,11 @@
 
         function renderBrigadeObjects(groupName, brigade) {
             let html = `
-                <div class="space-y-6">
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
-                        <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
-                        ${brigade.brigade_description ? `<p class="text-gray-500 mt-2 text-contrast">${escapeHtml(brigade.brigade_description)}</p>` : ''}
+                <div class="object-page">
+                    <div class="object-header">
+                        <h2 class="object-title">${escapeHtml(brigade.brigade_name)}</h2>
+                        <p class="object-description">${escapeHtml(groupName)}</p>
+                        ${brigade.brigade_description ? `<p class="object-description">${escapeHtml(brigade.brigade_description)}</p>` : ''}
                     </div>
             `;
 
@@ -1881,23 +1932,24 @@
                     </div>
                 `;
             } else {
-                html += `<div class="space-y-4">`;
+                html += `<div class="space-y-6">`;
                 
                 brigade.objects.forEach((object, index) => {
-                    const imageUrl = extractPhotoFilenameFromUrl(object.photo_url);
-                    const alternativeUrls = getAlternativeImageUrls(object.photo_url);
-                    
                     html += `
-                        <div class="object-card fade-in" onclick="openObjectGallery('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
+                        <div class="object-card" onclick="openObjectPage('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
                             <div class="brigade-image-container">
                     `;
+                    
+                    const firstPhoto = object.all_photos && object.all_photos.length > 0 ? object.all_photos[0] : null;
+                    const imageUrl = firstPhoto ? extractPhotoFilenameFromUrl(firstPhoto.photo_url) : null;
+                    const alternativeUrls = firstPhoto ? getAlternativeImageUrls(firstPhoto.photo_url) : [];
                     
                     if (imageUrl || alternativeUrls.length > 0) {
                         const finalImageUrl = imageUrl || alternativeUrls[0];
                         html += `
                             <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(object.object_name)}" 
                                  class="brigade-image"
-                                 onerror="handleBrigadeImageError(this, '${escapeHtml(object.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                 onerror="handleBrigadeImageError(this, '${escapeHtml(firstPhoto ? firstPhoto.photo_url : '')}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
                                  onload="handleBrigadeImageLoad(this)"
                                  loading="lazy"
                                  data-tried-alternative="0">
@@ -1918,7 +1970,8 @@
                             <div class="brigade-content">
                                 <h3 class="object-title">${escapeHtml(object.object_name)}</h3>
                                 <p class="object-description">${escapeHtml(object.object_description || 'Объект строительства')}</p>
-                                <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+                                <div class="object-status ${getStatusClass(object.status)}">${getStatusText(object.status)}</div>
+                                <div class="object-count">${object.all_photos ? object.all_photos.length : 0} фото</div>
                             </div>
                         </div>
                     `;
@@ -1928,7 +1981,7 @@
             }
 
             html += `
-                <div class="space-y-3">
+                <div class="space-y-3 mt-8">
                     <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
                         <i data-feather="phone" class="w-5 h-5 mr-3"></i>
                         ${CONTACT_INFO.phone}
@@ -1946,33 +1999,135 @@
             scheduleFeatherReplace();
         }
 
-        function openObjectGallery(groupName, brigade, objectIndex) {
+        function openObjectPage(groupName, brigade, objectIndex) {
             const object = brigade.objects[objectIndex];
-            if (!object || !object.all_photos || object.all_photos.length === 0) return;
+            if (!object) return;
             
-            currentGalleryData = object.all_photos;
-            currentGalleryIndex = 0;
+            currentObjectData = { groupName, brigade, object };
             
-            updateObjectGallery(object, brigade.brigade_name);
+            navigationStack.push({ 
+                type: 'object', 
+                id: object.object_name, 
+                name: object.object_name 
+            });
+            
+            updateBreadcrumbsFromStack();
+            elements.pageTitle.textContent = object.object_name;
+            
+            renderObjectPhotos(groupName, brigade, object);
+        }
+
+        function renderObjectPhotos(groupName, brigade, object) {
+            let html = `
+                <div class="object-page">
+                    <div class="object-header">
+                        <h2 class="object-title">${escapeHtml(object.object_name)}</h2>
+                        <p class="object-description">${escapeHtml(brigade.brigade_name)} • ${escapeHtml(groupName)}</p>
+                        ${object.object_description ? `<p class="object-description">${escapeHtml(object.object_description)}</p>` : ''}
+                        <div class="object-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+                    </div>
+            `;
+
+            if (!object.all_photos || object.all_photos.length === 0) {
+                html += `
+                    <div class="no-photos">
+                        <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                        <p class="text-gray-500 text-contrast">Фотографии отсутствуют</p>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="photos-grid">
+                `;
+                
+                object.all_photos.forEach((photo, index) => {
+                    const imageUrl = extractPhotoFilenameFromUrl(photo.photo_url);
+                    const alternativeUrls = getAlternativeImageUrls(photo.photo_url);
+                    
+                    html += `
+                        <div class="photo-card fade-in" onclick="openPhotoGallery(${index})">
+                    `;
+                    
+                    if (imageUrl || alternativeUrls.length > 0) {
+                        const finalImageUrl = imageUrl || alternativeUrls[0];
+                        html += `
+                            <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
+                                 class="photo-image"
+                                 onerror="handleBrigadeImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                 onload="handleBrigadeImageLoad(this)"
+                                 loading="lazy"
+                                 data-tried-alternative="0">
+                            <div class="brigade-image-placeholder hidden">
+                                <i data-feather="image" class="w-8 h-8 text-white"></i>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="brigade-image-placeholder" style="height: 140px;">
+                                <i data-feather="image" class="w-8 h-8 text-white"></i>
+                            </div>
+                        `;
+                    }
+                    
+                    if (photo.description) {
+                        html += `
+                            <div class="photo-description">
+                                ${escapeHtml(photo.description)}
+                            </div>
+                        `;
+                    }
+                    
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+            }
+
+            html += `
+                <div class="space-y-3 mt-8">
+                    <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                        <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                        ${CONTACT_INFO.phone}
+                    </button>
+                    
+                    <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад к объектам
+                    </button>
+                </div>
+            </div>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function openPhotoGallery(photoIndex) {
+            if (!currentObjectData || !currentObjectData.object.all_photos) return;
+            
+            currentGalleryData = currentObjectData.object.all_photos;
+            currentGalleryIndex = photoIndex;
+            
+            updatePhotoGallery();
             elements.galleryModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
 
-        function updateObjectGallery(object, brigadeName) {
-            if (!currentGalleryData || currentGalleryData.length === 0) return;
+        function updatePhotoGallery() {
+            if (!currentGalleryData || currentGalleryData.length === 0 || !currentObjectData) return;
             
             const currentPhoto = currentGalleryData[currentGalleryIndex];
             const imageUrl = extractPhotoFilenameFromUrl(currentPhoto.photo_url);
             const alternativeUrls = getAlternativeImageUrls(currentPhoto.photo_url);
             const finalImageUrl = imageUrl || (alternativeUrls.length > 0 ? alternativeUrls[0] : '');
             
-            elements.galleryCardTitle.textContent = object.object_name;
-            elements.galleryStatus.textContent = getStatusText(object.status);
-            elements.galleryStatus.className = `gallery-status ${getStatusClass(object.status)}`;
+            elements.galleryCardTitle.textContent = currentObjectData.object.object_name;
+            elements.galleryStatus.textContent = getStatusText(currentObjectData.object.status);
+            elements.galleryStatus.className = `object-status ${getStatusClass(currentObjectData.object.status)}`;
             elements.galleryCurrentImage.src = finalImageUrl;
             elements.galleryCurrentImage.alt = currentPhoto.description || '';
             elements.galleryDescription.textContent = currentPhoto.description || '';
-            elements.galleryObjectInfo.textContent = `${brigadeName} • ${object.object_name}`;
+            elements.galleryObjectInfo.textContent = `${currentObjectData.brigade.brigade_name} • ${currentObjectData.object.object_name}`;
             elements.galleryCounter.textContent = `${currentGalleryIndex + 1} / ${currentGalleryData.length}`;
             
             elements.galleryCurrentImage.onerror = function() {
@@ -2015,28 +2170,14 @@
             if (!currentGalleryData) return;
             
             currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryData.length) % currentGalleryData.length;
-            if (currentBrigadeData) {
-                const currentObject = currentBrigadeData.brigade.objects.find(obj => 
-                    obj.all_photos === currentGalleryData
-                );
-                if (currentObject) {
-                    updateObjectGallery(currentObject, currentBrigadeData.brigade.brigade_name);
-                }
-            }
+            updatePhotoGallery();
         }
 
         function nextGalleryImage() {
             if (!currentGalleryData) return;
             
             currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryData.length;
-            if (currentBrigadeData) {
-                const currentObject = currentBrigadeData.brigade.objects.find(obj => 
-                    obj.all_photos === currentGalleryData
-                );
-                if (currentObject) {
-                    updateObjectGallery(currentObject, currentBrigadeData.brigade.brigade_name);
-                }
-            }
+            updatePhotoGallery();
         }
 
         // Обработчики свайпов для галереи
@@ -2121,7 +2262,7 @@
                 if (error.name === 'AbortError') {
                     errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.`;
                 }
                 
                 hideLoading();
@@ -2330,7 +2471,7 @@
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
 
         function renderSections(sections) {
-            let html = '<div class="space-y-3">';
+            let html = '<div class="space-y-3 p-4">';
             
             sections.forEach(section => {
                 if (!section) return;
@@ -2411,21 +2552,12 @@
                 return;
             }
             
-            if (navigationStack.length > 0) {
-                html += `
-                    <button onclick="goBack()" class="back-button">
-                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                        Назад
-                    </button>
-                `;
-            }
-            
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
         }
 
         function renderCategories(categories, sectionId, sectionName) {
-            let html = '<div class="space-y-3">';
+            let html = '<div class="space-y-3 p-4">';
             
             categories.forEach(category => {
                 if (!category) return;
@@ -2470,7 +2602,7 @@
         }
 
         function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
-            let html = '<div class="space-y-3">';
+            let html = '<div class="space-y-3 p-4">';
             
             models.forEach(model => {
                 if (!model) return;
@@ -2515,7 +2647,7 @@
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
-            let html = '<div class="space-y-3">';
+            let html = '<div class="space-y-3 p-4">';
             
             submodels.forEach(submodel => {
                 if (!submodel) return;
@@ -2619,7 +2751,7 @@
             }
 
             const navigation = getCurrentNavigation();
-            let html = '<div class="product-list">';
+            let html = '<div class="product-list p-4">';
             
             html += `
                 <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
@@ -2918,6 +3050,14 @@
                 case 'brigade':
                     loadBrigades();
                     break;
+                case 'object':
+                    const brigadeItem = navigationStack.find(item => item.type === 'brigade');
+                    if (brigadeItem && currentBrigadeData) {
+                        openBrigade(currentBrigadeData.groupName, currentBrigadeData.brigade);
+                    } else {
+                        loadBrigades();
+                    }
+                    break;
                 default:
                     loadSections();
             }
@@ -3071,7 +3211,8 @@
         window.loadFavorites = loadFavorites;
         window.loadBrigades = loadBrigades;
         window.openBrigade = openBrigade;
-        window.openObjectGallery = openObjectGallery;
+        window.openObjectPage = openObjectPage;
+        window.openPhotoGallery = openPhotoGallery;
         window.closeGallery = closeGallery;
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
