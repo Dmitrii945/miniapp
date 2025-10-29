@@ -876,6 +876,89 @@
             justify-content: center;
             color: #6b7280;
         }
+
+        /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
+        .info-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-modal-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .info-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .info-modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .info-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .info-modal-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            color: white;
+        }
+
+        .info-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-line;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .info-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .info-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -953,6 +1036,19 @@
             <div class="gallery-footer">
                 <div class="gallery-description" id="galleryDescription"></div>
                 <div class="gallery-object-info" id="galleryObjectInfo"></div>
+            </div>
+        </div>
+
+        <!-- Info Modal -->
+        <div id="infoModal" class="info-modal hidden">
+            <div class="info-modal-header">
+                <h2 class="info-modal-title">Информация по объекту</h2>
+                <button onclick="closeInfoModal()" class="info-modal-close">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="info-modal-content">
+                <div class="info-description" id="infoModalContent"></div>
             </div>
         </div>
 
@@ -1107,7 +1203,9 @@
             galleryCurrentImage: document.getElementById('galleryCurrentImage'),
             galleryDescription: document.getElementById('galleryDescription'),
             galleryObjectInfo: document.getElementById('galleryObjectInfo'),
-            galleryCounter: document.getElementById('galleryCounter')
+            galleryCounter: document.getElementById('galleryCounter'),
+            infoModal: document.getElementById('infoModal'),
+            infoModalContent: document.getElementById('infoModalContent')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -1989,11 +2087,16 @@
                     html += `
                             <div class="p-4">
                                 <h3 class="object-title">${escapeHtml(object.object_name)}</h3>
-                                ${object.object_description ? `<p class="object-description">${escapeHtml(object.object_description)}</p>` : ''}
                                 <div class="flex justify-between items-center mt-3">
                                     <div class="gallery-status ${getStatusClass(object.status)}">${getStatusText(object.status)}</div>
                                     <div class="text-sm text-gray-500">${object.all_photos ? object.all_photos.length : 0} фото</div>
                                 </div>
+                                ${object.object_description ? `
+                                    <button onclick="event.stopPropagation(); openInfoModal('${escapeHtml(object.object_description)}')" class="info-button mt-3">
+                                        <i data-feather="info" class="w-4 h-4"></i>
+                                        Информация по объекту
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -2045,8 +2148,13 @@
                     <div class="object-gallery-container">
                         <div class="object-gallery-header">
                             <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
-                            ${object.object_description ? `<p class="object-gallery-description">${escapeHtml(object.object_description)}</p>` : ''}
                             <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+                            ${object.object_description ? `
+                                <button onclick="openInfoModal('${escapeHtml(object.object_description)}')" class="info-button mt-3">
+                                    <i data-feather="info" class="w-4 h-4"></i>
+                                    Информация по объекту
+                                </button>
+                            ` : ''}
                         </div>
             `;
 
@@ -2130,6 +2238,18 @@
             scheduleFeatherReplace();
         }
 
+        // ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
+        function openInfoModal(description) {
+            elements.infoModalContent.textContent = description;
+            elements.infoModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeInfoModal() {
+            elements.infoModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
         function openFullScreenGallery(photoIndex) {
             if (!currentObjectData || !currentObjectData.object.all_photos) return;
             
@@ -2154,7 +2274,7 @@
             elements.galleryStatus.className = `gallery-status ${getStatusClass(currentObjectData.object.status)}`;
             elements.galleryCurrentImage.src = finalImageUrl;
             elements.galleryCurrentImage.alt = currentPhoto.description || '';
-            elements.galleryDescription.textContent = currentPhoto.description || currentObjectData.object.object_description || '';
+            elements.galleryDescription.textContent = currentPhoto.description || '';
             elements.galleryObjectInfo.textContent = `${currentObjectData.brigade.brigade_name} • ${currentObjectData.groupName}`;
             elements.galleryCounter.textContent = `${currentGalleryIndex + 1} / ${currentGalleryData.length}`;
             
@@ -3274,6 +3394,8 @@
         window.closeGallery = closeGallery;
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
+        window.openInfoModal = openInfoModal;
+        window.closeInfoModal = closeInfoModal;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
         window.toggleFavorite = toggleFavorite;
