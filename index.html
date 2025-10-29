@@ -1915,7 +1915,7 @@
                     html += `
                             <div class="brigade-content">
                                 <h3 class="brigade-title">${escapeHtml(brigade.brigade_name)}</h3>
-                                <p class="brigade-description">${escapeHtml(brigade.brigade_description || group.group_name)}</p>
+                                <p class="brigade-description">${escapeHtml(group.group_name)}</p>
                                 <div class="object-count">${objectCount} объектов</div>
                             </div>
                         </div>
@@ -1962,7 +1962,6 @@
                     <div class="bg-white rounded-xl p-6 shadow-sm">
                         <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
                         <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
-                        ${brigade.brigade_description ? `<p class="text-gray-500 mt-2 text-contrast">${escapeHtml(brigade.brigade_description)}</p>` : ''}
                     </div>
             `;
 
