@@ -927,20 +927,16 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            color: white;
-            font-size: 16px;
-            line-height: 1.5;
-            white-space: pre-line;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            color: white !important;
+            font-size: 16px !important;
+            line-height: 1.5 !important;
+            white-space: pre-line !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
         }
-
-        .info-description {
-            font-size: 1rem;
-            line-height: 1.6;
-            white-space: pre-line;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+        
+        .info-modal-content * {
+            color: white !important;
         }
 
         .info-button {
@@ -958,6 +954,12 @@
             gap: 8px;
             margin-top: 16px;
             width: 100%;
+        }
+
+        .info-description {
+            color: white !important;
+            font-size: 16px !important;
+            line-height: 1.5 !important;
         }
 
         .info-button:hover {
@@ -2255,16 +2257,25 @@
             console.log('Description type:', typeof description);
             
             if (!description || description.trim() === '') {
-                elements.infoModalContent.innerHTML = '<p class="text-gray-500">Описание отсутствует</p>';
+                elements.infoModalContent.innerHTML = '<p class="text-white text-center py-8">Описание отсутствует</p>';
             } else {
                 // Заменяем переносы строк на <br> и экранируем HTML
                 const safeDescription = escapeHtml(description).replace(/\n/g, '<br>');
-                elements.infoModalContent.innerHTML = safeDescription;
+                elements.infoModalContent.innerHTML = `
+                    <div style="color: white; font-size: 16px; line-height: 1.5; white-space: pre-line; word-wrap: break-word;">
+                        ${safeDescription}
+                    </div>
+                `;
             }
-            
-            elements.infoModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
+    
+    elements.infoModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Принудительное применение стилей
+    elements.infoModalContent.style.display = 'block';
+    elements.infoModalContent.style.visibility = 'visible';
+    elements.infoModalContent.style.opacity = '1';
+}
 
         function closeInfoModal() {
             elements.infoModal.classList.add('hidden');
