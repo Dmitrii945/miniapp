@@ -878,6 +878,7 @@
         }
 
         /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
+        /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
         .info-modal {
             position: fixed;
             top: 0;
@@ -889,7 +890,7 @@
             display: flex;
             flex-direction: column;
         }
-
+        
         .info-modal-header {
             padding: 20px;
             background: rgba(0, 0, 0, 0.8);
@@ -899,12 +900,12 @@
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-
+        
         .info-modal-title {
             font-size: 1.25rem;
             font-weight: 600;
         }
-
+        
         .info-modal-close {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -918,37 +919,22 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
+        
         .info-modal-close:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-
+        
         .info-modal-content {
             flex: 1;
             padding: 20px;
-            overflow-y: auto !important;
-            color: white !important;
-            font-size: 16px !important;
-            line-height: 1.5 !important;
-            white-space: pre-line !important;
-            word-wrap: break-word !important;
-            overflow-wrap: break-word !important;
-            max-height: calc(100vh - 140px) !important;
+            overflow-y: auto;
+            color: white;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-line;
+            word-wrap: break-word;
         }
         
-        .info-modal-content * {
-            color: white !important;
-            max-width: 100% !important;
-        }
-        
-        .info-description {
-            color: white !important;
-            font-size: 16px !important;
-            line-height: 1.5 !important;
-            word-break: break-word !important;
-            overflow-wrap: anywhere !important;
-        }
-
         .info-button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -965,7 +951,7 @@
             margin-top: 16px;
             width: 100%;
         }
-
+        
         .info-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
@@ -2259,37 +2245,23 @@
             console.log('Opening info modal with description:', description);
             
             if (!description || description.trim() === '') {
-                elements.infoModalContent.innerHTML = '<p style="color: white; text-align: center; padding: 40px;">Описание отсутствует</p>';
+                elements.infoModalContent.innerHTML = '<p style="color: white; text-align: center; padding: 20px;">Описание отсутствует</p>';
             } else {
-                // Простой вариант с inline стилями
-                const safeDescription = escapeHtml(description).replace(/\n/g, '<br>');
-                elements.infoModalContent.innerHTML = `
-                    <div style="
-                        color: #ffffff;
-                        font-size: 16px;
-                        line-height: 1.6;
-                        padding: 10px;
-                        white-space: pre-line;
-                        word-break: break-word;
-                    ">
-                        ${safeDescription}
-                    </div>
-                `;
+                // Простое решение - используем textContent вместо innerHTML
+                elements.infoModalContent.textContent = description;
+                // Применяем стили напрямую
+                elements.infoModalContent.style.color = 'white';
+                elements.infoModalContent.style.fontSize = '16px';
+                elements.infoModalContent.style.lineHeight = '1.5';
+                elements.infoModalContent.style.whiteSpace = 'pre-line';
+                elements.infoModalContent.style.padding = '20px';
+                elements.infoModalContent.style.overflowY = 'auto';
             }
             
             elements.infoModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
-    
-    elements.infoModal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    
-    // Принудительное применение стилей
-    elements.infoModalContent.style.display = 'block';
-    elements.infoModalContent.style.visibility = 'visible';
-    elements.infoModalContent.style.opacity = '1';
-}
-
+        
         function closeInfoModal() {
             elements.infoModal.classList.add('hidden');
             document.body.style.overflow = '';
