@@ -995,7 +995,7 @@
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">${CONTACT_INFO.phone}</div>
+                                <div class="text-sm text-gray-600">60-01-60</div>
                             </div>
                         </div>
                         
@@ -1565,7 +1565,7 @@
                 html += `
                     <div class="mt-3">
                         <button onclick="contactAboutSpecificProductFromFavorites(${index})" 
-                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-content: center">
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                             Узнать подробнее
                         </button>
@@ -1915,7 +1915,7 @@
                     html += `
                             <div class="brigade-content">
                                 <h3 class="brigade-title">${escapeHtml(brigade.brigade_name)}</h3>
-                                <p class="brigade-description">${escapeHtml(brigade.brigade_description || 'Строительная бригада')}</p>
+                                <p class="brigade-description">${escapeHtml(brigade.brigade_description || group.group_name)}</p>
                                 <div class="object-count">${objectCount} объектов</div>
                             </div>
                         </div>
@@ -1990,7 +1990,7 @@
                     html += `
                             <div class="p-4">
                                 <h3 class="object-title">${escapeHtml(object.object_name)}</h3>
-                                <p class="object-description">${escapeHtml(object.object_description || 'Объект строительства')}</p>
+                                ${object.object_description ? `<p class="object-description">${escapeHtml(object.object_description)}</p>` : ''}
                                 <div class="flex justify-between items-center mt-3">
                                     <div class="gallery-status ${getStatusClass(object.status)}">${getStatusText(object.status)}</div>
                                     <div class="text-sm text-gray-500">${object.all_photos ? object.all_photos.length : 0} фото</div>
@@ -2022,7 +2022,6 @@
             scheduleFeatherReplace();
         }
 
-        // НОВАЯ ФУНКЦИЯ: Открытие страницы галереи объекта
         function openObjectGalleryPage(groupName, brigade, objectIndex) {
             const object = brigade.objects[objectIndex];
             if (!object) return;
@@ -2041,14 +2040,13 @@
             renderObjectGalleryPage(groupName, brigade, object);
         }
 
-        // НОВАЯ ФУНКЦИЯ: Рендер страницы галереи объекта
         function renderObjectGalleryPage(groupName, brigade, object) {
             let html = `
                 <div class="space-y-6">
                     <div class="object-gallery-container">
                         <div class="object-gallery-header">
                             <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
-                            <p class="object-gallery-description">${escapeHtml(object.object_description || 'Объект строительства')}</p>
+                            ${object.object_description ? `<p class="object-gallery-description">${escapeHtml(object.object_description)}</p>` : ''}
                             <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
                         </div>
             `;
@@ -2133,7 +2131,6 @@
             scheduleFeatherReplace();
         }
 
-        // НОВАЯ ФУНКЦИЯ: Открытие полноэкранной галереи
         function openFullScreenGallery(photoIndex) {
             if (!currentObjectData || !currentObjectData.object.all_photos) return;
             
@@ -2145,7 +2142,6 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // НОВАЯ ФУНКЦИЯ: Обновление полноэкранной галереи
         function updateFullScreenGallery() {
             if (!currentGalleryData || currentGalleryData.length === 0) return;
             
@@ -2160,7 +2156,7 @@
             elements.galleryCurrentImage.src = finalImageUrl;
             elements.galleryCurrentImage.alt = currentPhoto.description || '';
             elements.galleryDescription.textContent = currentPhoto.description || currentObjectData.object.object_description || '';
-            elements.galleryObjectInfo.textContent = `${currentObjectData.brigade.brigade_name} • ${currentObjectData.object.object_name}`;
+            elements.galleryObjectInfo.textContent = `${currentObjectData.brigade.brigade_name} • ${currentObjectData.groupName}`;
             elements.galleryCounter.textContent = `${currentGalleryIndex + 1} / ${currentGalleryData.length}`;
             
             // Сбрасываем обработчики ошибок
