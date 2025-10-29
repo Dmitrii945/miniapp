@@ -750,6 +750,35 @@
         .image-error.show {
             display: flex;
         }
+
+        /* Стили для улучшенной загрузки изображений */
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .image-fallback {
+            display: none;
+        }
+
+        .image-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -1377,28 +1406,32 @@
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
-                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
-                             class="product-image w-full h-48 object-cover"
-                             onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                             onload="handleImageLoad(this)"
-                             loading="lazy"
-                             crossorigin="anonymous"
-                             data-tried-alternative="0">
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                            <div class="text-center text-gray-400">
-                                <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                <div class="text-sm">Не удалось загрузить фото</div>
-                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                        <div class="image-container">
+                            <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
+                                 class="product-image"
+                                 onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                 onload="handleImageLoad(this)"
+                                 loading="lazy"
+                                 crossorigin="anonymous"
+                                 data-tried-alternative="0">
+                            <div class="image-placeholder hidden">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Не удалось загрузить фото</div>
+                                    <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                                </div>
                             </div>
                         </div>
                     `;
                 } else {
                     html += `
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                            <div class="text-center text-gray-400">
-                                <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
-                                <div class="text-sm">Фото не доступно</div>
-                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                        <div class="image-container">
+                            <div class="image-placeholder">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Фото не доступно</div>
+                                    ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1594,19 +1627,23 @@
             }
         }
 
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ИЗВЛЕЧЕНИЯ ФОТО
         function extractPhotoFilenameFromUrl(url) {
             try {
                 if (!url || typeof url !== 'string') return null;
 
                 url = url.trim();
 
+                // Если это уже прямая ссылка на изображение
                 if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
                     return url.startsWith('http') ? url : null;
                 }
 
+                // Обработка Google Drive ссылок
                 if (url.includes('drive.google.com')) {
                     let fileId = null;
 
+                    // Разные форматы Google Drive ссылок
                     if (url.includes('/file/d/')) {
                         const match = url.match(/\/file\/d\/([^\/]+)/);
                         if (match && match[1]) {
@@ -1628,6 +1665,7 @@
                     }
                 }
 
+                // Если это обычная HTTP ссылка
                 if (url.startsWith('http://') || url.startsWith('https://')) {
                     return url;
                 }
@@ -1647,6 +1685,7 @@
             try {
                 let fileId = null;
                 
+                // Извлекаем fileId из разных форматов Google Drive ссылок
                 const match1 = originalUrl.match(/\/file\/d\/([^\/]+)/);
                 if (match1 && match1[1]) {
                     fileId = match1[1];
@@ -1667,6 +1706,7 @@
                 }
                 
                 if (fileId) {
+                    // Генерируем альтернативные форматы ссылок
                     urls.push(`https://drive.google.com/uc?export=view&id=${fileId}`);
                     urls.push(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`);
                     urls.push(`https://docs.google.com/uc?id=${fileId}`);
@@ -1684,24 +1724,26 @@
             const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
             
             if (alternativeUrls.length > triedAlternative) {
+                // Пробуем следующую альтернативную ссылку
                 imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
                 imgElement.src = alternativeUrls[triedAlternative];
                 return;
             }
             
+            // Все альтернативы исчерпаны - показываем placeholder
             imgElement.style.display = 'none';
-            const placeholder = imgElement.nextElementSibling;
-            if (placeholder && placeholder.classList.contains('image-placeholder')) {
-                placeholder.style.display = 'flex';
+            const placeholder = imgElement.parentElement.querySelector('.image-placeholder');
+            if (placeholder) {
+                placeholder.classList.remove('hidden');
             }
             scheduleFeatherReplace();
         }
 
         function handleImageLoad(imgElement) {
             imgElement.style.display = 'block';
-            const placeholder = imgElement.nextElementSibling;
-            if (placeholder && placeholder.classList.contains('image-placeholder')) {
-                placeholder.style.display = 'none';
+            const placeholder = imgElement.parentElement.querySelector('.image-placeholder');
+            if (placeholder) {
+                placeholder.classList.add('hidden');
             }
         }
 
@@ -1755,8 +1797,12 @@
                 group.brigades.forEach(brigade => {
                     const objectCount = brigade.objects ? brigade.objects.length : 0;
                     const firstObject = brigade.objects && brigade.objects.length > 0 ? brigade.objects[0] : null;
-                    const imageUrl = firstObject ? extractPhotoFilenameFromUrl(firstObject.photo_url) : null;
-                    const alternativeUrls = firstObject ? getAlternativeImageUrls(firstObject.photo_url) : [];
+                    const imageUrl = firstObject && firstObject.all_photos && firstObject.all_photos.length > 0 
+                        ? extractPhotoFilenameFromUrl(firstObject.all_photos[0].photo_url) 
+                        : null;
+                    const alternativeUrls = firstObject && firstObject.all_photos && firstObject.all_photos.length > 0 
+                        ? getAlternativeImageUrls(firstObject.all_photos[0].photo_url) 
+                        : [];
                     
                     html += `
                         <div class="brigade-card fade-in" onclick="openBrigade('${escapeHtml(group.group_name)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})">
@@ -1866,8 +1912,9 @@
                 html += `<div class="space-y-4">`;
                 
                 brigade.objects.forEach((object, index) => {
-                    const imageUrl = extractPhotoFilenameFromUrl(object.photo_url);
-                    const alternativeUrls = getAlternativeImageUrls(object.photo_url);
+                    const firstPhoto = object.all_photos && object.all_photos.length > 0 ? object.all_photos[0] : null;
+                    const imageUrl = firstPhoto ? extractPhotoFilenameFromUrl(firstPhoto.photo_url) : null;
+                    const alternativeUrls = firstPhoto ? getAlternativeImageUrls(firstPhoto.photo_url) : [];
                     
                     html += `
                         <div class="object-card fade-in" onclick="openObjectGallery('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
@@ -2635,28 +2682,32 @@
                 if (imageUrl || alternativeUrls.length > 0) {
                     const finalImageUrl = imageUrl || alternativeUrls[0];
                     html += `
-                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
-                             class="product-image w-full h-48 object-cover"
-                             onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                             onload="handleImageLoad(this)"
-                             loading="lazy"
-                             crossorigin="anonymous"
-                             data-tried-alternative="0">
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center hidden image-placeholder">
-                            <div class="text-center text-gray-400">
-                                <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
-                                <div class="text-sm">Не удалось загрузить фото</div>
-                                <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                        <div class="image-container">
+                            <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(color)}" 
+                                 class="product-image"
+                                 onerror="handleImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                 onload="handleImageLoad(this)"
+                                 loading="lazy"
+                                 crossorigin="anonymous"
+                                 data-tried-alternative="0">
+                            <div class="image-placeholder hidden">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Не удалось загрузить фото</div>
+                                    <div class="text-xs mt-1">ID: ${escapeHtml(photoUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                                </div>
                             </div>
                         </div>
                     `;
                 } else {
                     html += `
-                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
-                            <div class="text-center text-gray-400">
-                                <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
-                                <div class="text-sm">Фото не доступно</div>
-                                ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                        <div class="image-container">
+                            <div class="image-placeholder">
+                                <div class="text-center text-gray-400">
+                                    <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <div class="text-sm">Фото не доступно</div>
+                                    ${photoUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(photoUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                                </div>
                             </div>
                         </div>
                     `;
