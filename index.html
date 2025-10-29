@@ -928,6 +928,11 @@
             padding: 20px;
             overflow-y: auto;
             color: white;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-line;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .info-description {
@@ -2078,6 +2083,11 @@
                     const imageUrl = firstPhoto ? extractPhotoFilenameFromUrl(firstPhoto.photo_url) : null;
                     const alternativeUrls = firstPhoto ? getAlternativeImageUrls(firstPhoto.photo_url) : [];
                     
+                    // Отладочная информация
+                    console.log('Object description for', object.object_name, ':', object.object_description);
+                    console.log('Description exists:', !!object.object_description);
+                    console.log('Description not empty:', object.object_description && object.object_description.trim() !== '');
+                    
                     html += `
                         <div class="object-card fade-in" onclick="openObjectGalleryPage('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
                     `;
@@ -2091,7 +2101,7 @@
                                     <div class="gallery-status ${getStatusClass(object.status)}">${getStatusText(object.status)}</div>
                                     <div class="text-sm text-gray-500">${object.all_photos ? object.all_photos.length : 0} фото</div>
                                 </div>
-                                ${object.object_description ? `
+                                ${object.object_description && object.object_description.trim() !== '' ? `
                                     <button onclick="event.stopPropagation(); openInfoModal('${escapeHtml(object.object_description)}')" class="info-button mt-3">
                                         <i data-feather="info" class="w-4 h-4"></i>
                                         Информация по объекту
@@ -2149,7 +2159,7 @@
                         <div class="object-gallery-header">
                             <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
                             <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
-                            ${object.object_description ? `
+                            ${object.object_description && object.object_description.trim() !== '' ? `
                                 <button onclick="openInfoModal('${escapeHtml(object.object_description)}')" class="info-button mt-3">
                                     <i data-feather="info" class="w-4 h-4"></i>
                                     Информация по объекту
@@ -2238,9 +2248,20 @@
             scheduleFeatherReplace();
         }
 
-        // ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
+        // ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
         function openInfoModal(description) {
-            elements.infoModalContent.textContent = description;
+            console.log('Opening info modal with description:', description);
+            console.log('Description length:', description ? description.length : 0);
+            console.log('Description type:', typeof description);
+            
+            if (!description || description.trim() === '') {
+                elements.infoModalContent.innerHTML = '<p class="text-gray-500">Описание отсутствует</p>';
+            } else {
+                // Заменяем переносы строк на <br> и экранируем HTML
+                const safeDescription = escapeHtml(description).replace(/\n/g, '<br>');
+                elements.infoModalContent.innerHTML = safeDescription;
+            }
+            
             elements.infoModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
