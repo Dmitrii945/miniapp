@@ -926,17 +926,27 @@
         .info-modal-content {
             flex: 1;
             padding: 20px;
-            overflow-y: auto;
+            overflow-y: auto !important;
             color: white !important;
             font-size: 16px !important;
             line-height: 1.5 !important;
             white-space: pre-line !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
+            max-height: calc(100vh - 140px) !important;
         }
         
         .info-modal-content * {
             color: white !important;
+            max-width: 100% !important;
+        }
+        
+        .info-description {
+            color: white !important;
+            font-size: 16px !important;
+            line-height: 1.5 !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
         }
 
         .info-button {
@@ -954,12 +964,6 @@
             gap: 8px;
             margin-top: 16px;
             width: 100%;
-        }
-
-        .info-description {
-            color: white !important;
-            font-size: 16px !important;
-            line-height: 1.5 !important;
         }
 
         .info-button:hover {
@@ -1054,8 +1058,8 @@
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="info-modal-content">
-                <div class="info-description" id="infoModalContent"></div>
+            <div class="info-modal-content" id="infoModalContent">
+                <!-- Сюда вставляется описание -->
             </div>
         </div>
 
@@ -2253,20 +2257,29 @@
         // ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
         function openInfoModal(description) {
             console.log('Opening info modal with description:', description);
-            console.log('Description length:', description ? description.length : 0);
-            console.log('Description type:', typeof description);
             
             if (!description || description.trim() === '') {
-                elements.infoModalContent.innerHTML = '<p class="text-white text-center py-8">Описание отсутствует</p>';
+                elements.infoModalContent.innerHTML = '<p style="color: white; text-align: center; padding: 40px;">Описание отсутствует</p>';
             } else {
-                // Заменяем переносы строк на <br> и экранируем HTML
+                // Простой вариант с inline стилями
                 const safeDescription = escapeHtml(description).replace(/\n/g, '<br>');
                 elements.infoModalContent.innerHTML = `
-                    <div style="color: white; font-size: 16px; line-height: 1.5; white-space: pre-line; word-wrap: break-word;">
+                    <div style="
+                        color: #ffffff;
+                        font-size: 16px;
+                        line-height: 1.6;
+                        padding: 10px;
+                        white-space: pre-line;
+                        word-break: break-word;
+                    ">
                         ${safeDescription}
                     </div>
                 `;
             }
+            
+            elements.infoModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
     
     elements.infoModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
