@@ -2059,7 +2059,7 @@
                         <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
                     </div>
             `;
-
+        
             if (!brigade.objects || brigade.objects.length === 0) {
                 html += `
                     <div class="bg-white rounded-xl p-8 text-center shadow-sm">
@@ -2075,10 +2075,8 @@
                     const imageUrl = firstPhoto ? extractPhotoFilenameFromUrl(firstPhoto.photo_url) : null;
                     const alternativeUrls = firstPhoto ? getAlternativeImageUrls(firstPhoto.photo_url) : [];
                     
-                    // Отладочная информация
-                    console.log('Object description for', object.object_name, ':', object.object_description);
-                    console.log('Description exists:', !!object.object_description);
-                    console.log('Description not empty:', object.object_description && object.object_description.trim() !== '');
+                    // Экранируем описание для использования в атрибуте data
+                    const safeDescription = escapeHtml(object.object_description || '');
                     
                     html += `
                         <div class="object-card fade-in" onclick="openObjectGalleryPage('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
@@ -2094,7 +2092,9 @@
                                     <div class="text-sm text-gray-500">${object.all_photos ? object.all_photos.length : 0} фото</div>
                                 </div>
                                 ${object.object_description && object.object_description.trim() !== '' ? `
-                                    <button onclick="event.stopPropagation(); openInfoModal('${escapeHtml(object.object_description)}')" class="info-button mt-3">
+                                    <button class="info-button mt-3" 
+                                            onclick="event.stopPropagation(); openInfoModalFromButton(this)" 
+                                            data-description="${safeDescription}">
                                         <i data-feather="info" class="w-4 h-4"></i>
                                         Информация по объекту
                                     </button>
@@ -2106,20 +2106,20 @@
                 
                 html += `</div>`;
             }
-
+        
             html += `
-                <div class="space-y-3">
-                    <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                        <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                        ${CONTACT_INFO.phone}
-                    </button>
-                    
-                    <button onclick="loadBrigades()" class="back-to-brigades">
-                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                        Назад к бригадам
-                    </button>
-                </div>
-            </div>
+                        <div class="space-y-3">
+                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                                ${CONTACT_INFO.phone}
+                            </button>
+                            
+                            <button onclick="loadBrigades()" class="back-to-brigades">
+                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                                Назад к бригадам
+                            </button>
+                        </div>
+                    </div>
             `;
             
             elements.content.innerHTML = html;
@@ -2151,31 +2151,42 @@
                         <div class="object-gallery-header">
                             <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
                             <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
-                            ${object.object_description && object.object_description.trim() !== '' ? `
-                                <button onclick="openInfoModal('${escapeHtml(object.object_description)}')" class="info-button mt-3">
-                                    <i data-feather="info" class="w-4 h-4"></i>
-                                    Информация по объекту
-                                </button>
-                            ` : ''}
+            `;
+        
+            // Экранируем описание для использования в атрибуте data
+            const safeDescription = escapeHtml(object.object_description || '');
+            
+            if (object.object_description && object.object_description.trim() !== '') {
+                html += `
+                            <button class="info-button mt-3" 
+                                    onclick="openInfoModalFromButton(this)" 
+                                    data-description="${safeDescription}">
+                                <i data-feather="info" class="w-4 h-4"></i>
+                                Информация по объекту
+                            </button>
+                `;
+            }
+        
+            html += `
                         </div>
             `;
-
+        
             if (!object.all_photos || object.all_photos.length === 0) {
                 html += `
-                    <div class="object-gallery-images">
-                        <div class="bg-gray-50 rounded-lg p-8 text-center">
-                            <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-                            <p class="text-gray-500">Фотографии не найдены</p>
-                        </div>
-                    </div>
+                            <div class="object-gallery-images">
+                                <div class="bg-gray-50 rounded-lg p-8 text-center">
+                                    <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                                    <p class="text-gray-500">Фотографии не найдены</p>
+                                </div>
+                            </div>
                 `;
             } else {
                 html += `
-                    <div class="object-gallery-images">
-                        <div class="mb-4">
-                            <h3 class="text-lg font-semibold text-contrast mb-2">Фотографии объекта (${object.all_photos.length})</h3>
-                        </div>
-                        <div class="object-gallery-grid">
+                            <div class="object-gallery-images">
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-semibold text-contrast mb-2">Фотографии объекта (${object.all_photos.length})</h3>
+                                </div>
+                                <div class="object-gallery-grid">
                 `;
                 
                 object.all_photos.forEach((photo, photoIndex) => {
@@ -2183,33 +2194,33 @@
                     const alternativeUrls = getAlternativeImageUrls(photo.photo_url);
                     
                     html += `
-                        <div class="object-gallery-image-item fade-in" onclick="openFullScreenGallery(${photoIndex})">
+                                    <div class="object-gallery-image-item fade-in" onclick="openFullScreenGallery(${photoIndex})">
                     `;
                     
                     if (imageUrl || alternativeUrls.length > 0) {
                         const finalImageUrl = imageUrl || alternativeUrls[0];
                         html += `
-                            <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
-                                 class="object-gallery-image"
-                                 onerror="handleGalleryImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                 onload="handleGalleryImageLoad(this)"
-                                 loading="lazy"
-                                 data-tried-alternative="0">
-                            <div class="object-gallery-image-placeholder hidden">
-                                <div class="text-center text-gray-400">
-                                    <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
-                                    <div class="text-xs">Не удалось загрузить</div>
-                                </div>
-                            </div>
+                                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
+                                             class="object-gallery-image"
+                                             onerror="handleGalleryImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                             onload="handleGalleryImageLoad(this)"
+                                             loading="lazy"
+                                             data-tried-alternative="0">
+                                        <div class="object-gallery-image-placeholder hidden">
+                                            <div class="text-center text-gray-400">
+                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                                <div class="text-xs">Не удалось загрузить</div>
+                                            </div>
+                                        </div>
                         `;
                     } else {
                         html += `
-                            <div class="object-gallery-image-placeholder">
-                                <div class="text-center text-gray-400">
-                                    <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
-                                    <div class="text-xs">Фото не доступно</div>
-                                </div>
-                            </div>
+                                        <div class="object-gallery-image-placeholder">
+                                            <div class="text-center text-gray-400">
+                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                                <div class="text-xs">Фото не доступно</div>
+                                            </div>
+                                        </div>
                         `;
                     }
                     
@@ -2218,28 +2229,40 @@
                 
                 html += `</div></div>`;
             }
-
+        
             html += `
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                            <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                            ${CONTACT_INFO.phone}
-                        </button>
+                        </div>
                         
-                        <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
-                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                            Назад к объектам
-                        </button>
+                        <div class="space-y-3">
+                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                                ${CONTACT_INFO.phone}
+                            </button>
+                            
+                            <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                                Назад к объектам
+                            </button>
+                        </div>
                     </div>
-                </div>
             `;
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
         }
 
+        function openInfoModalFromButton(buttonElement) {
+            const description = buttonElement.getAttribute('data-description');
+            if (description) {
+                openInfoModal(description);
+            }
+            
+            // Останавливаем распространение события
+            if (window.event) {
+                window.event.stopPropagation();
+                window.event.preventDefault();
+            }
+        }
         // ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
         function openInfoModal(description) {
             console.log('Opening info modal with description:', description);
@@ -2247,26 +2270,49 @@
             if (!description || description.trim() === '') {
                 elements.infoModalContent.innerHTML = '<p style="color: white; text-align: center; padding: 20px;">Описание отсутствует</p>';
             } else {
-                // Простое решение - используем textContent вместо innerHTML
-                elements.infoModalContent.textContent = description;
-                // Применяем стили напрямую
-                elements.infoModalContent.style.color = 'white';
-                elements.infoModalContent.style.fontSize = '16px';
-                elements.infoModalContent.style.lineHeight = '1.5';
-                elements.infoModalContent.style.whiteSpace = 'pre-line';
-                elements.infoModalContent.style.padding = '20px';
-                elements.infoModalContent.style.overflowY = 'auto';
+                // Используем textContent для безопасности и создаем структуру
+                elements.infoModalContent.innerHTML = '';
+                
+                // Создаем контейнер для контента
+                const contentDiv = document.createElement('div');
+                contentDiv.style.color = 'white';
+                contentDiv.style.fontSize = '16px';
+                contentDiv.style.lineHeight = '1.5';
+                contentDiv.style.whiteSpace = 'pre-line';
+                contentDiv.style.padding = '20px';
+                contentDiv.style.overflowY = 'auto';
+                contentDiv.style.maxHeight = '70vh';
+                contentDiv.style.wordWrap = 'break-word';
+                contentDiv.style.overflowWrap = 'break-word';
+                
+                // Безопасно устанавливаем текст
+                contentDiv.textContent = description;
+                
+                elements.infoModalContent.appendChild(contentDiv);
             }
             
             elements.infoModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            
+            // Останавливаем распространение события
+            if (window.event) {
+                window.event.stopPropagation();
+            }
         }
-        
+
         function closeInfoModal() {
             elements.infoModal.classList.add('hidden');
             document.body.style.overflow = '';
+            
+            // Очищаем содержимое при закрытии
+            elements.infoModalContent.innerHTML = '';
+            
+            // Останавливаем распространение события
+            if (window.event) {
+                window.event.stopPropagation();
+            }
         }
-
+        
         function openFullScreenGallery(photoIndex) {
             if (!currentObjectData || !currentObjectData.object.all_photos) return;
             
@@ -3398,6 +3444,7 @@
         });
 
         // Глобальные функции
+        // Глобальные функции
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
         window.loadModels = loadModels;
@@ -3412,6 +3459,7 @@
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
         window.openInfoModal = openInfoModal;
+        window.openInfoModalFromButton = openInfoModalFromButton; // ДОБАВЬТЕ ЭТУ СТРОКУ
         window.closeInfoModal = closeInfoModal;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
