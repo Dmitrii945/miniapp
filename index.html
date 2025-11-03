@@ -2092,37 +2092,6 @@
                     <div class="bg-white rounded-xl p-6 shadow-sm">
                         <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
                         <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
-            `;
-            
-            // Блок с информацией о контакте
-            if (brigade.contact) {
-                html += `
-                        <div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                            <div class="flex items-center mb-2">
-                                <i data-feather="user" class="w-5 h-5 text-green-600 mr-2"></i>
-                                <span class="font-semibold text-green-800">Контакт бригады:</span>
-                            </div>
-                            <p class="text-green-700 ml-7">
-                                <strong>${escapeHtml(brigade.contact_name || brigade.brigade_name)}</strong><br>
-                                <span class="text-sm">${escapeHtml(brigade.contact)}</span>
-                            </p>
-                        </div>
-                `;
-            } else {
-                html += `
-                        <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                            <div class="flex items-center">
-                                <i data-feather="alert-circle" class="w-5 h-5 text-yellow-600 mr-2"></i>
-                                <span class="font-semibold text-yellow-800">Контакт не указан</span>
-                            </div>
-                            <p class="text-yellow-700 text-sm mt-1 ml-7">
-                                Для связи используйте общий чат поддержки
-                            </p>
-                        </div>
-                `;
-            }
-            
-            html += `
                     </div>
             `;
             
@@ -2173,13 +2142,12 @@
                 html += `</div>`;
             }
         
-            // Кнопка "Уточнить детали" с информацией о контакте
+            // Кнопка "Уточнить детали" (БЕЗ отображения контакта)
             html += `
                     <div class="space-y-3">
                         <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}')" class="details-button">
                             <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
-                            ${brigade.contact ? 'Уточнить детали у бригады' : 'Уточнить детали (общий чат)'}
-                            ${brigade.contact ? `<br><span class="text-xs opacity-80 mt-1">Контакт: ${escapeHtml(brigade.contact)}</span>` : ''}
+                            Уточнить детали у бригады
                         </button>
                         
                         <button onclick="loadBrigades()" class="back-to-brigades">
@@ -2224,25 +2192,7 @@
             // Экранируем описание для использования в атрибуте data
             const safeDescription = escapeHtml(object.object_description || '');
             
-            // Блок с информацией о контакте бригады
-            if (brigade.contact) {
-                html += `
-                            <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                <div class="flex items-center">
-                                    <i data-feather="users" class="w-4 h-4 text-blue-600 mr-2"></i>
-                                    <span class="text-sm text-blue-700">
-                                        <strong>Бригада:</strong> ${escapeHtml(brigade.brigade_name)}
-                                    </span>
-                                </div>
-                                <div class="flex items-center mt-1">
-                                    <i data-feather="user" class="w-4 h-4 text-blue-600 mr-2"></i>
-                                    <span class="text-sm text-blue-700">
-                                        <strong>Контакт:</strong> ${escapeHtml(brigade.contact)}
-                                    </span>
-                                </div>
-                            </div>
-                `;
-            }
+            // УБИРАЕМ блок с информацией о контакте бригады
             
             if (object.object_description && object.object_description.trim() !== '') {
                 html += `
@@ -2334,8 +2284,7 @@
                     <div class="space-y-3">
                         <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" class="details-button">
                             <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
-                            ${brigade.contact ? 'Уточнить детали у бригады' : 'Уточнить детали (общий чат)'}
-                            ${brigade.contact ? `<br><span class="text-xs opacity-80 mt-1">Контакт: ${escapeHtml(brigade.contact)}</span>` : ''}
+                            Уточнить детали у бригады
                         </button>
                         
                         <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
@@ -2348,6 +2297,30 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+        }
+
+        function initTelegramApp() {
+            if (tg) {
+                try {
+                    tg.expand();
+                    tg.enableClosingConfirmation();
+                    
+                    // Настройки для лучшей интеграции с чатами
+                    tg.setHeaderColor('#3B82F6'); // Цвет заголовка
+                    tg.setBackgroundColor('#f9fafb'); // Цвет фона
+                    
+                    // Проверяем права админа при инициализации
+                    checkAdminRights();
+                    
+                    if (isAdmin) {
+                        console.log('👑 Администратор вошел в систему');
+                    }
+                    
+                    console.log('✅ Telegram Web App инициализирован, чаты будут открываться внутри приложения');
+                } catch (error) {
+                    console.log('Ошибка инициализации Telegram Web App:', error);
+                }
+            }
         }
         function openInfoModalFromButton(buttonElement) {
             const description = buttonElement.getAttribute('data-description');
@@ -2567,13 +2540,13 @@
             const brigade = findBrigadeByName(brigadeName);
             
             let contact = brigade?.contact;
-            let contactName = brigade?.contact_name || brigadeName;
             
             // Если контакт не указан, используем общий
             if (!contact) {
                 contact = 'SkidkaService01';
-                contactName = 'Общий чат поддержки';
-                console.warn(`Контакт для бригады "${brigadeName}" не указан, используется общий чат`);
+                console.log(`📞 Используется общий чат для бригады "${brigadeName}"`);
+            } else {
+                console.log(`📞 Используется контакт бригады: ${contact}`);
             }
             
             // Генерируем уникальный идентификатор чата
@@ -2586,28 +2559,26 @@
             }
             message += `. Прошу уточнить детали.`;
             
-            // Формируем URL для Telegram
-            let telegramUrl;
+            // Формируем username для Telegram
+            let telegramUsername;
             if (contact.startsWith('@')) {
-                // Telegram username (убираем @)
-                telegramUrl = `https://t.me/${contact.substring(1)}?text=${encodeURIComponent(message)}&start=${chatId}`;
+                telegramUsername = contact.substring(1); // Убираем @
             } else if (contact.startsWith('+')) {
-                // Номер телефона
-                telegramUrl = `https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${chatId}`;
-            } else if (contact.includes('.')) {
-                // Telegram username без @
-                telegramUrl = `https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${chatId}`;
+                telegramUsername = contact; // Оставляем номер телефона
             } else {
-                // По умолчанию - общий чат
-                telegramUrl = `https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${chatId}`;
+                telegramUsername = contact; // Оставляем как есть
             }
             
-            console.log(`📞 Открываем чат с ${contactName}: ${telegramUrl}`);
+            console.log(`💬 Открываем чат с: ${telegramUsername}`);
             
-            // Открываем чат
-            if (tg) {
+            // ОТКРЫВАЕМ ЧАТ ВНУТРИ ПРИЛОЖЕНИЯ через Telegram Web App
+            if (tg && tg.openTelegramLink) {
+                // Используем метод Telegram Web App для открытия чата внутри приложения
+                const telegramUrl = `https://t.me/${telegramUsername}?text=${encodeURIComponent(message)}&start=${chatId}`;
                 tg.openTelegramLink(telegramUrl);
             } else {
+                // Fallback для браузера
+                const telegramUrl = `https://t.me/${telegramUsername}?text=${encodeURIComponent(message)}&start=${chatId}`;
                 window.open(telegramUrl, '_blank');
             }
         }
