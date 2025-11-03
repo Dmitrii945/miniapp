@@ -2092,9 +2092,40 @@
                     <div class="bg-white rounded-xl p-6 shadow-sm">
                         <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
                         <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
+            `;
+            
+            // Блок с информацией о контакте
+            if (brigade.contact) {
+                html += `
+                        <div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div class="flex items-center mb-2">
+                                <i data-feather="user" class="w-5 h-5 text-green-600 mr-2"></i>
+                                <span class="font-semibold text-green-800">Контакт бригады:</span>
+                            </div>
+                            <p class="text-green-700 ml-7">
+                                <strong>${escapeHtml(brigade.contact_name || brigade.brigade_name)}</strong><br>
+                                <span class="text-sm">${escapeHtml(brigade.contact)}</span>
+                            </p>
+                        </div>
+                `;
+            } else {
+                html += `
+                        <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <div class="flex items-center">
+                                <i data-feather="alert-circle" class="w-5 h-5 text-yellow-600 mr-2"></i>
+                                <span class="font-semibold text-yellow-800">Контакт не указан</span>
+                            </div>
+                            <p class="text-yellow-700 text-sm mt-1 ml-7">
+                                Для связи используйте общий чат поддержки
+                            </p>
+                        </div>
+                `;
+            }
+            
+            html += `
                     </div>
             `;
-        
+            
             if (!brigade.objects || brigade.objects.length === 0) {
                 html += `
                     <div class="bg-white rounded-xl p-8 text-center shadow-sm">
@@ -2142,20 +2173,21 @@
                 html += `</div>`;
             }
         
-            // ЗАМЕНА КНОПКИ ТЕЛЕФОНА НА КНОПКУ "УТОЧНИТЬ ДЕТАЛИ"
+            // Кнопка "Уточнить детали" с информацией о контакте
             html += `
-                        <div class="space-y-3">
-                            <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}')" class="details-button">
-                                <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
-                                Уточнить детали
-                            </button>
-                            
-                            <button onclick="loadBrigades()" class="back-to-brigades">
-                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                                Назад к бригадам
-                            </button>
-                        </div>
+                    <div class="space-y-3">
+                        <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}')" class="details-button">
+                            <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
+                            ${brigade.contact ? 'Уточнить детали у бригады' : 'Уточнить детали (общий чат)'}
+                            ${brigade.contact ? `<br><span class="text-xs opacity-80 mt-1">Контакт: ${escapeHtml(brigade.contact)}</span>` : ''}
+                        </button>
+                        
+                        <button onclick="loadBrigades()" class="back-to-brigades">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад к бригадам
+                        </button>
                     </div>
+                </div>
             `;
             
             elements.content.innerHTML = html;
@@ -2188,9 +2220,29 @@
                             <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
                             <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
             `;
-        
+            
             // Экранируем описание для использования в атрибуте data
             const safeDescription = escapeHtml(object.object_description || '');
+            
+            // Блок с информацией о контакте бригады
+            if (brigade.contact) {
+                html += `
+                            <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <div class="flex items-center">
+                                    <i data-feather="users" class="w-4 h-4 text-blue-600 mr-2"></i>
+                                    <span class="text-sm text-blue-700">
+                                        <strong>Бригада:</strong> ${escapeHtml(brigade.brigade_name)}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-1">
+                                    <i data-feather="user" class="w-4 h-4 text-blue-600 mr-2"></i>
+                                    <span class="text-sm text-blue-700">
+                                        <strong>Контакт:</strong> ${escapeHtml(brigade.contact)}
+                                    </span>
+                                </div>
+                            </div>
+                `;
+            }
             
             if (object.object_description && object.object_description.trim() !== '') {
                 html += `
@@ -2202,27 +2254,28 @@
                             </button>
                 `;
             }
-        
+            
             html += `
                         </div>
             `;
-        
+            
             if (!object.all_photos || object.all_photos.length === 0) {
                 html += `
-                            <div class="object-gallery-images">
-                                <div class="bg-gray-50 rounded-lg p-8 text-center">
-                                    <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-                                    <p class="text-gray-500">Фотографии не найдены</p>
-                                </div>
+                        <div class="object-gallery-images">
+                            <div class="bg-gray-50 rounded-lg p-8 text-center">
+                                <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                                <p class="text-gray-500">Фотографии не найдены</p>
                             </div>
+                        </div>
                 `;
             } else {
                 html += `
-                            <div class="object-gallery-images">
-                                <div class="mb-4">
-                                    <h3 class="text-lg font-semibold text-contrast mb-2">Фотографии объекта (${object.all_photos.length})</h3>
-                                </div>
-                                <div class="object-gallery-grid">
+                        <div class="object-gallery-images">
+                            <div class="mb-4">
+                                <h3 class="text-lg font-semibold text-contrast mb-2">Фотографии объекта (${object.all_photos.length})</h3>
+                                <p class="text-gray-600 text-sm">Нажмите на фото для просмотра в полноэкранном режиме</p>
+                            </div>
+                            <div class="object-gallery-grid">
                 `;
                 
                 object.all_photos.forEach((photo, photoIndex) => {
@@ -2230,33 +2283,42 @@
                     const alternativeUrls = getAlternativeImageUrls(photo.photo_url);
                     
                     html += `
-                                    <div class="object-gallery-image-item fade-in" onclick="openFullScreenGallery(${photoIndex})">
+                                <div class="object-gallery-image-item fade-in" onclick="openFullScreenGallery(${photoIndex})">
                     `;
                     
                     if (imageUrl || alternativeUrls.length > 0) {
                         const finalImageUrl = imageUrl || alternativeUrls[0];
                         html += `
-                                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
-                                             class="object-gallery-image"
-                                             onerror="handleGalleryImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                             onload="handleGalleryImageLoad(this)"
-                                             loading="lazy"
-                                             data-tried-alternative="0">
-                                        <div class="object-gallery-image-placeholder hidden">
-                                            <div class="text-center text-gray-400">
-                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
-                                                <div class="text-xs">Не удалось загрузить</div>
-                                            </div>
+                                    <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
+                                         class="object-gallery-image"
+                                         onerror="handleGalleryImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                         onload="handleGalleryImageLoad(this)"
+                                         loading="lazy"
+                                         data-tried-alternative="0">
+                                    <div class="object-gallery-image-placeholder hidden">
+                                        <div class="text-center text-gray-400">
+                                            <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                            <div class="text-xs">Не удалось загрузить</div>
                                         </div>
+                                    </div>
                         `;
                     } else {
                         html += `
-                                        <div class="object-gallery-image-placeholder">
-                                            <div class="text-center text-gray-400">
-                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
-                                                <div class="text-xs">Фото не доступно</div>
-                                            </div>
+                                    <div class="object-gallery-image-placeholder">
+                                        <div class="text-center text-gray-400">
+                                            <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                            <div class="text-xs">Фото не доступно</div>
                                         </div>
+                                    </div>
+                        `;
+                    }
+                    
+                    // Подпись к фото, если есть
+                    if (photo.description && photo.description.trim() !== '' && photo.description !== object.object_name) {
+                        html += `
+                                    <div class="p-2 bg-white border-t border-gray-200">
+                                        <p class="text-xs text-gray-600 truncate">${escapeHtml(photo.description)}</p>
+                                    </div>
                         `;
                     }
                     
@@ -2265,29 +2327,28 @@
                 
                 html += `</div></div>`;
             }
-        
-            // ЗАМЕНА КНОПКИ ТЕЛЕФОНА НА КНОПКУ "УТОЧНИТЬ ДЕТАЛИ"
+            
             html += `
-                        </div>
-                        
-                        <div class="space-y-3">
-                            <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" class="details-button">
-                                <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
-                                Уточнить детали
-                            </button>
-                            
-                            <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
-                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                                Назад к объектам
-                            </button>
-                        </div>
                     </div>
+                    
+                    <div class="space-y-3">
+                        <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" class="details-button">
+                            <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
+                            ${brigade.contact ? 'Уточнить детали у бригады' : 'Уточнить детали (общий чат)'}
+                            ${brigade.contact ? `<br><span class="text-xs opacity-80 mt-1">Контакт: ${escapeHtml(brigade.contact)}</span>` : ''}
+                        </button>
+                        
+                        <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад к объектам
+                        </button>
+                    </div>
+                </div>
             `;
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
         }
-
         function openInfoModalFromButton(buttonElement) {
             const description = buttonElement.getAttribute('data-description');
             if (description) {
@@ -2502,24 +2563,67 @@
 
         // Функция для открытия чата с бригадой
         function openBrigadeChat(brigadeName, objectName = '') {
+            // Находим бригаду в текущих данных
+            const brigade = findBrigadeByName(brigadeName);
+            
+            let contact = brigade?.contact;
+            let contactName = brigade?.contact_name || brigadeName;
+            
+            // Если контакт не указан, используем общий
+            if (!contact) {
+                contact = 'SkidkaService01';
+                contactName = 'Общий чат поддержки';
+                console.warn(`Контакт для бригады "${brigadeName}" не указан, используется общий чат`);
+            }
+            
             // Генерируем уникальный идентификатор чата
             const chatId = generateChatId(brigadeName, objectName);
             
-            // Формируем сообщение для бригады
+            // Формируем сообщение
             let message = `Здравствуйте! Интересует информация по бригаде "${brigadeName}"`;
             if (objectName) {
                 message += ` и объекту "${objectName}"`;
             }
             message += `. Прошу уточнить детали.`;
             
-            // Открываем чат в Telegram
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}&start=${chatId}`);
+            // Формируем URL для Telegram
+            let telegramUrl;
+            if (contact.startsWith('@')) {
+                // Telegram username (убираем @)
+                telegramUrl = `https://t.me/${contact.substring(1)}?text=${encodeURIComponent(message)}&start=${chatId}`;
+            } else if (contact.startsWith('+')) {
+                // Номер телефона
+                telegramUrl = `https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${chatId}`;
+            } else if (contact.includes('.')) {
+                // Telegram username без @
+                telegramUrl = `https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${chatId}`;
             } else {
-                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}&start=${chatId}`, '_blank');
+                // По умолчанию - общий чат
+                telegramUrl = `https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${chatId}`;
+            }
+            
+            console.log(`📞 Открываем чат с ${contactName}: ${telegramUrl}`);
+            
+            // Открываем чат
+            if (tg) {
+                tg.openTelegramLink(telegramUrl);
+            } else {
+                window.open(telegramUrl, '_blank');
             }
         }
 
+        function findBrigadeByName(brigadeName) {
+            // Ищем в текущих данных бригады
+            if (currentBrigadeData && currentBrigadeData.brigade) {
+                if (currentBrigadeData.brigade.brigade_name === brigadeName) {
+                    return currentBrigadeData.brigade;
+                }
+            }
+            
+            // Если не нашли в текущих данных, ищем во всех загруженных бригадах
+            // (это потребует хранения всех бригад в глобальной переменной)
+            return null;
+        }
         // Функция для генерации уникального ID чата
         function generateChatId(brigadeName, objectName = '') {
             const user = getCurrentUser();
