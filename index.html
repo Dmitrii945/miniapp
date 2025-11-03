@@ -878,7 +878,6 @@
         }
 
         /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
-        /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
         .info-modal {
             position: fixed;
             top: 0;
@@ -955,6 +954,134 @@
         .info-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Стили для чатов */
+        .chat-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            width: 100%;
+        }
+        
+        .chat-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .admin-chat-button {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            width: 100%;
+        }
+        
+        .admin-chat-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .block-button {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            width: 100%;
+        }
+        
+        .block-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .chat-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .chat-status {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .status-frozen {
+            background-color: #F59E0B;
+            color: white;
+        }
+
+        .status-blocked {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .chat-info {
+            color: #6B7280;
+            font-size: 0.875rem;
         }
     </style>
 </head>
@@ -1082,6 +1209,26 @@
                         </div>
 
                         <div class="menu-divider"></div>
+
+                        <!-- Чаты -->
+                        <div class="menu-item" onclick="loadChats(); closeSideMenu();">
+                            <i data-feather="message-circle"></i>
+                            <div>
+                                <div class="font-medium">Чаты</div>
+                                <div class="text-sm text-gray-600">Переписка с бригадами</div>
+                            </div>
+                        </div>
+
+                        <!-- Админ чаты (только для админа) -->
+                        <div id="adminChatsMenuItem" class="menu-item hidden" onclick="loadAdminChats(); closeSideMenu();">
+                            <i data-feather="shield"></i>
+                            <div>
+                                <div class="font-medium">Админ чаты</div>
+                                <div class="text-sm text-gray-600">Управление чатами</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
                         
                         <!-- Контакты -->
                         <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
@@ -1153,6 +1300,7 @@
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
         const BOT_USERNAME = 'SSERVICE72_bot';
         const API_TIMEOUT = 30000;
+        const ADMIN_ID = '1606292950';
         let debugMode = false;
         let featherTimeout;
 
@@ -1163,6 +1311,8 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        let currentUser = null;
+        let isAdmin = false;
 
         // Состояние для галереи бригад
         let currentGalleryData = null;
@@ -1180,6 +1330,15 @@
                 lat: 57.15728,
                 lon: 65.610084
             }
+        };
+
+        // Контакты бригад (заглушка - в реальном приложении это должно приходить с сервера)
+        const BRIGADE_CONTACTS = {
+            'Бригада 1': 'SkidkaService01',
+            'Бригада 2': 'SkidkaService01',
+            'Бригада 3': 'SkidkaService01',
+            'Бригада 4': 'SkidkaService01',
+            'Бригада 5': 'SkidkaService01'
         };
 
         // DOM элементы
@@ -1202,7 +1361,8 @@
             galleryObjectInfo: document.getElementById('galleryObjectInfo'),
             galleryCounter: document.getElementById('galleryCounter'),
             infoModal: document.getElementById('infoModal'),
-            infoModalContent: document.getElementById('infoModalContent')
+            infoModalContent: document.getElementById('infoModalContent'),
+            adminChatsMenuItem: document.getElementById('adminChatsMenuItem')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -2107,11 +2267,12 @@
                 html += `</div>`;
             }
         
+            // ЗАМЕНА КНОПКИ ТЕЛЕФОНА НА КНОПКУ УТОЧНИТЬ ДЕТАЛИ
             html += `
                         <div class="space-y-3">
-                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                ${CONTACT_INFO.phone}
+                            <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(groupName)}')" class="chat-button">
+                                <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
+                                УТОЧНИТЬ ДЕТАЛИ
                             </button>
                             
                             <button onclick="loadBrigades()" class="back-to-brigades">
@@ -2124,6 +2285,227 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+        }
+
+        // ФУНКЦИИ ДЛЯ ЧАТОВ С БРИГАДАМИ
+        function openBrigadeChat(brigadeName, groupName) {
+            const contact = BRIGADE_CONTACTS[brigadeName] || 'SkidkaService01';
+            const chatName = `${brigadeName}-${groupName}`;
+            const message = `Здравствуйте! Интересуют детали по бригаде "${brigadeName}" (${groupName}).`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${encodeURIComponent(chatName)}`);
+            } else {
+                window.open(`https://t.me/${contact}?text=${encodeURIComponent(message)}&start=${encodeURIComponent(chatName)}`, '_blank');
+            }
+        }
+
+        function loadChats() {
+            lastAction = { type: 'loadChats' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Чаты', action: 'loadChats' }]);
+            elements.pageTitle.textContent = 'Мои чаты';
+            
+            // В реальном приложении здесь будет запрос к API для получения списка чатов
+            const userChats = [
+                { id: '1', brigade: 'Бригада 1', object: 'Объект 1', lastMessage: 'Обсуждение деталей', timestamp: '2024-01-15 14:30', status: 'active' },
+                { id: '2', brigade: 'Бригада 2', object: 'Объект 3', lastMessage: 'Согласование сроков', timestamp: '2024-01-14 10:15', status: 'active' }
+            ];
+            
+            renderChats(userChats);
+            updateBackButton();
+        }
+
+        function renderChats(chats) {
+            let html = `
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl p-6 shadow-sm">
+                        <h2 class="text-2xl font-bold text-contrast mb-2">Мои чаты</h2>
+                        <p class="text-gray-600 text-contrast">Переписка с бригадами</p>
+                    </div>
+            `;
+            
+            if (!chats || chats.length === 0) {
+                html += `
+                    <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+                        <i data-feather="message-circle" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                        <p class="text-gray-500 text-contrast">У вас пока нет активных чатов</p>
+                        <button onclick="loadBrigades()" class="chat-button mt-4">
+                            <i data-feather="users" class="w-4 h-4 mr-2"></i>
+                            Найти бригаду
+                        </button>
+                    </div>
+                `;
+            } else {
+                html += `<div class="chat-list">`;
+                
+                chats.forEach(chat => {
+                    const statusClass = chat.status === 'active' ? 'status-active' : 
+                                      chat.status === 'frozen' ? 'status-frozen' : 'status-blocked';
+                    const statusText = chat.status === 'active' ? 'Активен' : 
+                                     chat.status === 'frozen' ? 'Заморожен' : 'Заблокирован';
+                    
+                    html += `
+                        <div class="chat-item fade-in" onclick="openChat('${chat.id}')">
+                            <div class="chat-header">
+                                <h3 class="chat-title">${escapeHtml(chat.brigade)} - ${escapeHtml(chat.object)}</h3>
+                                <div class="chat-status ${statusClass}">${statusText}</div>
+                            </div>
+                            <div class="chat-info">
+                                <p>${escapeHtml(chat.lastMessage)}</p>
+                                <p class="text-gray-400 text-xs mt-2">${escapeHtml(chat.timestamp)}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+            
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function openChat(chatId) {
+            // В реальном приложении здесь будет открытие конкретного чата
+            if (tg) {
+                tg.showAlert(`Открытие чата ${chatId} - в разработке`);
+            } else {
+                alert(`Открытие чата ${chatId} - в разработке`);
+            }
+        }
+
+        // ФУНКЦИИ ДЛЯ АДМИНА
+        function loadAdminChats() {
+            if (!isAdmin) return;
+            
+            lastAction = { type: 'loadAdminChats' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Админ чаты', action: 'loadAdminChats' }]);
+            elements.pageTitle.textContent = 'Управление чатами';
+            
+            // В реальном приложении здесь будет запрос к API для получения всех чатов
+            const allChats = [
+                { id: '1', user: 'user123', brigade: 'Бригада 1', object: 'Объект 1', lastMessage: 'Обсуждение деталей', timestamp: '2024-01-15 14:30', status: 'active' },
+                { id: '2', user: 'user456', brigade: 'Бригада 2', object: 'Объект 3', lastMessage: 'Согласование сроков', timestamp: '2024-01-14 10:15', status: 'frozen' },
+                { id: '3', user: 'user789', brigade: 'Бригада 3', object: 'Объект 2', lastMessage: 'Вопрос по материалам', timestamp: '2024-01-13 16:45', status: 'blocked' }
+            ];
+            
+            renderAdminChats(allChats);
+            updateBackButton();
+        }
+
+        function renderAdminChats(chats) {
+            let html = `
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl p-6 shadow-sm">
+                        <h2 class="text-2xl font-bold text-contrast mb-2">Управление чатами</h2>
+                        <p class="text-gray-600 text-contrast">Все активные переписки</p>
+                    </div>
+            `;
+            
+            if (!chats || chats.length === 0) {
+                html += `
+                    <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+                        <i data-feather="message-circle" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                        <p class="text-gray-500 text-contrast">Активных чатов нет</p>
+                    </div>
+                `;
+            } else {
+                html += `<div class="chat-list">`;
+                
+                chats.forEach(chat => {
+                    const statusClass = chat.status === 'active' ? 'status-active' : 
+                                      chat.status === 'frozen' ? 'status-frozen' : 'status-blocked';
+                    const statusText = chat.status === 'active' ? 'Активен' : 
+                                     chat.status === 'frozen' ? 'Заморожен' : 'Заблокирован';
+                    
+                    html += `
+                        <div class="chat-item fade-in">
+                            <div class="chat-header">
+                                <h3 class="chat-title">${escapeHtml(chat.brigade)} - ${escapeHtml(chat.object)}</h3>
+                                <div class="chat-status ${statusClass}">${statusText}</div>
+                            </div>
+                            <div class="chat-info">
+                                <p>Пользователь: ${escapeHtml(chat.user)}</p>
+                                <p>${escapeHtml(chat.lastMessage)}</p>
+                                <p class="text-gray-400 text-xs mt-2">${escapeHtml(chat.timestamp)}</p>
+                            </div>
+                            <div class="mt-3 space-y-2">
+                                <button onclick="contactUser('${chat.user}')" class="admin-chat-button">
+                                    <i data-feather="message-circle" class="w-4 h-4"></i>
+                                    Связаться с покупателем
+                                </button>
+                                ${chat.status !== 'frozen' ? `
+                                    <button onclick="freezeChat('${chat.id}')" class="block-button">
+                                        <i data-feather="pause" class="w-4 h-4"></i>
+                                        Заморозить чат
+                                    </button>
+                                ` : ''}
+                                ${chat.status !== 'blocked' ? `
+                                    <button onclick="blockUser('${chat.user}')" class="block-button">
+                                        <i data-feather="slash" class="w-4 h-4"></i>
+                                        Заблокировать покупателя
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+            
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function contactUser(userId) {
+            const message = `Здравствуйте! Администратор Скидка Сервис связывается с вами по вопросу вашего обращения.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/${userId}?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/${userId}?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        function freezeChat(chatId) {
+            if (tg) {
+                tg.showAlert(`Чат ${chatId} заморожен. Переписка временно приостановлена.`);
+            } else {
+                alert(`Чат ${chatId} заморожен. Переписка временно приостановлена.`);
+            }
+            // В реальном приложении здесь будет API запрос для заморозки чата
+        }
+
+        function blockUser(userId) {
+            if (tg) {
+                tg.showAlert(`Пользователь ${userId} заблокирован. Доступ к приложению ограничен.`);
+            } else {
+                alert(`Пользователь ${userId} заблокирован. Доступ к приложению ограничен.`);
+            }
+            // В реальном приложении здесь будет API запрос для блокировки пользователя
         }
 
         function openObjectGalleryPage(groupName, brigade, objectIndex) {
@@ -2234,9 +2616,9 @@
                         </div>
                         
                         <div class="space-y-3">
-                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                ${CONTACT_INFO.phone}
+                            <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(groupName)}')" class="chat-button">
+                                <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
+                                УТОЧНИТЬ ДЕТАЛИ
                             </button>
                             
                             <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
@@ -2263,6 +2645,7 @@
                 window.event.preventDefault();
             }
         }
+
         // ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
         function openInfoModal(description) {
             console.log('Opening info modal with description:', description);
@@ -2467,6 +2850,17 @@
                 try {
                     tg.expand();
                     tg.enableClosingConfirmation();
+                    
+                    // Получаем информацию о пользователе
+                    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                        currentUser = tg.initDataUnsafe.user;
+                        isAdmin = String(currentUser.id) === ADMIN_ID;
+                        
+                        // Показываем пункт меню для админа
+                        if (isAdmin) {
+                            elements.adminChatsMenuItem.classList.remove('hidden');
+                        }
+                    }
                 } catch (error) {
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
@@ -2782,6 +3176,41 @@
                     </div>
                 </div>
             `;
+
+            html += `
+                <div class="category-card fade-in" onclick="loadChats()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="message-circle" class="w-5 h-5 mr-3 text-purple-500"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Чаты</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">Переписка с бригадами</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Показываем пункт для админа
+            if (isAdmin) {
+                html += `
+                    <div class="category-card fade-in" onclick="loadAdminChats()">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <i data-feather="shield" class="w-5 h-5 mr-3 text-green-500"></i>
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">Админ чаты</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500">Управление чатами</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
 
             html += `
                 <div class="category-card fade-in" onclick="callTaxi()">
@@ -3383,6 +3812,12 @@
                 case 'loadBrigades':
                     loadBrigades();
                     break;
+                case 'loadChats':
+                    loadChats();
+                    break;
+                case 'loadAdminChats':
+                    loadAdminChats();
+                    break;
                 default:
                     loadSections();
             }
@@ -3444,7 +3879,6 @@
         });
 
         // Глобальные функции
-        // Глобальные функции
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
         window.loadModels = loadModels;
@@ -3452,14 +3886,17 @@
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
         window.loadBrigades = loadBrigades;
+        window.loadChats = loadChats;
+        window.loadAdminChats = loadAdminChats;
         window.openBrigade = openBrigade;
+        window.openBrigadeChat = openBrigadeChat;
         window.openObjectGalleryPage = openObjectGalleryPage;
         window.openFullScreenGallery = openFullScreenGallery;
         window.closeGallery = closeGallery;
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
         window.openInfoModal = openInfoModal;
-        window.openInfoModalFromButton = openInfoModalFromButton; // ДОБАВЬТЕ ЭТУ СТРОКУ
+        window.openInfoModalFromButton = openInfoModalFromButton;
         window.closeInfoModal = closeInfoModal;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
@@ -3486,6 +3923,9 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
+        window.contactUser = contactUser;
+        window.freezeChat = freezeChat;
+        window.blockUser = blockUser;
     </script>
 </body>
 </html>
