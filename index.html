@@ -1357,6 +1357,218 @@
             }
         }
 
+        async function openChats() {
+            lastAction = { type: 'openChats' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Чаты', action: 'openChats' }]);
+            elements.pageTitle.textContent = 'Чаты';
+            
+            showLoading();
+            
+            try {
+                // Получаем список бригад
+                const user = getCurrentUser();
+                const userId = user?.id || 1606292950; // временно используем ваш ID
+                
+                const response = await fetch(`https://dmitrii2613.pythonanywhere.com/api/chat/brigades/${userId}`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.success && data.brigades.length > 0) {
+                    renderChatList(data.brigades);
+                } else {
+                    showEmptyState('У вас пока нет активных чатов');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки чатов');
+            }
+        }
+
+        function renderChatList(brigades) {
+            let html = `
+                <div class="space-y-4">
+                    <div class="bg-white rounded-xl p-6 shadow-sm">
+                        <h2 class="text-xl font-semibold text-contrast mb-2">Мои чаты</h2>
+                        <p class="text-gray-600 text-contrast">Общение с бригадами</p>
+                    </div>
+            `;
+            
+            brigades.forEach(brigade => {
+                html += `
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 clickable-card" 
+                         onclick="openChatWithBrigade('${escapeHtml(brigade.brigade_name)}')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-semibold text-contrast">${escapeHtml(brigade.brigade_name)}</h3>
+                                <p class="text-sm text-gray-500">Последняя активность: ${formatDate(brigade.last_activity)}</p>
+                            </div>
+                            <i data-feather="chevron-right" class="text-gray-400"></i>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            </div>`;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        async function openChatWithBrigade(brigadeName) {
+            navigationStack.push({ 
+                type: 'chat', 
+                id: brigadeName, 
+                name: `Чат с ${brigadeName}` 
+            });
+            
+            updateBreadcrumbsFromStack();
+            elements.pageTitle.textContent = `Чат с ${brigadeName}`;
+            
+            showLoading();
+            
+            try {
+                const user = getCurrentUser();
+                const userId = user?.id || 1606292950;
+                
+                const response = await fetch(`https://dmitrii2613.pythonanywhere.com/api/chat/history/${userId}/${encodeURIComponent(brigadeName)}`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.success) {
+                    renderChatInterface(brigadeName, data.messages);
+                } else {
+                    showError('Ошибка загрузки истории чата');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки чата');
+            }
+        }
+
+        function renderChatInterface(brigadeName, messages) {
+            let html = `
+                <div class="flex flex-col h-screen">
+                    <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                        <h2 class="text-lg font-semibold text-contrast">Чат с ${escapeHtml(brigadeName)}</h2>
+                    </div>
+                    
+                    <div id="chatMessages" class="flex-1 overflow-y-auto space-y-3 mb-4">
+            `;
+            
+            if (messages.length === 0) {
+                html += `
+                    <div class="text-center text-gray-500 py-8">
+                        <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2"></i>
+                        <p>Нет сообщений</p>
+                        <p class="text-sm">Начните общение первым!</p>
+                    </div>
+                `;
+            } else {
+                messages.forEach(message => {
+                    const isUser = message.message_type === 'user';
+                    html += `
+                        <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
+                            <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                isUser ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+                            }">
+                                <p class="text-sm">${escapeHtml(message.message_text)}</p>
+                                <p class="text-xs opacity-70 mt-1">${formatTime(message.timestamp)}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-3 shadow-sm border">
+                        <div class="flex space-x-2">
+                            <input type="text" id="chatMessageInput" 
+                                   placeholder="Введите сообщение..." 
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="sendChatMessage('${escapeHtml(brigadeName)}')" 
+                                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                                <i data-feather="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="openChats()" class="back-button mt-4">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад к чатам
+                    </button>
+                </div>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+            
+            // Прокручиваем вниз к последним сообщениям
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        async function sendChatMessage(brigadeName) {
+            const input = document.getElementById('chatMessageInput');
+            const messageText = input.value.trim();
+            
+            if (!messageText) return;
+            
+            const user = getCurrentUser();
+            const userId = user?.id || 1606292950;
+            
+            try {
+                const response = await fetch('https://dmitrii2613.pythonanywhere.com/api/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        brigade_name: brigadeName,
+                        message_text: messageText,
+                        message_type: 'user'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    input.value = '';
+                    // Обновляем интерфейс чата
+                    openChatWithBrigade(brigadeName);
+                } else {
+                    alert('Ошибка отправки сообщения');
+                }
+                
+            } catch (error) {
+                alert('Ошибка отправки сообщения');
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU');
+        }
+        
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
         // ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ
         function callTaxi() {
             const address = encodeURIComponent(CONTACT_INFO.address);
@@ -3861,6 +4073,8 @@
         window.freezeChat = freezeChat;
         window.contactWithBuyer = contactWithBuyer;
         window.blockUserPrompt = blockUserPrompt;
+        window.openChatWithBrigade = openChatWithBrigade;
+        window.sendChatMessage = sendChatMessage;
     </script>
 </body>
 </html>
