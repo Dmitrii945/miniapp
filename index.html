@@ -3016,6 +3016,7 @@
         async function apiFetch(endpoint) {
             const url = `${API_BASE}${endpoint}`;
             
+            console.log(`🌐 API запрос: ${url}`);
             showLoading();
             
             const controller = new AbortController();
@@ -3044,6 +3045,7 @@
                     throw new Error('Пустой ответ от сервера');
                 }
                 
+                console.log(`✅ API ответ ${endpoint}:`, data);
                 hideLoading();
                 return data;
                 
@@ -3054,9 +3056,10 @@
                 if (error.name === 'AbortError') {
                     errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
                 } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.`;
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
                 }
                 
+                console.error(`❌ Ошибка API ${endpoint}:`, errorMessage);
                 hideLoading();
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
@@ -3066,6 +3069,7 @@
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
+            console.log('🔄 Загрузка разделов...');
             lastAction = { type: 'loadSections' };
             
             try {
@@ -3073,22 +3077,29 @@
                 updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
                 elements.pageTitle.textContent = 'Каталог товаров';
                 
+                showLoading();
+                
                 const data = await apiFetch('/sections');
                 
                 if (data?.error) {
+                    console.error('❌ Ошибка загрузки разделов:', data.error);
                     showEmptyState('Ошибка загрузки разделов');
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+                    console.warn('⚠️ Разделы не найдены или пустые');
                     showEmptyState('Разделы не найдены');
                     return;
                 }
-
+        
+                console.log('✅ Разделы загружены:', data.sections.length);
                 renderSections(data.sections);
                 updateBackButton();
+                
             } catch (error) {
-                showError('Не удалось загрузить разделы');
+                console.error('💥 Критическая ошибка в loadSections:', error);
+                showError('Не удалось загрузить разделы: ' + error.message);
             }
         }
 
@@ -3263,6 +3274,13 @@
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
 
         function renderSections(sections) {
+            console.log('🎨 Рендерим разделы:', sections);
+            
+            if (!sections || sections.length === 0) {
+                showEmptyState('Нет доступных разделов');
+                return;
+            }
+        
             let html = '<div class="space-y-3">';
             
             sections.forEach(section => {
@@ -3288,7 +3306,8 @@
                     </div>
                 `;
             });
-
+        
+            // Добавляем дополнительные кнопки
             html += `
                 <div class="category-card fade-in" onclick="loadFavorites()">
                     <div class="p-4">
@@ -3303,10 +3322,7 @@
                         </div>
                     </div>
                 </div>
-            `;
-
-            // ДОБАВЛЕНА КНОПКА ЧАТОВ В ГЛАВНОЕ МЕНЮ
-            html += `
+        
                 <div class="category-card fade-in" onclick="openChats()">
                     <div class="p-4">
                         <div class="flex justify-between items-center">
@@ -3320,9 +3336,7 @@
                         </div>
                     </div>
                 </div>
-            `;
-
-            html += `
+        
                 <div class="category-card fade-in" onclick="loadBrigades()">
                     <div class="p-4">
                         <div class="flex justify-between items-center">
@@ -3336,9 +3350,7 @@
                         </div>
                     </div>
                 </div>
-            `;
-
-            html += `
+        
                 <div class="category-card fade-in" onclick="callTaxi()">
                     <div class="p-4">
                         <div class="flex justify-between items-center">
@@ -3356,24 +3368,11 @@
             
             html += '</div>';
             
-            if (!html) {
-                showEmptyState('Нет доступных разделов');
-                return;
-            }
-            
-            if (navigationStack.length > 0) {
-                html += `
-                    <button onclick="goBack()" class="back-button">
-                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                        Назад
-                    </button>
-                `;
-            }
-            
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            
+            console.log('✅ Разделы отображены успешно');
         }
-
         function renderCategories(categories, sectionId, sectionName) {
             let html = '<div class="space-y-3">';
             
@@ -3950,10 +3949,12 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
+                console.log('🚀 Инициализация приложения...');
                 initTelegramApp();
                 fixMobileColors();
                 scheduleFeatherReplace();
                 
+                // Инициализация элементов управления
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
                 const installButton = document.getElementById('installButton');
@@ -3965,7 +3966,7 @@
                 if (closeMenuBtn) {
                     closeMenuBtn.addEventListener('click', closeSideMenu);
                 }
-
+        
                 if (installButton) {
                     installButton.addEventListener('click', installPWA);
                 }
@@ -3975,7 +3976,8 @@
                         closeSideMenu();
                     }
                 });
-
+        
+                // Обработчики PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     deferredPrompt = e;
@@ -3983,7 +3985,7 @@
                         installButton.style.display = 'flex';
                     }
                 });
-
+        
                 window.addEventListener('appinstalled', (e) => {
                     deferredPrompt = null;
                     if (installButton) {
@@ -3991,13 +3993,18 @@
                     }
                 });
                 
+                // Загружаем разделы с небольшой задержкой для стабильности
                 setTimeout(() => {
+                    console.log('📥 Начинаем загрузку разделов...');
                     loadSections();
-                }, 100);
+                }, 500);
                 
             } catch (error) {
-                console.error('Ошибка инициализации:', error);
-                showError('Ошибка загрузки приложения');
+                console.error('💥 Критическая ошибка инициализации:', error);
+                showError('Ошибка загрузки приложения: ' + error.message);
+                
+                // Показываем тестовые данные при ошибке
+                showTestData();
             }
         });
 
