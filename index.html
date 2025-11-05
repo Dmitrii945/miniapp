@@ -1724,11 +1724,15 @@
             const messageText = elements.chatInput.value.trim();
             
             if (!messageText) return;
-
+        
             const user = getCurrentUser();
             const userId = user?.id || 1606292950;
-
+        
             try {
+                // Блокируем кнопку отправки
+                elements.chatSendButton.disabled = true;
+                elements.chatSendButton.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i>';
+        
                 // Отправляем сообщение через API
                 const response = await fetch(`${API_BASE}/chat/send`, {
                     method: 'POST',
@@ -1743,9 +1747,9 @@
                         message_type: 'user'
                     })
                 });
-
+        
                 const data = await response.json();
-
+        
                 if (data.success) {
                     // Очищаем поле ввода
                     elements.chatInput.value = '';
@@ -1761,12 +1765,39 @@
                     currentChat.messages.push(newMessage);
                     renderChatMessages();
                     
+                    // Показываем подтверждение
+                    if (tg) {
+                        tg.showAlert('✅ Сообщение отправлено');
+                    }
                 } else {
-                    alert('Ошибка отправки сообщения');
+                    console.error('Ошибка отправки:', data.error);
+                    alert('Ошибка отправки сообщения: ' + (data.error || 'Неизвестная ошибка'));
                 }
             } catch (error) {
                 console.log('Ошибка отправки сообщения:', error);
-                alert('Ошибка отправки сообщения');
+                alert('Ошибка отправки сообщения: ' + error.message);
+            } finally {
+                // Разблокируем кнопку отправки
+                elements.chatSendButton.disabled = false;
+                elements.chatSendButton.innerHTML = '<i data-feather="send" class="w-4 h-4"></i>';
+                scheduleFeatherReplace();
+            }
+        }
+
+        async function debugChat() {
+            const user = getCurrentUser();
+            const userId = user?.id || 1606292950;
+            
+            try {
+                const response = await fetch(`${API_BASE}/chat/debug/${userId}/${encodeURIComponent(currentChat.brigadeName)}`);
+                const data = await response.json();
+                console.log('Debug chat info:', data);
+                
+                if (tg) {
+                    tg.showAlert(`Отладка чата:\nСообщений: ${data.chat_stats.total_messages}\nНепрочитанных: ${data.unread_count}`);
+                }
+            } catch (error) {
+                console.log('Ошибка отладки:', error);
             }
         }
 
