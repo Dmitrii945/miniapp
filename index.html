@@ -1647,6 +1647,9 @@
                 
                 console.log(`📨 Загрузка истории чата: user_id=${userId}, brigade=${brigadeName}`);
                 
+                // Сначала обновляем счетчики непрочитанных
+                await updateUnreadCountsForChat(userId, brigadeName);
+                
                 const response = await fetch(`${API_BASE}/chat/history/${userId}/${encodeURIComponent(brigadeName)}`);
                 const data = await response.json();
                 
@@ -1663,6 +1666,9 @@
                     
                     // Сбрасываем счетчик непрочитанных при открытии чата
                     await markMessagesAsRead(brigadeName);
+                    
+                    // Обновляем бейджи в меню
+                    await loadUnreadCounts();
                 } else {
                     console.error('Ошибка загрузки истории:', data.error);
                     currentChat.messages = [];
@@ -1674,7 +1680,29 @@
                 renderChatMessages();
             }
         }
-
+        
+        // НОВАЯ ФУНКЦИЯ: Принудительное обновление счетчиков
+        async function updateUnreadCountsForChat(userId, brigadeName) {
+            try {
+                const response = await fetch(`${API_BASE}/chat/update_unread_counts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        brigade_name: brigadeName
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ Счетчики непрочитанных обновлены:', data.actual_unread);
+                }
+            } catch (error) {
+                console.log('Ошибка обновления счетчиков:', error);
+            }
+        }
         function debugMessagesStructure() {
             console.log('🔍 Структура сообщений:', currentChat.messages);
             
@@ -2012,6 +2040,7 @@
                 
                 if (data.success) {
                     updateUnreadBadges(data.unread_counts, data.total_unread);
+                    console.log('📊 Непрочитанные сообщения:', data.unread_counts);
                     return data.unread_counts;
                 }
                 return {};
@@ -2062,13 +2091,16 @@
         function startChatPolling() {
             setInterval(async () => {
                 if (currentChat.brigadeName && elements.chatModal && !elements.chatModal.classList.contains('hidden')) {
-                    // Если чат открыт, обновляем историю
+                    // Если чат открыт, обновляем историю и счетчики
+                    console.log('🔄 Автообновление открытого чата');
+                    await updateUnreadCountsForChat(getCurrentUser()?.id || 1606292950, currentChat.brigadeName);
                     await loadChatHistory(currentChat.brigadeName);
                 } else {
                     // Если чат не открыт, проверяем непрочитанные сообщения
+                    console.log('🔄 Проверка непрочитанных сообщений');
                     await loadUnreadCounts();
                 }
-            }, 10000); // Проверяем каждые 10 секунд
+            }, 5000); // Увеличьте частоту до 5 секунд
         }
 
         // ========== ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ ==========
