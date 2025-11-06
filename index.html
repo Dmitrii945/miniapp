@@ -2243,7 +2243,7 @@
                                     </button>
                                 ` : ''}
                                 <button class="chat-button mt-3" 
-                                        onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, '${escapeHtml(object.object_name)}')">
+                                        onclick="handleChatButtonClick(event, '${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, '${escapeHtml(object.object_name)}'); return false;">
                                     <i data-feather="message-circle" class="w-4 h-4"></i>
                                     Написать
                                 </button>
@@ -3610,18 +3610,29 @@
             return currentUserId;
         }
         
+        // Обработчик нажатия на кнопку чата
+        function handleChatButtonClick(event, groupName, brigade, objectName) {
+            alert('Кнопка чата нажата!'); // Временная проверка
+            
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            startChatWithBrigade(groupName, brigade, objectName);
+        }
+        
         // Функция для начала чата с бригадой
         function startChatWithBrigade(groupName, brigade, objectName) {
-            console.log('Starting chat with brigade:', brigade.brigade_name, 'for object:', objectName);
+            if (!groupName || !brigade || !objectName) {
+                alert('Ошибка: не хватает параметров для создания чата');
+                return;
+            }
             
             const userId = getCurrentUserId();
             const brigadeId = brigade.contact_id || brigade.brigade_name;
             
             if (!brigadeId) {
-                console.error('No brigade contact ID found');
-                if (tg) {
-                    tg.showAlert('Ошибка: не найден ID бригады');
-                }
+                alert('Ошибка: не найден ID бригады');
                 return;
             }
             
@@ -3637,17 +3648,21 @@
                     object_name: objectName
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.chat_id) {
-                    // Открываем чат
                     openChat(data.chat_id, data.chat_name);
                 } else {
-                    console.error('Failed to create chat:', data);
+                    alert('Ошибка создания чата: ' + (data.error || 'Неизвестная ошибка'));
                 }
             })
             .catch(error => {
-                console.error('Error creating chat:', error);
+                alert('Ошибка при создании чата: ' + error.message);
             });
         }
         
@@ -4004,6 +4019,7 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
+        window.handleChatButtonClick = handleChatButtonClick;
         window.startChatWithBrigade = startChatWithBrigade;
         window.openChat = openChat;
         window.loadUserChats = loadUserChats;
