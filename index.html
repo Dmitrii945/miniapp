@@ -878,6 +878,7 @@
         }
 
         /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
+        /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
         .info-modal {
             position: fixed;
             top: 0;
@@ -954,225 +955,6 @@
         .info-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Стили для кнопки "Уточнить детали" */
-        .details-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-        }
-        
-        .details-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        /* СТИЛИ ДЛЯ ЧАТА */
-        .chat-message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            margin-bottom: 8px;
-            word-wrap: break-word;
-            position: relative;
-        }
-
-        .chat-message.user {
-            background-color: #007bff;
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-
-        .chat-message.brigade {
-            background-color: #f1f1f1;
-            color: #333;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
-
-        .chat-timestamp {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 4px;
-            text-align: right;
-        }
-
-        .chat-input-container {
-            display: flex;
-            gap: 8px;
-            padding: 16px;
-            background: white;
-            border-top: 1px solid #e5e7eb;
-            position: sticky;
-            bottom: 0;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #d1d5db;
-            border-radius: 24px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .chat-input:focus {
-            border-color: #3b82f6;
-            ring: 2px solid #3b82f6;
-        }
-
-        .chat-send-button {
-            padding: 12px 16px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 50px;
-        }
-
-        .chat-send-button:hover {
-            background: #2563eb;
-        }
-
-        .chat-send-button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 70vh;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            padding: 16px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            background: #fafafa;
-        }
-
-        .chat-date-divider {
-            text-align: center;
-            margin: 16px 0;
-            position: relative;
-        }
-
-        .chat-date-divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e5e7eb;
-            z-index: 1;
-        }
-
-        .chat-date-text {
-            background: #fafafa;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            color: #6b7280;
-            position: relative;
-            z-index: 2;
-            display: inline-block;
-        }
-
-        .empty-chat {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6b7280;
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 12px 16px;
-            background: #f1f1f1;
-            border-radius: 18px;
-            margin-right: auto;
-            max-width: 80px;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #999;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Стили для бейджей непрочитанных сообщений */
-        .unread-badge {
-            background-color: #EF4444;
-            color: white;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            min-width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 6px;
-        }
-
-        .chat-list-item {
-            position: relative;
-        }
-
-        .chat-unread-indicator {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 8px;
-            height: 8px;
-            background-color: #EF4444;
-            border-radius: 50%;
-        }
-
-        .chat-item-unread {
-            background-color: #f0f9ff;
-            border-left: 3px solid #3b82f6;
         }
     </style>
 </head>
@@ -1267,34 +1049,6 @@
             </div>
         </div>
 
-        <!-- Chat Modal -->
-        <div id="chatModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] flex flex-col">
-                <div class="chat-header">
-                    <button onclick="closeChatModal()" class="p-2 rounded-lg hover:bg-gray-100">
-                        <i data-feather="arrow-left" class="w-5 h-5"></i>
-                    </button>
-                    <div>
-                        <h3 class="font-semibold" id="chatBrigadeName"></h3>
-                        <p class="text-sm text-gray-500" id="chatObjectName"></p>
-                    </div>
-                </div>
-                
-                <div id="chatMessages" class="chat-messages">
-                    <!-- Сообщения загружаются здесь -->
-                </div>
-                
-                <div class="chat-input-container">
-                    <input type="text" id="chatInput" 
-                           placeholder="Введите сообщение..." 
-                           class="chat-input">
-                    <button id="chatSendButton" class="chat-send-button">
-                        <i data-feather="send" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- Side Menu -->
         <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
             <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
@@ -1313,18 +1067,6 @@
                             <div>
                                 <div class="font-medium">Избранное</div>
                                 <div class="text-sm text-gray-600">Сохраненные товары</div>
-                            </div>
-                        </div>
-
-                        <div class="menu-divider"></div>
-
-                        <!-- ЧАТЫ -->
-                        <div class="menu-item" onclick="openChats(); closeSideMenu();">
-                            <i data-feather="message-circle"></i>
-                            <div>
-                                <div class="font-medium">Чаты</div>
-                                <div class="text-sm text-gray-600">Общение с бригадами</div>
-                                <span id="menuUnreadBadge" class="unread-badge hidden"></span>
                             </div>
                         </div>
 
@@ -1410,7 +1152,6 @@
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
         const BOT_USERNAME = 'SSERVICE72_bot';
-        const ADMIN_ID = '1606292950';
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
@@ -1422,24 +1163,12 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentUser = null;
-        let isAdmin = false;
 
         // Состояние для галереи бригад
         let currentGalleryData = null;
         let currentGalleryIndex = 0;
         let currentBrigadeData = null;
         let currentObjectData = null;
-
-        // Состояние для чата
-        let currentChat = {
-            brigadeName: '',
-            objectName: '',
-            messages: [],
-            isTyping: false
-        };
-        
-        let chatAutoRefreshInterval = null;
 
         // Контактная информация
         const CONTACT_INFO = {
@@ -1473,14 +1202,7 @@
             galleryObjectInfo: document.getElementById('galleryObjectInfo'),
             galleryCounter: document.getElementById('galleryCounter'),
             infoModal: document.getElementById('infoModal'),
-            infoModalContent: document.getElementById('infoModalContent'),
-            chatModal: document.getElementById('chatModal'),
-            chatMessages: document.getElementById('chatMessages'),
-            chatInput: document.getElementById('chatInput'),
-            chatSendButton: document.getElementById('chatSendButton'),
-            chatBrigadeName: document.getElementById('chatBrigadeName'),
-            chatObjectName: document.getElementById('chatObjectName'),
-            menuUnreadBadge: document.getElementById('menuUnreadBadge')
+            infoModalContent: document.getElementById('infoModalContent')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -1600,706 +1322,7 @@
             }
         }
 
-        // ========== ФУНКЦИИ ДЛЯ ЧАТА ВНУТРИ ПРИЛОЖЕНИЯ ==========
-
-        function openBrigadeChat(brigadeName, objectName = '') {
-            console.log('🚀 Открытие чата с бригадой:', brigadeName);
-            
-            currentChat.brigadeName = brigadeName;
-            currentChat.objectName = objectName || '';
-            
-            // Показываем модальное окно чата сразу
-            showChatModal(brigadeName, objectName);
-            
-            // Загружаем историю сообщений
-            console.log('📨 Запуск загрузки истории...');
-            loadChatHistory(brigadeName);
-            
-            // Сбрасываем счетчик непрочитанных
-            markMessagesAsRead(brigadeName);
-        }
-
-        function showChatModal(brigadeName, objectName = '') {
-            console.log('💬 Показ модального окна чата');
-            
-            elements.chatBrigadeName.textContent = brigadeName;
-            elements.chatObjectName.textContent = objectName || 'Общее обсуждение';
-            elements.chatModal.classList.remove('hidden');
-            
-            console.log('✅ Модальное окно чата открыто');
-            console.log('🔍 Проверка элемента chatMessages:', elements.chatMessages ? 'НАЙДЕН' : 'НЕ НАЙДЕН');
-            
-            // Фокус на поле ввода
-            setTimeout(() => {
-                elements.chatInput.focus();
-            }, 100);
-            
-            // Обработчики событий
-            elements.chatSendButton.onclick = () => sendChatMessage();
-            elements.chatInput.onkeypress = (e) => {
-                if (e.key === 'Enter') {
-                    sendChatMessage();
-                }
-            };
-            
-            scheduleFeatherReplace();
-        }
-
-        function closeChatModal() {
-            elements.chatModal.classList.add('hidden');
-            currentChat.isTyping = false;
-            currentChat.brigadeName = '';
-            currentChat.objectName = '';
-            console.log('🚪 Чат закрыт');
-        }
-        
-        async function loadChatHistory(brigadeName) {
-            console.log(`\n${'='.repeat(60)}`);
-            console.log('📖 ЗАГРУЗКА ИСТОРИИ ЧАТА');
-            console.log('='.repeat(60));
-            
-            try {
-                const user = getCurrentUser();
-                const userId = user?.id || 1606292950;
-                
-                console.log('user_id:', userId);
-                console.log('brigade_name:', brigadeName);
-                
-                // Сначала обновляем счетчики непрочитанных
-                await updateUnreadCountsForChat(userId, brigadeName);
-                
-                const url = `${API_BASE}/chat/history/${userId}/${encodeURIComponent(brigadeName)}`;
-                console.log('URL запроса:', url);
-                
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                console.log('Статус:', response.status);
-                console.log('Успех:', data.success);
-                console.log('Получено сообщений:', data.count || data.messages?.length || 0);
-                
-                if (data.success && Array.isArray(data.messages)) {
-                    currentChat.messages = data.messages;
-                    
-                    if (currentChat.messages.length > 0) {
-                        console.log('Первое сообщение:', {
-                            id: currentChat.messages[0].id,
-                            type: currentChat.messages[0].message_type,
-                            text: currentChat.messages[0].message_text.substring(0, 50) + '...'
-                        });
-                        console.log('Последнее сообщение:', {
-                            id: currentChat.messages[currentChat.messages.length - 1].id,
-                            type: currentChat.messages[currentChat.messages.length - 1].message_type,
-                            text: currentChat.messages[currentChat.messages.length - 1].message_text.substring(0, 50) + '...'
-                        });
-                    }
-                    
-                    console.log('✅ Сообщения загружены успешно');
-                    renderChatMessages();
-                    
-                    // Сбрасываем счетчик непрочитанных
-                    await markMessagesAsRead(brigadeName);
-                    await loadUnreadCounts();
-                    
-                } else {
-                    console.error('❌ Неверный формат данных:', data);
-                    currentChat.messages = [];
-                    renderChatMessages();
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка загрузки истории:', error);
-                console.error('Stack:', error.stack);
-                currentChat.messages = [];
-                renderChatMessages();
-            } finally {
-                console.log('='.repeat(60) + '\n');
-            }
-        }
-        
-        // НОВАЯ ФУНКЦИЯ: Принудительное обновление счетчиков
-        async function updateUnreadCountsForChat(userId, brigadeName) {
-            try {
-                const response = await fetch(`${API_BASE}/chat/update_unread_counts`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        brigade_name: brigadeName
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    console.log('✅ Счетчики непрочитанных обновлены:', data.actual_unread);
-                }
-            } catch (error) {
-                console.log('Ошибка обновления счетчиков:', error);
-            }
-        }
-        function debugMessagesStructure() {
-            console.log('🔍 Структура сообщений:', currentChat.messages);
-            
-            if (currentChat.messages && currentChat.messages.length > 0) {
-                const firstMessage = currentChat.messages[0];
-                console.log('📝 Первое сообщение:', {
-                    id: firstMessage.id,
-                    message_text: firstMessage.message_text,
-                    message_type: firstMessage.message_type,
-                    timestamp: firstMessage.timestamp,
-                    user_id: firstMessage.user_id,
-                    brigade_name: firstMessage.brigade_name
-                });
-            }
-        }
-        
-        function addDebugButton() {
-            const debugButton = document.createElement('button');
-            debugButton.innerHTML = '<i data-feather="bug" class="w-4 h-4"></i>';
-            debugButton.className = 'p-2 rounded-lg bg-gray-500 text-white ml-2';
-            debugButton.title = 'Отладка чата';
-            debugButton.onclick = debugChat;
-            
-            const chatHeader = document.querySelector('.chat-header');
-            if (chatHeader) {
-                chatHeader.appendChild(debugButton);
-                scheduleFeatherReplace();
-            }
-        }
-        
-        // Обновите функцию showChatModal
-        function showChatModal(brigadeName, objectName = '') {
-            elements.chatBrigadeName.textContent = brigadeName;
-            elements.chatObjectName.textContent = objectName || 'Общее обсуждение';
-            elements.chatModal.classList.remove('hidden');
-            
-            // Добавляем кнопку отладки
-            setTimeout(addDebugButton, 100);
-            
-            // Фокус на поле ввода
-            setTimeout(() => {
-                elements.chatInput.focus();
-            }, 100);
-            
-            // Обработчики событий
-            elements.chatSendButton.onclick = () => sendChatMessage();
-            elements.chatInput.onkeypress = (e) => {
-                if (e.key === 'Enter') {
-                    sendChatMessage();
-                }
-            };
-            
-            scheduleFeatherReplace();
-        }
-        function renderChatMessages() {
-            console.log('📨 Рендерим сообщения. Количество:', currentChat.messages?.length);
-            console.log('📨 Данные сообщений:', JSON.stringify(currentChat.messages, null, 2));
-            
-            // КРИТИЧЕСКАЯ ПРОВЕРКА: существует ли элемент?
-            if (!elements.chatMessages) {
-                console.error('❌ ОШИБКА: элемент chatMessages не найден!');
-                console.log('Доступные элементы:', Object.keys(elements));
-                return;
-            }
-            
-            console.log('✅ Элемент chatMessages найден:', elements.chatMessages);
-            
-            if (!currentChat.messages || currentChat.messages.length === 0) {
-                console.log('⚠️ Сообщений нет, показываем пустое состояние');
-                elements.chatMessages.innerHTML = `
-                    <div class="empty-chat">
-                        <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-300"></i>
-                        <p>Нет сообщений</p>
-                        <p class="text-sm mt-1">Начните общение первым!</p>
-                    </div>
-                `;
-                scheduleFeatherReplace();
-                return;
-            }
-        
-            // Отладочная информация перед рендерингом
-            const debugHtml = currentChat.messages.map((msg, idx) => 
-                `[${idx}] ${msg.message_type}: ${msg.message_text?.substring(0, 50)}`
-            ).join('\n');
-            console.log('📋 Содержимое сообщений:\n', debugHtml);
-            
-            let html = '';
-            let lastDate = '';
-        
-            currentChat.messages.forEach((message, index) => {
-                if (!message) {
-                    console.log(`⚠️ Пропускаем пустое сообщение на позиции ${index}`);
-                    return;
-                }
-
-                console.log(`� Рендерим сообщение ${index}:`, message.message_type, message.message_text?.substring(0, 30));
-                const messageDate = new Date(message.timestamp).toLocaleDateString('ru-RU');
-                
-                // Добавляем разделитель даты, если дата изменилась
-                if (messageDate !== lastDate) {
-                    html += `
-                        <div class="chat-date-divider">
-                            <span class="chat-date-text">${messageDate}</span>
-                        </div>
-                    `;
-                    lastDate = messageDate;
-                }
-        
-                const isUser = message.message_type === 'user';
-                const time = new Date(message.timestamp).toLocaleTimeString('ru-RU', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                html += `
-                    <div class="chat-message ${isUser ? 'user' : 'brigade'}">
-                        <div class="message-text">${escapeHtml(message.message_text || '')}</div>
-                        <div class="chat-timestamp">${time}</div>
-                    </div>
-                `;
-            });
-        
-            // Добавляем индикатор набора сообщения, если бригада печатает
-            if (currentChat.isTyping) {
-                html += `
-                    <div class="typing-indicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                `;
-            }
-        
-            console.log('🎨 Сгенерированный HTML (первые 500 символов):', html.substring(0, 500));
-            console.log('🎨 Длина HTML:', html.length);
-            
-            elements.chatMessages.innerHTML = html;
-            console.log('✅ HTML вставлен в chatMessages');
-            
-            // Проверяем, что HTML действительно вставился
-            setTimeout(() => {
-                console.log('🔍 Проверка: содержимое chatMessages:', elements.chatMessages.innerHTML.substring(0, 200));
-                console.log('🔍 Дочерние элементы chatMessages:', elements.chatMessages.children.length);
-            }, 50);
-            
-            // Прокручиваем вниз к последним сообщениям
-            setTimeout(() => {
-                elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-                console.log('📜 Прокрутка выполнена. scrollTop:', elements.chatMessages.scrollTop, 'scrollHeight:', elements.chatMessages.scrollHeight);
-            }, 100);
-            
-            scheduleFeatherReplace();
-        }
-
-        function quickChatDebug() {
-            console.log('=== QUICK CHAT DEBUG ===');
-            console.log('currentChat:', currentChat);
-            console.log('elements.chatMessages:', elements.chatMessages);
-            console.log('Сообщений в памяти:', currentChat.messages?.length);
-            
-            if (currentChat.messages && currentChat.messages.length > 0) {
-                console.log('Пример сообщения:', currentChat.messages[0]);
-            }
-            
-            // Проверим отображение простого текста
-            if (elements.chatMessages) {
-                elements.chatMessages.innerHTML = '<div style="color: red; padding: 20px; font-size: 18px; background: yellow;">ТЕСТОВЫЙ ТЕКСТ - видите это?</div>';
-                console.log('✅ Тестовый HTML вставлен');
-            } else {
-                console.error('❌ Элемент chatMessages не найден!');
-            }
-            
-            return 'Debug completed';
-        }
-        
-        function testChatMessageRender() {
-            console.log('=== ТЕСТ РЕНДЕРИНГА СООБЩЕНИЯ ===');
-            
-            if (!elements.chatMessages) {
-                console.error('❌ Элемент chatMessages не найден!');
-                return;
-            }
-            
-            const testHtml = `
-                <div class="chat-message user" style="background: #e3f2fd; padding: 12px; margin: 8px; border-radius: 8px;">
-                    <div class="message-text" style="font-size: 14px;">Тестовое сообщение пользователя</div>
-                    <div class="chat-timestamp" style="font-size: 12px; color: #666; margin-top: 4px;">12:34</div>
-                </div>
-                <div class="chat-message brigade" style="background: #f5f5f5; padding: 12px; margin: 8px; border-radius: 8px;">
-                    <div class="message-text" style="font-size: 14px;">Тестовое сообщение бригады</div>
-                    <div class="chat-timestamp" style="font-size: 12px; color: #666; margin-top: 4px;">12:35</div>
-                </div>
-            `;
-            
-            elements.chatMessages.innerHTML = testHtml;
-            console.log('✅ Тестовые сообщения вставлены');
-            console.log('Содержимое:', elements.chatMessages.innerHTML);
-        }
-        
-        // Полная диагностика чата
-        async function fullChatDiagnostic() {
-            console.log('\n' + '='.repeat(70));
-            console.log('🔬 ПОЛНАЯ ДИАГНОСТИКА СИСТЕМЫ ЧАТОВ');
-            console.log('='.repeat(70));
-            
-            // 1. Проверка элементов DOM
-            console.log('\n1️⃣ ПРОВЕРКА ЭЛЕМЕНТОВ DOM:');
-            const elementsToCheck = ['chatModal', 'chatMessages', 'chatInput', 'chatSendButton', 'chatBrigadeName', 'chatObjectName'];
-            elementsToCheck.forEach(el => {
-                const exists = elements[el] ? '✅' : '❌';
-                console.log(`   ${exists} ${el}: ${elements[el] ? 'найден' : 'НЕ НАЙДЕН'}`);
-            });
-            
-            // 2. Проверка текущего состояния чата
-            console.log('\n2️⃣ ТЕКУЩЕЕ СОСТОЯНИЕ ЧАТА:');
-            console.log('   brigadeName:', currentChat.brigadeName || 'не установлено');
-            console.log('   objectName:', currentChat.objectName || 'не установлено');
-            console.log('   Сообщений в памяти:', currentChat.messages?.length || 0);
-            
-            // 3. Проверка API
-            console.log('\n3️⃣ ПРОВЕРКА API:');
-            console.log('   API_BASE:', API_BASE);
-            
-            const user = getCurrentUser();
-            const testUserId = user?.id || 1606292950;
-            console.log('   User ID:', testUserId);
-            
-            // 4. Тест API отправки (без реальной отправки)
-            console.log('\n4️⃣ ТЕСТ СТРУКТУРЫ API:');
-            const testPayload = {
-                user_id: testUserId,
-                brigade_name: 'ТЕСТ',
-                object_name: '',
-                message_text: 'Тестовое сообщение',
-                message_type: 'user'
-            };
-            console.log('   Payload для отправки:', testPayload);
-            
-            // 5. Проверка CSS для chat-messages
-            console.log('\n5️⃣ ПРОВЕРКА CSS:');
-            if (elements.chatMessages) {
-                const styles = window.getComputedStyle(elements.chatMessages);
-                console.log('   display:', styles.display);
-                console.log('   visibility:', styles.visibility);
-                console.log('   height:', styles.height);
-                console.log('   overflow-y:', styles.overflowY);
-            }
-            
-            // 6. Проверка функций
-            console.log('\n6️⃣ ПРОВЕРКА ФУНКЦИЙ:');
-            const funcs = ['openBrigadeChat', 'loadChatHistory', 'renderChatMessages', 'sendChatMessage'];
-            funcs.forEach(fn => {
-                const exists = typeof window[fn] === 'function' ? '✅' : '❌';
-                console.log(`   ${exists} ${fn}`);
-            });
-            
-            console.log('\n' + '='.repeat(70));
-            console.log('✅ Диагностика завершена');
-            console.log('='.repeat(70) + '\n');
-            
-            return {
-                domElements: elementsToCheck.every(el => elements[el]),
-                currentChat: currentChat,
-                apiBase: API_BASE,
-                userId: testUserId
-            };
-        }
-        
-        function startChatAutoRefresh() {
-            // Останавливаем предыдущий интервал, если он был запущен
-            if (chatAutoRefreshInterval) {
-                clearInterval(chatAutoRefreshInterval);
-                chatAutoRefreshInterval = null;
-            }
-            
-            // Запускаем новый интервал
-            chatAutoRefreshInterval = setInterval(async () => {
-                if (currentChat.brigadeName && elements.chatModal && !elements.chatModal.classList.contains('hidden')) {
-                    console.log('🔄 Автообновление истории чата для бригады:', currentChat.brigadeName);
-                    await loadChatHistory(currentChat.brigadeName);
-                }
-            }, 5000); // Обновляем каждые 5 секунд (уменьшили частоту)
-            
-            console.log('✅ Автообновление чата запущено');
-        }
-        
-        function stopChatAutoRefresh() {
-            if (chatAutoRefreshInterval) {
-                clearInterval(chatAutoRefreshInterval);
-                chatAutoRefreshInterval = null;
-                console.log('🛑 Автообновление чата остановлено');
-            }
-        }
-        
-        async function sendChatMessage() {
-            const messageText = elements.chatInput.value.trim();
-            
-            if (!messageText) {
-                console.log('⚠️ Пустое сообщение, отправка отменена');
-                return;
-            }
-        
-            const user = getCurrentUser();
-            const userId = user?.id || 1606292950;
-        
-            console.log(`\n${'='.repeat(60)}`);
-            console.log('📤 ОТПРАВКА СООБЩЕНИЯ');
-            console.log('='.repeat(60));
-            console.log('user_id:', userId);
-            console.log('brigade_name:', currentChat.brigadeName);
-            console.log('object_name:', currentChat.objectName);
-            console.log('message_text:', messageText.substring(0, 100));
-        
-            try {
-                // Блокируем кнопку отправки
-                elements.chatSendButton.disabled = true;
-                elements.chatSendButton.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i>';
-                scheduleFeatherReplace();
-        
-                // Отправляем сообщение через API
-                const response = await fetch(`${API_BASE}/chat/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        brigade_name: currentChat.brigadeName,
-                        object_name: currentChat.objectName || '',
-                        message_text: messageText,
-                        message_type: 'user'
-                    })
-                });
-        
-                const data = await response.json();
-                console.log('📤 Ответ сервера:', data);
-        
-                if (data.success && data.message) {
-                    // Очищаем поле ввода
-                    elements.chatInput.value = '';
-                    
-                    console.log('✅ Сообщение отправлено успешно');
-                    console.log('   ID сообщения:', data.message_id);
-                    console.log('   Telegram:', data.telegram_sent ? 'отправлено' : 'ошибка');
-                    
-                    // Добавляем сообщение в локальный массив для мгновенного отображения
-                    currentChat.messages.push(data.message);
-                    renderChatMessages();
-                    
-                    // Через 500мс перезагружаем с сервера для синхронизации
-                    setTimeout(() => {
-                        loadChatHistory(currentChat.brigadeName);
-                    }, 500);
-                    
-                } else {
-                    console.error('❌ Ошибка отправки:', data.error);
-                    alert('Ошибка отправки сообщения: ' + (data.error || 'Неизвестная ошибка'));
-                }
-            } catch (error) {
-                console.error('❌ Исключение при отправке:', error);
-                alert('Ошибка отправки сообщения: ' + error.message);
-            } finally {
-                // Разблокируем кнопку отправки
-                elements.chatSendButton.disabled = false;
-                elements.chatSendButton.innerHTML = '<i data-feather="send" class="w-4 h-4"></i>';
-                scheduleFeatherReplace();
-                console.log('='.repeat(60) + '\n');
-            }
-        }
-
-        async function debugChat() {
-            const user = getCurrentUser();
-            const userId = user?.id || 1606292950;
-            
-            try {
-                const response = await fetch(`${API_BASE}/chat/debug/${userId}/${encodeURIComponent(currentChat.brigadeName)}`);
-                const data = await response.json();
-                console.log('Debug chat info:', data);
-                
-                if (tg) {
-                    tg.showAlert(`Отладка чата:\nСообщений: ${data.chat_stats.total_messages}\nНепрочитанных: ${data.unread_count}`);
-                }
-            } catch (error) {
-                console.log('Ошибка отладки:', error);
-            }
-        }
-
-        // ========== ФУНКЦИИ ДЛЯ РАЗДЕЛА ЧАТОВ ==========
-
-        async function openChats() {
-            lastAction = { type: 'openChats' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Чаты', action: 'openChats' }]);
-            elements.pageTitle.textContent = 'Чаты';
-            
-            showLoading();
-            
-            try {
-                const user = getCurrentUser();
-                const userId = user?.id || 1606292950;
-                
-                // Загружаем список бригад и непрочитанные сообщения параллельно
-                const [chatsResponse, unreadResponse] = await Promise.all([
-                    fetch(`${API_BASE}/chat/brigades/${userId}`),
-                    fetch(`${API_BASE}/chat/unread_count/${userId}`)
-                ]);
-                
-                const chatsData = await chatsResponse.json();
-                const unreadData = await unreadResponse.json();
-                
-                hideLoading();
-                
-                if (chatsData.success && chatsData.brigades && chatsData.brigades.length > 0) {
-                    renderChatList(chatsData.brigades, unreadData.unread_counts || {});
-                } else {
-                    showEmptyState('У вас пока нет активных чатов');
-                }
-                
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки чатов');
-            }
-        }
-
-        function renderChatList(brigades, unreadCounts) {
-            let html = `
-                <div class="space-y-4">
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h2 class="text-xl font-semibold text-contrast mb-2">Мои чаты</h2>
-                        <p class="text-gray-600 text-contrast">Общение с бригадами</p>
-                    </div>
-            `;
-            
-            // Сортируем бригады по времени последней активности
-            brigades.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
-            
-            brigades.forEach(brigade => {
-                const lastActivity = formatDate(brigade.last_activity);
-                const unreadCount = unreadCounts[brigade.brigade_name] || 0;
-                const unreadBadge = unreadCount > 0 ? 
-                    `<span class="unread-badge">${unreadCount}</span>` : '';
-                
-                const chatItemClass = unreadCount > 0 ? 'chat-item-unread' : '';
-                
-                html += `
-                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 clickable-card ${chatItemClass}" 
-                         onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}')">
-                        <div class="flex justify-between items-center">
-                            <div class="flex-1">
-                                <div class="flex items-center mb-2">
-                                    <h3 class="font-semibold text-contrast">${escapeHtml(brigade.brigade_name)}</h3>
-                                    ${unreadBadge}
-                                </div>
-                                <p class="text-sm text-gray-500">Последняя активность: ${lastActivity}</p>
-                            </div>
-                            <i data-feather="chevron-right" class="text-gray-400"></i>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `
-                <button onclick="loadSections()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад в каталог
-                </button>
-            </div>`;
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return 'неизвестно';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('ru-RU');
-        }
-
-        // ========== ФУНКЦИИ ДЛЯ НЕПРОЧИТАННЫХ СООБЩЕНИЙ ==========
-
-        async function loadUnreadCounts() {
-            try {
-                const user = getCurrentUser();
-                const userId = user?.id || 1606292950;
-                
-                const response = await fetch(`${API_BASE}/chat/unread_count/${userId}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    updateUnreadBadges(data.unread_counts, data.total_unread);
-                    console.log('📊 Непрочитанные сообщения:', data.unread_counts);
-                    return data.unread_counts;
-                }
-                return {};
-            } catch (error) {
-                console.log('Ошибка загрузки непрочитанных сообщений:', error);
-                return {};
-            }
-        }
-
-        function updateUnreadBadges(unreadCounts, totalUnread) {
-            // Обновляем бейдж в меню
-            if (totalUnread > 0) {
-                elements.menuUnreadBadge.textContent = totalUnread;
-                elements.menuUnreadBadge.classList.remove('hidden');
-            } else {
-                elements.menuUnreadBadge.classList.add('hidden');
-            }
-        }
-
-        async function markMessagesAsRead(brigadeName) {
-            try {
-                const user = getCurrentUser();
-                const userId = user?.id || 1606292950;
-                
-                console.log(`📨 Сброс непрочитанных: user_id=${userId}, brigade=${brigadeName}`);
-                
-                await fetch(`${API_BASE}/chat/update_unread`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        brigade_name: brigadeName,
-                        reset: true
-                    })
-                });
-                
-                // Обновляем бейджи
-                await loadUnreadCounts();
-                
-            } catch (error) {
-                console.log('Ошибка отметки сообщений как прочитанных:', error);
-            }
-        }
-
-        // Функция для периодической проверки новых сообщений
-        function startChatPolling() {
-            setInterval(async () => {
-                if (currentChat.brigadeName && elements.chatModal && !elements.chatModal.classList.contains('hidden')) {
-                    // Если чат открыт, обновляем историю и счетчики
-                    console.log('🔄 Автообновление открытого чата');
-                    await updateUnreadCountsForChat(getCurrentUser()?.id || 1606292950, currentChat.brigadeName);
-                    await loadChatHistory(currentChat.brigadeName);
-                } else {
-                    // Если чат не открыт, проверяем непрочитанные сообщения
-                    console.log('🔄 Проверка непрочитанных сообщений');
-                    await loadUnreadCounts();
-                }
-            }, 5000); // Увеличьте частоту до 5 секунд
-        }
-
-        // ========== ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ ==========
-
+        // ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ
         function callTaxi() {
             const address = encodeURIComponent(CONTACT_INFO.address);
             const lat = CONTACT_INFO.coordinates.lat;
@@ -2371,8 +1394,7 @@
             }
         }
 
-        // ========== ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН ==========
-
+        // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
         function installPWA() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
@@ -2473,8 +1495,11 @@
             scheduleFeatherReplace();
         }
 
-        // ========== ФУНКЦИИ ДЛЯ ИЗБРАННОГО ==========
+        function showInstallPrompt() {
+            installPWA();
+        }
 
+        // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
         function toggleFavorite(product, productIndex) {
             const productId = generateProductId(product);
             const isFavorite = favorites.some(fav => fav.id === productId);
@@ -2830,7 +1855,7 @@
                         fileId = url.split('id=')[1].split('&')[0];
                     }
                     else if (url.includes('/open?id=')) {
-                        fileId = url.split('/open?id=')[1].split('&')[0];
+                        fileId = url.split('/open?id=')[1];
                     }
 
                     if (fileId) {
@@ -3034,7 +2059,7 @@
                         <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
                     </div>
             `;
-            
+        
             if (!brigade.objects || brigade.objects.length === 0) {
                 html += `
                     <div class="bg-white rounded-xl p-8 text-center shadow-sm">
@@ -3054,36 +2079,26 @@
                     const safeDescription = escapeHtml(object.object_description || '');
                     
                     html += `
-                        <div class="object-card fade-in">
-                            <div onclick="openObjectGalleryPage('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
+                        <div class="object-card fade-in" onclick="openObjectGalleryPage('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, ${index})">
                     `;
                     
                     html += renderUniversalImage(imageUrl, alternativeUrls, object.object_name, firstPhoto?.photo_url);
                     
                     html += `
-                                <div class="p-4">
-                                    <h3 class="object-title">${escapeHtml(object.object_name)}</h3>
-                                    <div class="flex justify-between items-center mt-3">
-                                        <div class="gallery-status ${getStatusClass(object.status)}">${getStatusText(object.status)}</div>
-                                        <div class="text-sm text-gray-500">${object.all_photos ? object.all_photos.length : 0} фото</div>
-                                    </div>
-                                    ${object.object_description && object.object_description.trim() !== '' ? `
-                                        <button class="info-button mt-3" 
-                                                onclick="event.stopPropagation(); openInfoModalFromButton(this)" 
-                                                data-description="${safeDescription}">
-                                            <i data-feather="info" class="w-4 h-4"></i>
-                                            Информация по объекту
-                                        </button>
-                                    ` : ''}
+                            <div class="p-4">
+                                <h3 class="object-title">${escapeHtml(object.object_name)}</h3>
+                                <div class="flex justify-between items-center mt-3">
+                                    <div class="gallery-status ${getStatusClass(object.status)}">${getStatusText(object.status)}</div>
+                                    <div class="text-sm text-gray-500">${object.all_photos ? object.all_photos.length : 0} фото</div>
                                 </div>
-                            </div>
-                            <!-- Кнопка "Уточнить детали" для конкретного объекта -->
-                            <div class="px-4 pb-4">
-                                <button onclick="event.stopPropagation(); openBrigadeChat('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
-                                        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center">
-                                    <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
-                                    Уточнить детали
-                                </button>
+                                ${object.object_description && object.object_description.trim() !== '' ? `
+                                    <button class="info-button mt-3" 
+                                            onclick="event.stopPropagation(); openInfoModalFromButton(this)" 
+                                            data-description="${safeDescription}">
+                                        <i data-feather="info" class="w-4 h-4"></i>
+                                        Информация по объекту
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -3092,20 +2107,19 @@
                 html += `</div>`;
             }
         
-            // Кнопка "Уточнить детали" (БЕЗ отображения контакта)
             html += `
-                    <div class="space-y-3">
-                        <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}')" class="details-button">
-                            <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
-                            Уточнить детали у бригады
-                        </button>
-                        
-                        <button onclick="loadBrigades()" class="back-to-brigades">
-                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                            Назад к бригадам
-                        </button>
+                        <div class="space-y-3">
+                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                                ${CONTACT_INFO.phone}
+                            </button>
+                            
+                            <button onclick="loadBrigades()" class="back-to-brigades">
+                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                                Назад к бригадам
+                            </button>
+                        </div>
                     </div>
-                </div>
             `;
             
             elements.content.innerHTML = html;
@@ -3138,11 +2152,9 @@
                             <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
                             <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
             `;
-            
+        
             // Экранируем описание для использования в атрибуте data
             const safeDescription = escapeHtml(object.object_description || '');
-            
-            // УБИРАЕМ блок с информацией о контакте бригады
             
             if (object.object_description && object.object_description.trim() !== '') {
                 html += `
@@ -3154,28 +2166,27 @@
                             </button>
                 `;
             }
-            
+        
             html += `
                         </div>
             `;
-            
+        
             if (!object.all_photos || object.all_photos.length === 0) {
                 html += `
-                        <div class="object-gallery-images">
-                            <div class="bg-gray-50 rounded-lg p-8 text-center">
-                                <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-                                <p class="text-gray-500">Фотографии не найдены</p>
+                            <div class="object-gallery-images">
+                                <div class="bg-gray-50 rounded-lg p-8 text-center">
+                                    <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                                    <p class="text-gray-500">Фотографии не найдены</p>
+                                </div>
                             </div>
-                        </div>
                 `;
             } else {
                 html += `
-                        <div class="object-gallery-images">
-                            <div class="mb-4">
-                                <h3 class="text-lg font-semibold text-contrast mb-2">Фотографии объекта (${object.all_photos.length})</h3>
-                                <p class="text-gray-600 text-sm">Нажмите на фото для просмотра в полноэкранном режиме</p>
-                            </div>
-                            <div class="object-gallery-grid">
+                            <div class="object-gallery-images">
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-semibold text-contrast mb-2">Фотографии объекта (${object.all_photos.length})</h3>
+                                </div>
+                                <div class="object-gallery-grid">
                 `;
                 
                 object.all_photos.forEach((photo, photoIndex) => {
@@ -3183,42 +2194,33 @@
                     const alternativeUrls = getAlternativeImageUrls(photo.photo_url);
                     
                     html += `
-                                <div class="object-gallery-image-item fade-in" onclick="openFullScreenGallery(${photoIndex})">
+                                    <div class="object-gallery-image-item fade-in" onclick="openFullScreenGallery(${photoIndex})">
                     `;
                     
                     if (imageUrl || alternativeUrls.length > 0) {
                         const finalImageUrl = imageUrl || alternativeUrls[0];
                         html += `
-                                    <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
-                                         class="object-gallery-image"
-                                         onerror="handleGalleryImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                         onload="handleGalleryImageLoad(this)"
-                                         loading="lazy"
-                                         data-tried-alternative="0">
-                                    <div class="object-gallery-image-placeholder hidden">
-                                        <div class="text-center text-gray-400">
-                                            <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
-                                            <div class="text-xs">Не удалось загрузить</div>
+                                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
+                                             class="object-gallery-image"
+                                             onerror="handleGalleryImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                             onload="handleGalleryImageLoad(this)"
+                                             loading="lazy"
+                                             data-tried-alternative="0">
+                                        <div class="object-gallery-image-placeholder hidden">
+                                            <div class="text-center text-gray-400">
+                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                                <div class="text-xs">Не удалось загрузить</div>
+                                            </div>
                                         </div>
-                                    </div>
                         `;
                     } else {
                         html += `
-                                    <div class="object-gallery-image-placeholder">
-                                        <div class="text-center text-gray-400">
-                                            <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
-                                            <div class="text-xs">Фото не доступно</div>
+                                        <div class="object-gallery-image-placeholder">
+                                            <div class="text-center text-gray-400">
+                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                                <div class="text-xs">Фото не доступно</div>
+                                            </div>
                                         </div>
-                                    </div>
-                        `;
-                    }
-                    
-                    // Подпись к фото, если есть
-                    if (photo.description && photo.description.trim() !== '' && photo.description !== object.object_name) {
-                        html += `
-                                    <div class="p-2 bg-white border-t border-gray-200">
-                                        <p class="text-xs text-gray-600 truncate">${escapeHtml(photo.description)}</p>
-                                    </div>
                         `;
                     }
                     
@@ -3227,28 +2229,28 @@
                 
                 html += `</div></div>`;
             }
-            
+        
             html += `
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <button onclick="openBrigadeChat('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" class="details-button">
-                            <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
-                            Уточнить детали у бригады
-                        </button>
+                        </div>
                         
-                        <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
-                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                            Назад к объектам
-                        </button>
+                        <div class="space-y-3">
+                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                                ${CONTACT_INFO.phone}
+                            </button>
+                            
+                            <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                                Назад к объектам
+                            </button>
+                        </div>
                     </div>
-                </div>
             `;
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
         }
-        
+
         function openInfoModalFromButton(buttonElement) {
             const description = buttonElement.getAttribute('data-description');
             if (description) {
@@ -3261,7 +2263,6 @@
                 window.event.preventDefault();
             }
         }
-
         // ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
         function openInfoModal(description) {
             console.log('Opening info modal with description:', description);
@@ -3466,13 +2467,6 @@
                 try {
                     tg.expand();
                     tg.enableClosingConfirmation();
-                    
-                    // Проверяем права админа при инициализации
-                    checkAdminRights();
-                    
-                    if (isAdmin) {
-                        console.log('👑 Администратор вошел в систему');
-                    }
                 } catch (error) {
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
@@ -3484,7 +2478,6 @@
         async function apiFetch(endpoint) {
             const url = `${API_BASE}${endpoint}`;
             
-            console.log(`🌐 API запрос: ${url}`);
             showLoading();
             
             const controller = new AbortController();
@@ -3513,7 +2506,6 @@
                     throw new Error('Пустой ответ от сервера');
                 }
                 
-                console.log(`✅ API ответ ${endpoint}:`, data);
                 hideLoading();
                 return data;
                 
@@ -3527,7 +2519,6 @@
                     errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
                 }
                 
-                console.error(`❌ Ошибка API ${endpoint}:`, errorMessage);
                 hideLoading();
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
@@ -3537,7 +2528,6 @@
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
-            console.log('🔄 Загрузка разделов...');
             lastAction = { type: 'loadSections' };
             
             try {
@@ -3545,29 +2535,22 @@
                 updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
                 elements.pageTitle.textContent = 'Каталог товаров';
                 
-                showLoading();
-                
                 const data = await apiFetch('/sections');
                 
                 if (data?.error) {
-                    console.error('❌ Ошибка загрузки разделов:', data.error);
                     showEmptyState('Ошибка загрузки разделов');
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
-                    console.warn('⚠️ Разделы не найдены или пустые');
                     showEmptyState('Разделы не найдены');
                     return;
                 }
-        
-                console.log('✅ Разделы загружены:', data.sections.length);
+
                 renderSections(data.sections);
                 updateBackButton();
-                
             } catch (error) {
-                console.error('💥 Критическая ошибка в loadSections:', error);
-                showError('Не удалось загрузить разделы: ' + error.message);
+                showError('Не удалось загрузить разделы');
             }
         }
 
@@ -3742,13 +2725,6 @@
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
 
         function renderSections(sections) {
-            console.log('🎨 Рендерим разделы:', sections);
-            
-            if (!sections || sections.length === 0) {
-                showEmptyState('Нет доступных разделов');
-                return;
-            }
-        
             let html = '<div class="space-y-3">';
             
             sections.forEach(section => {
@@ -3774,8 +2750,7 @@
                     </div>
                 `;
             });
-        
-            // Добавляем дополнительные кнопки
+
             html += `
                 <div class="category-card fade-in" onclick="loadFavorites()">
                     <div class="p-4">
@@ -3790,21 +2765,9 @@
                         </div>
                     </div>
                 </div>
-        
-                <div class="category-card fade-in" onclick="openChats()">
-                    <div class="p-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center">
-                                <i data-feather="message-circle" class="w-5 h-5 mr-3 text-blue-500"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Чаты</h3>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-500">Общение с бригадами</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        
+            `;
+
+            html += `
                 <div class="category-card fade-in" onclick="loadBrigades()">
                     <div class="p-4">
                         <div class="flex justify-between items-center">
@@ -3818,7 +2781,9 @@
                         </div>
                     </div>
                 </div>
-        
+            `;
+
+            html += `
                 <div class="category-card fade-in" onclick="callTaxi()">
                     <div class="p-4">
                         <div class="flex justify-between items-center">
@@ -3836,10 +2801,22 @@
             
             html += '</div>';
             
+            if (!html) {
+                showEmptyState('Нет доступных разделов');
+                return;
+            }
+            
+            if (navigationStack.length > 0) {
+                html += `
+                    <button onclick="goBack()" class="back-button">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад
+                    </button>
+                `;
+            }
+            
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
-            
-            console.log('✅ Разделы отображены успешно');
         }
 
         function renderCategories(categories, sectionId, sectionName) {
@@ -4406,9 +3383,6 @@
                 case 'loadBrigades':
                     loadBrigades();
                     break;
-                case 'openChats':
-                    openChats();
-                    break;
                 default:
                     loadSections();
             }
@@ -4418,12 +3392,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
-                console.log('🚀 Инициализация приложения...');
                 initTelegramApp();
                 fixMobileColors();
                 scheduleFeatherReplace();
                 
-                // Инициализация элементов управления
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
                 const installButton = document.getElementById('installButton');
@@ -4435,7 +3407,7 @@
                 if (closeMenuBtn) {
                     closeMenuBtn.addEventListener('click', closeSideMenu);
                 }
-                
+
                 if (installButton) {
                     installButton.addEventListener('click', installPWA);
                 }
@@ -4445,8 +3417,7 @@
                         closeSideMenu();
                     }
                 });
-                
-                // Обработчики PWA
+
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     deferredPrompt = e;
@@ -4454,7 +3425,7 @@
                         installButton.style.display = 'flex';
                     }
                 });
-                
+
                 window.addEventListener('appinstalled', (e) => {
                     deferredPrompt = null;
                     if (installButton) {
@@ -4462,43 +3433,17 @@
                     }
                 });
                 
-                // Запускаем автообновление чатов
-                startChatAutoRefresh();
-                startChatPolling();
-                
-                // Загружаем разделы с небольшой задержкой для стабильности
                 setTimeout(() => {
-                    console.log('📥 Начинаем загрузку разделов...');
                     loadSections();
-                    
-                    // Загружаем непрочитанные сообщения после инициализации
-                    setTimeout(() => {
-                        loadUnreadCounts();
-                    }, 1000);
-                }, 500);
+                }, 100);
                 
             } catch (error) {
-                console.error('💥 Критическая ошибка инициализации:', error);
-                showError('Ошибка загрузки приложения: ' + error.message);
+                console.error('Ошибка инициализации:', error);
+                showError('Ошибка загрузки приложения');
             }
         });
 
-        // Функция для получения текущего пользователя
-        function getCurrentUser() {
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
-                console.log('👤 Текущий пользователь:', {
-                    id: user.id,
-                    username: user.username,
-                    first_name: user.first_name,
-                    last_name: user.last_name
-                });
-                return user;
-            }
-            console.log('👤 Пользователь не авторизован через Telegram WebApp');
-            return null;
-        }
-
+        // Глобальные функции
         // Глобальные функции
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
@@ -4514,7 +3459,7 @@
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
         window.openInfoModal = openInfoModal;
-        window.openInfoModalFromButton = openInfoModalFromButton;
+        window.openInfoModalFromButton = openInfoModalFromButton; // ДОБАВЬТЕ ЭТУ СТРОКУ
         window.closeInfoModal = closeInfoModal;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
@@ -4541,27 +3486,6 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
-        
-        // Новые функции для чатов
-        window.openBrigadeChat = openBrigadeChat;
-        window.openChats = openChats;
-        window.closeChatModal = closeChatModal;
-        window.sendChatMessage = sendChatMessage;
-        
-        // Тестовые и отладочные функции
-        window.quickChatDebug = quickChatDebug;
-        window.testChatMessageRender = testChatMessageRender;
-        window.loadChatHistory = loadChatHistory;
-        window.renderChatMessages = renderChatMessages;
-        window.fullChatDiagnostic = fullChatDiagnostic;
-        
-        console.log('✅ Все функции экспортированы в window');
-        console.log('🧪 Доступные тестовые функции:');
-        console.log('  - fullChatDiagnostic() - полная диагностика системы чатов');
-        console.log('  - quickChatDebug() - быстрая диагностика чата');
-        console.log('  - testChatMessageRender() - тест рендеринга сообщений');
-        console.log('  - loadChatHistory("Имя бригады") - загрузить историю');
-        console.log('  - renderChatMessages() - перерендерить сообщения');
     </script>
 </body>
 </html>
