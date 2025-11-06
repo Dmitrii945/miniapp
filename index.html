@@ -1629,19 +1629,6 @@
             console.log('✅ Модальное окно чата открыто');
             console.log('🔍 Проверка элемента chatMessages:', elements.chatMessages ? 'НАЙДЕН' : 'НЕ НАЙДЕН');
             
-            // Тестовая вставка для проверки видимости
-            setTimeout(() => {
-                if (elements.chatMessages) {
-                    console.log('🧪 Вставка тестового индикатора загрузки...');
-                    elements.chatMessages.innerHTML = `
-                        <div style="text-align: center; padding: 20px; color: #666;">
-                            <div style="font-size: 16px; margin-bottom: 8px;">⏳ Загрузка сообщений...</div>
-                            <div style="font-size: 12px;">Если это сообщение видно, элемент работает</div>
-                        </div>
-                    `;
-                }
-            }, 50);
-            
             // Фокус на поле ввода
             setTimeout(() => {
                 elements.chatInput.focus();
@@ -1954,6 +1941,75 @@
             elements.chatMessages.innerHTML = testHtml;
             console.log('✅ Тестовые сообщения вставлены');
             console.log('Содержимое:', elements.chatMessages.innerHTML);
+        }
+        
+        // Полная диагностика чата
+        async function fullChatDiagnostic() {
+            console.log('\n' + '='.repeat(70));
+            console.log('🔬 ПОЛНАЯ ДИАГНОСТИКА СИСТЕМЫ ЧАТОВ');
+            console.log('='.repeat(70));
+            
+            // 1. Проверка элементов DOM
+            console.log('\n1️⃣ ПРОВЕРКА ЭЛЕМЕНТОВ DOM:');
+            const elementsToCheck = ['chatModal', 'chatMessages', 'chatInput', 'chatSendButton', 'chatBrigadeName', 'chatObjectName'];
+            elementsToCheck.forEach(el => {
+                const exists = elements[el] ? '✅' : '❌';
+                console.log(`   ${exists} ${el}: ${elements[el] ? 'найден' : 'НЕ НАЙДЕН'}`);
+            });
+            
+            // 2. Проверка текущего состояния чата
+            console.log('\n2️⃣ ТЕКУЩЕЕ СОСТОЯНИЕ ЧАТА:');
+            console.log('   brigadeName:', currentChat.brigadeName || 'не установлено');
+            console.log('   objectName:', currentChat.objectName || 'не установлено');
+            console.log('   Сообщений в памяти:', currentChat.messages?.length || 0);
+            
+            // 3. Проверка API
+            console.log('\n3️⃣ ПРОВЕРКА API:');
+            console.log('   API_BASE:', API_BASE);
+            
+            const user = getCurrentUser();
+            const testUserId = user?.id || 1606292950;
+            console.log('   User ID:', testUserId);
+            
+            // 4. Тест API отправки (без реальной отправки)
+            console.log('\n4️⃣ ТЕСТ СТРУКТУРЫ API:');
+            const testPayload = {
+                user_id: testUserId,
+                brigade_name: 'ТЕСТ',
+                object_name: '',
+                message_text: 'Тестовое сообщение',
+                message_type: 'user'
+            };
+            console.log('   Payload для отправки:', testPayload);
+            
+            // 5. Проверка CSS для chat-messages
+            console.log('\n5️⃣ ПРОВЕРКА CSS:');
+            if (elements.chatMessages) {
+                const styles = window.getComputedStyle(elements.chatMessages);
+                console.log('   display:', styles.display);
+                console.log('   visibility:', styles.visibility);
+                console.log('   height:', styles.height);
+                console.log('   overflow-y:', styles.overflowY);
+            }
+            
+            // 6. Проверка функций
+            console.log('\n6️⃣ ПРОВЕРКА ФУНКЦИЙ:');
+            const funcs = ['openBrigadeChat', 'loadChatHistory', 'renderChatMessages', 'sendChatMessage'];
+            funcs.forEach(fn => {
+                const exists = typeof window[fn] === 'function' ? '✅' : '❌';
+                console.log(`   ${exists} ${fn}`);
+            });
+            
+            console.log('\n' + '='.repeat(70));
+            console.log('✅ Диагностика завершена');
+            console.log('='.repeat(70) + '\n');
+            
+            return {
+                domElements: elementsToCheck.every(el => elements[el]),
+                currentChat: currentChat,
+                apiBase: API_BASE,
+                userId: testUserId
+            };
         }
         
         function startChatAutoRefresh() {
@@ -4497,9 +4553,11 @@
         window.testChatMessageRender = testChatMessageRender;
         window.loadChatHistory = loadChatHistory;
         window.renderChatMessages = renderChatMessages;
+        window.fullChatDiagnostic = fullChatDiagnostic;
         
         console.log('✅ Все функции экспортированы в window');
         console.log('🧪 Доступные тестовые функции:');
+        console.log('  - fullChatDiagnostic() - полная диагностика системы чатов');
         console.log('  - quickChatDebug() - быстрая диагностика чата');
         console.log('  - testChatMessageRender() - тест рендеринга сообщений');
         console.log('  - loadChatHistory("Имя бригады") - загрузить историю');
