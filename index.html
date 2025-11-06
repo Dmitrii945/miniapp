@@ -3612,8 +3612,6 @@
         
         // Обработчик нажатия на кнопку чата
         function handleChatButtonClick(event, groupName, brigade, objectName) {
-            alert('Кнопка чата нажата!'); // Временная проверка
-            
             if (event) {
                 event.stopPropagation();
                 event.preventDefault();
@@ -3637,7 +3635,7 @@
             }
             
             // Создаем чат
-            fetch('/api/chat/create', {
+            fetch(`${API_BASE}/chat/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3728,7 +3726,7 @@
         
         // Загрузка сообщений чата
         function loadChatMessages(chatId) {
-            fetch(`/api/chat/messages/${chatId}`)
+            fetch(`${API_BASE}/chat/messages/${chatId}`)
             .then(response => response.json())
             .then(data => {
                 const container = document.getElementById('messagesContainer');
@@ -3797,7 +3795,7 @@
                 
                 const userId = getCurrentUserId();
                 
-                fetch('/api/chat/send', {
+                fetch(`${API_BASE}/chat/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3876,7 +3874,7 @@
             scheduleFeatherReplace();
             
             // Загружаем чаты
-            fetch(`/api/chat/list/${userId}`)
+            fetch(`${API_BASE}/chat/list/${userId}`)
             .then(response => response.json())
             .then(data => {
                 renderUserChats(data.chats || []);
