@@ -1603,23 +1603,44 @@
         // ========== ФУНКЦИИ ДЛЯ ЧАТА ВНУТРИ ПРИЛОЖЕНИЯ ==========
 
         function openBrigadeChat(brigadeName, objectName = '') {
+            console.log('🚀 Открытие чата с бригадой:', brigadeName);
+            
             currentChat.brigadeName = brigadeName;
             currentChat.objectName = objectName || '';
             
+            // Показываем модальное окно чата сразу
+            showChatModal(brigadeName, objectName);
+            
             // Загружаем историю сообщений
+            console.log('📨 Запуск загрузки истории...');
             loadChatHistory(brigadeName);
             
             // Сбрасываем счетчик непрочитанных
             markMessagesAsRead(brigadeName);
-            
-            // Показываем модальное окно чата
-            showChatModal(brigadeName, objectName);
         }
 
         function showChatModal(brigadeName, objectName = '') {
+            console.log('💬 Показ модального окна чата');
+            
             elements.chatBrigadeName.textContent = brigadeName;
             elements.chatObjectName.textContent = objectName || 'Общее обсуждение';
             elements.chatModal.classList.remove('hidden');
+            
+            console.log('✅ Модальное окно чата открыто');
+            console.log('🔍 Проверка элемента chatMessages:', elements.chatMessages ? 'НАЙДЕН' : 'НЕ НАЙДЕН');
+            
+            // Тестовая вставка для проверки видимости
+            setTimeout(() => {
+                if (elements.chatMessages) {
+                    console.log('🧪 Вставка тестового индикатора загрузки...');
+                    elements.chatMessages.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: #666;">
+                            <div style="font-size: 16px; margin-bottom: 8px;">⏳ Загрузка сообщений...</div>
+                            <div style="font-size: 12px;">Если это сообщение видно, элемент работает</div>
+                        </div>
+                    `;
+                }
+            }, 50);
             
             // Фокус на поле ввода
             setTimeout(() => {
@@ -1779,6 +1800,15 @@
             console.log('📨 Рендерим сообщения. Количество:', currentChat.messages?.length);
             console.log('📨 Данные сообщений:', JSON.stringify(currentChat.messages, null, 2));
             
+            // КРИТИЧЕСКАЯ ПРОВЕРКА: существует ли элемент?
+            if (!elements.chatMessages) {
+                console.error('❌ ОШИБКА: элемент chatMessages не найден!');
+                console.log('Доступные элементы:', Object.keys(elements));
+                return;
+            }
+            
+            console.log('✅ Элемент chatMessages найден:', elements.chatMessages);
+            
             if (!currentChat.messages || currentChat.messages.length === 0) {
                 console.log('⚠️ Сообщений нет, показываем пустое состояние');
                 elements.chatMessages.innerHTML = `
@@ -1845,11 +1875,22 @@
                 `;
             }
         
+            console.log('🎨 Сгенерированный HTML (первые 500 символов):', html.substring(0, 500));
+            console.log('🎨 Длина HTML:', html.length);
+            
             elements.chatMessages.innerHTML = html;
+            console.log('✅ HTML вставлен в chatMessages');
+            
+            // Проверяем, что HTML действительно вставился
+            setTimeout(() => {
+                console.log('🔍 Проверка: содержимое chatMessages:', elements.chatMessages.innerHTML.substring(0, 200));
+                console.log('🔍 Дочерние элементы chatMessages:', elements.chatMessages.children.length);
+            }, 50);
             
             // Прокручиваем вниз к последним сообщениям
             setTimeout(() => {
                 elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+                console.log('📜 Прокрутка выполнена. scrollTop:', elements.chatMessages.scrollTop, 'scrollHeight:', elements.chatMessages.scrollHeight);
             }, 100);
             
             scheduleFeatherReplace();
@@ -1866,9 +1907,38 @@
             }
             
             // Проверим отображение простого текста
-            elements.chatMessages.innerHTML = '<div style="color: red; padding: 20px; font-size: 18px;">ТЕСТОВЫЙ ТЕКСТ - видите это?</div>';
+            if (elements.chatMessages) {
+                elements.chatMessages.innerHTML = '<div style="color: red; padding: 20px; font-size: 18px; background: yellow;">ТЕСТОВЫЙ ТЕКСТ - видите это?</div>';
+                console.log('✅ Тестовый HTML вставлен');
+            } else {
+                console.error('❌ Элемент chatMessages не найден!');
+            }
             
             return 'Debug completed';
+        }
+        
+        function testChatMessageRender() {
+            console.log('=== ТЕСТ РЕНДЕРИНГА СООБЩЕНИЯ ===');
+            
+            if (!elements.chatMessages) {
+                console.error('❌ Элемент chatMessages не найден!');
+                return;
+            }
+            
+            const testHtml = `
+                <div class="chat-message user" style="background: #e3f2fd; padding: 12px; margin: 8px; border-radius: 8px;">
+                    <div class="message-text" style="font-size: 14px;">Тестовое сообщение пользователя</div>
+                    <div class="chat-timestamp" style="font-size: 12px; color: #666; margin-top: 4px;">12:34</div>
+                </div>
+                <div class="chat-message brigade" style="background: #f5f5f5; padding: 12px; margin: 8px; border-radius: 8px;">
+                    <div class="message-text" style="font-size: 14px;">Тестовое сообщение бригады</div>
+                    <div class="chat-timestamp" style="font-size: 12px; color: #666; margin-top: 4px;">12:35</div>
+                </div>
+            `;
+            
+            elements.chatMessages.innerHTML = testHtml;
+            console.log('✅ Тестовые сообщения вставлены');
+            console.log('Содержимое:', elements.chatMessages.innerHTML);
         }
         
         function startChatAutoRefresh() {
@@ -4384,6 +4454,19 @@
         window.openChats = openChats;
         window.closeChatModal = closeChatModal;
         window.sendChatMessage = sendChatMessage;
+        
+        // Тестовые и отладочные функции
+        window.quickChatDebug = quickChatDebug;
+        window.testChatMessageRender = testChatMessageRender;
+        window.loadChatHistory = loadChatHistory;
+        window.renderChatMessages = renderChatMessages;
+        
+        console.log('✅ Все функции экспортированы в window');
+        console.log('🧪 Доступные тестовые функции:');
+        console.log('  - quickChatDebug() - быстрая диагностика чата');
+        console.log('  - testChatMessageRender() - тест рендеринга сообщений');
+        console.log('  - loadChatHistory("Имя бригады") - загрузить историю');
+        console.log('  - renderChatMessages() - перерендерить сообщения');
     </script>
 </body>
 </html>
