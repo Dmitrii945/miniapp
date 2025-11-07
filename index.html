@@ -3631,7 +3631,11 @@
                 if (data.success && data.chats && data.chats.length > 0) {
                     renderChatsList(data.chats);
                 } else {
-                    showEmptyState('У вас пока нет чатов с бригадами');
+                    // Проверяем является ли пользователь бригадой
+                    const emptyMessage = await isUserBrigade() 
+                        ? 'У вас пока нет сообщений от клиентов' 
+                        : 'У вас пока нет чатов с бригадами';
+                    showEmptyState(emptyMessage);
                 }
                 updateBackButton();
             } catch (error) {
@@ -3640,18 +3644,47 @@
             }
         }
         
+        async function isUserBrigade() {
+            // Проверяем является ли текущий пользователь бригадой через API
+            const userId = getCurrentUserId();
+            
+            try {
+                const response = await fetch(`${API_BASE}/user/role/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    return data.is_brigade;
+                }
+            } catch (error) {
+                console.error('Ошибка проверки роли:', error);
+            }
+            
+            // Fallback для тестирования
+            return userId.includes('brigade') || userId === 'demo_brigade_123';
+        }
+        
         function renderChatsList(chats) {
             let html = '<div class="space-y-4">';
             
             chats.forEach(chat => {
+                // Определяем роль текущего пользователя в чате
+                const isBrigade = chat.role === 'brigade';
+                const iconClass = isBrigade ? 'user' : 'users';
+                const roleText = isBrigade ? 'Клиент' : 'Бригада';
+                
                 html += `
                     <div class="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" 
                          onclick="openChatFromList(${chat.chat_id}, '${chat.object_name}')">
                         <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <h3 class="font-semibold text-lg">${chat.title}</h3>
-                                <p class="text-gray-600 text-sm">Объект: ${chat.object_name}</p>
-                                <p class="text-gray-400 text-xs mt-1">${new Date(chat.created_at).toLocaleDateString()}</p>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i data-feather="${iconClass}" class="w-5 h-5 text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-lg">${roleText}</h3>
+                                    <p class="text-gray-600 text-sm">Объект: ${chat.object_name}</p>
+                                    <p class="text-gray-400 text-xs mt-1">${new Date(chat.created_at).toLocaleDateString()}</p>
+                                </div>
                             </div>
                             <i data-feather="chevron-right" class="w-5 h-5 text-gray-400"></i>
                         </div>
@@ -3677,6 +3710,12 @@
         
         async function openNewChat(objectName, brigadeId) {
             const buyerId = getCurrentUserId();
+            
+            // Проверяем не является ли покупатель бригадой
+            if (buyerId === brigadeId || await isUserBrigade()) {
+                alert('Это ваш объект, нельзя создать чат с самим собой');
+                return;
+            }
             
             try {
                 const response = await fetch(`${API_BASE}/new-chat/create`, {
@@ -3852,6 +3891,7 @@
         window.closeChatModal = closeChatModal;
         window.loadChats = loadChats;
         window.openChatFromList = openChatFromList;
+        window.isUserBrigade = isUserBrigade;
     </script>
 </body>
 </html>
