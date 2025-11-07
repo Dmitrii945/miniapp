@@ -878,7 +878,6 @@
         }
 
         /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
-        /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
         .info-modal {
             position: fixed;
             top: 0;
@@ -955,6 +954,150 @@
         .info-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* СТИЛИ ДЛЯ ЧАТА */
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chat-header {
+            padding: 16px;
+            background: #3B82F6;
+            color: white;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-input-container {
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .chat-send-btn {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+
+        .message-user {
+            align-self: flex-end;
+            background: #3B82F6;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .message-brigade {
+            align-self: flex-start;
+            background: #f3f4f6;
+            color: #374151;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .chat-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #EF4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #3B82F6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            z-index: 999;
+            border: none;
+        }
+
+        .chat-sessions-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .chat-session-item {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .chat-session-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .chat-session-unread {
+            background-color: #eff6ff;
+        }
+
+        .unread-badge {
+            background: #EF4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -1049,6 +1192,52 @@
             </div>
         </div>
 
+        <!-- Чат с бригадами -->
+        <button class="chat-toggle" onclick="toggleChatWindow()">
+            <i data-feather="message-circle"></i>
+            <div class="chat-badge" id="chatBadge" style="display: none;">0</div>
+        </button>
+
+        <div class="chat-container" id="chatContainer" style="display: none;">
+            <div class="chat-header">
+                <div>
+                    <div class="font-semibold" id="chatTitle">Чат с бригадой</div>
+                    <div class="text-sm opacity-90" id="chatSubtitle">Загрузка...</div>
+                </div>
+                <button onclick="toggleChatWindow()" class="text-white">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="text-center text-gray-500">Загрузка сообщений...</div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." onkeypress="handleChatInputKeypress(event)">
+                <button class="chat-send-btn" onclick="sendChatMessage()">
+                    <i data-feather="send"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Список чатов -->
+        <div class="chat-container" id="chatListContainer" style="display: none;">
+            <div class="chat-header">
+                <div>
+                    <div class="font-semibold">Мои чаты</div>
+                    <div class="text-sm opacity-90">Выберите чат для общения</div>
+                </div>
+                <button onclick="toggleChatWindow()" class="text-white">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            
+            <div class="chat-sessions-list" id="chatSessionsList">
+                <div class="text-center text-gray-500 p-4">Загрузка чатов...</div>
+            </div>
+        </div>
+
         <!-- Side Menu -->
         <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
             <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
@@ -1078,6 +1267,17 @@
                             <div>
                                 <div class="font-medium">Бригады</div>
                                 <div class="text-sm text-gray-600">Наши строительные бригады</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
+                        <!-- Мои чаты -->
+                        <div class="menu-item" onclick="showChatList(); closeSideMenu();">
+                            <i data-feather="message-circle"></i>
+                            <div>
+                                <div class="font-medium">Мои чаты</div>
+                                <div class="text-sm text-gray-600">Общение с бригадами</div>
                             </div>
                         </div>
 
@@ -1170,6 +1370,13 @@
         let currentBrigadeData = null;
         let currentObjectData = null;
 
+        // Состояние для чата
+        let currentChatSession = null;
+        let currentBrigadeChat = null;
+        let currentObjectChat = null;
+        let chatUpdateInterval = null;
+        let chatBadgeUpdateInterval = null;
+
         // Контактная информация
         const CONTACT_INFO = {
             phone: "60-01-60",
@@ -1202,7 +1409,15 @@
             galleryObjectInfo: document.getElementById('galleryObjectInfo'),
             galleryCounter: document.getElementById('galleryCounter'),
             infoModal: document.getElementById('infoModal'),
-            infoModalContent: document.getElementById('infoModalContent')
+            infoModalContent: document.getElementById('infoModalContent'),
+            chatContainer: document.getElementById('chatContainer'),
+            chatListContainer: document.getElementById('chatListContainer'),
+            chatTitle: document.getElementById('chatTitle'),
+            chatSubtitle: document.getElementById('chatSubtitle'),
+            chatMessages: document.getElementById('chatMessages'),
+            chatInput: document.getElementById('chatInput'),
+            chatBadge: document.getElementById('chatBadge'),
+            chatSessionsList: document.getElementById('chatSessionsList')
         };
 
         // ========== УТИЛИТЫ ==========
@@ -1296,7 +1511,312 @@
             return `${Math.round(numericPrice)} р.`;
         }
 
-        // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
+        // ========== ФУНКЦИИ ДЛЯ ЧАТА ==========
+
+        function toggleChatWindow() {
+            const chatContainer = elements.chatContainer;
+            const chatListContainer = elements.chatListContainer;
+            
+            if (chatContainer.style.display !== 'none') {
+                closeChat();
+            } else if (chatListContainer.style.display !== 'none') {
+                closeChatList();
+            } else {
+                showChatList();
+            }
+        }
+
+        function showChatList() {
+            closeAllChatWindows();
+            elements.chatListContainer.style.display = 'flex';
+            loadChatSessions();
+        }
+
+        function closeChatList() {
+            elements.chatListContainer.style.display = 'none';
+        }
+
+        function startChatWithBrigade(brigadeName, objectName = null) {
+            currentBrigadeChat = brigadeName;
+            currentObjectChat = objectName;
+            
+            // Создаем ID сессии
+            const userId = getUserId();
+            currentChatSession = `${userId}_${brigadeName}_${objectName || 'general'}`;
+            
+            // Обновляем заголовок чата
+            elements.chatTitle.textContent = `Чат с ${brigadeName}`;
+            elements.chatSubtitle.textContent = objectName || 'Общий чат';
+            
+            // Показываем чат и скрываем список
+            closeChatList();
+            elements.chatContainer.style.display = 'flex';
+            
+            // Загружаем историю и запускаем обновление
+            loadChatHistory(currentChatSession);
+            startChatUpdates();
+        }
+
+        function closeChat() {
+            elements.chatContainer.style.display = 'none';
+            stopChatUpdates();
+            currentChatSession = null;
+            currentBrigadeChat = null;
+            currentObjectChat = null;
+        }
+
+        function closeAllChatWindows() {
+            closeChat();
+            closeChatList();
+        }
+
+        function startChatUpdates() {
+            if (chatUpdateInterval) {
+                clearInterval(chatUpdateInterval);
+            }
+            chatUpdateInterval = setInterval(() => {
+                if (currentChatSession) {
+                    loadChatHistory(currentChatSession);
+                }
+            }, 3000);
+        }
+
+        function stopChatUpdates() {
+            if (chatUpdateInterval) {
+                clearInterval(chatUpdateInterval);
+                chatUpdateInterval = null;
+            }
+        }
+
+        async function loadChatSessions() {
+            try {
+                const userId = getUserId();
+                const response = await fetch(`${API_BASE}/chat/sessions/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderChatSessions(data.sessions);
+                } else {
+                    elements.chatSessionsList.innerHTML = '<div class="text-center text-gray-500 p-4">Ошибка загрузки чатов</div>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки сессий чата:', error);
+                elements.chatSessionsList.innerHTML = '<div class="text-center text-gray-500 p-4">Ошибка загрузки чатов</div>';
+            }
+        }
+
+        function renderChatSessions(sessions) {
+            if (!sessions || sessions.length === 0) {
+                elements.chatSessionsList.innerHTML = `
+                    <div class="text-center text-gray-500 p-4">
+                        <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                        <div>Нет активных чатов</div>
+                        <div class="text-sm mt-2">Начните общение с бригадой</div>
+                    </div>
+                `;
+                scheduleFeatherReplace();
+                return;
+            }
+
+            let html = '';
+            sessions.forEach(session => {
+                const hasUnread = session.unread_count > 0;
+                const lastActivity = new Date(session.last_activity).toLocaleDateString('ru-RU');
+                
+                html += `
+                    <div class="chat-session-item ${hasUnread ? 'chat-session-unread' : ''}" 
+                         onclick="openChatSession('${session.session_id}', '${session.brigade_name}', '${session.object_name || ''}')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-semibold">${escapeHtml(session.brigade_name)}</div>
+                                <div class="text-sm text-gray-600">${escapeHtml(session.object_name || 'Общий чат')}</div>
+                                <div class="text-xs text-gray-500">${lastActivity}</div>
+                            </div>
+                            ${hasUnread ? `
+                                <div class="unread-badge">${session.unread_count}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            elements.chatSessionsList.innerHTML = html;
+        }
+
+        function openChatSession(sessionId, brigadeName, objectName) {
+            currentChatSession = sessionId;
+            currentBrigadeChat = brigadeName;
+            currentObjectChat = objectName;
+            
+            elements.chatTitle.textContent = `Чат с ${brigadeName}`;
+            elements.chatSubtitle.textContent = objectName || 'Общий чат';
+            
+            closeChatList();
+            elements.chatContainer.style.display = 'flex';
+            
+            loadChatHistory(sessionId);
+            startChatUpdates();
+        }
+
+        async function loadChatHistory(sessionId) {
+            try {
+                const response = await fetch(`${API_BASE}/chat/history/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderChatMessages(data.messages);
+                    
+                    // Помечаем сообщения как прочитанные
+                    if (data.messages.some(msg => !msg.is_read && msg.message_type === 'brigade_to_user')) {
+                        await markMessagesAsRead(sessionId);
+                        updateChatBadge();
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки истории чата:', error);
+                elements.chatMessages.innerHTML = '<div class="text-center text-gray-500">Ошибка загрузки сообщений</div>';
+            }
+        }
+
+        function renderChatMessages(messages) {
+            if (!messages || messages.length === 0) {
+                elements.chatMessages.innerHTML = `
+                    <div class="text-center text-gray-500">
+                        <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                        <div>Нет сообщений</div>
+                        <div class="text-sm mt-2">Начните общение первым</div>
+                    </div>
+                `;
+                scheduleFeatherReplace();
+                return;
+            }
+            
+            let html = '';
+            messages.forEach(message => {
+                const isUser = message.message_type === 'user_to_brigade';
+                const time = new Date(message.timestamp).toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                html += `
+                    <div class="${isUser ? 'message-user' : 'message-brigade'}">
+                        <div class="text-sm">${escapeHtml(message.message_text)}</div>
+                        <div class="text-xs opacity-70 mt-1">${time}</div>
+                    </div>
+                `;
+            });
+            
+            elements.chatMessages.innerHTML = html;
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }
+
+        function handleChatInputKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = elements.chatInput;
+            const message = input.value.trim();
+            
+            if (!message || !currentChatSession || !currentBrigadeChat) {
+                return;
+            }
+
+            // Получаем информацию о пользователе
+            const userInfo = getUserInfo();
+            
+            try {
+                const response = await fetch(`${API_BASE}/chat/send_message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userInfo.id,
+                        user_name: userInfo.name,
+                        brigade_name: currentBrigadeChat,
+                        message_text: message,
+                        object_name: currentObjectChat
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    input.value = '';
+                    // Обновляем историю чата
+                    loadChatHistory(currentChatSession);
+                } else {
+                    showError('Ошибка отправки сообщения');
+                }
+            } catch (error) {
+                console.error('Ошибка отправки сообщения:', error);
+                showError('Ошибка отправки сообщения');
+            }
+        }
+
+        async function markMessagesAsRead(sessionId) {
+            try {
+                await fetch(`${API_BASE}/chat/mark_read/${sessionId}`, {
+                    method: 'POST'
+                });
+            } catch (error) {
+                console.error('Ошибка отметки сообщений как прочитанных:', error);
+            }
+        }
+
+        async function updateChatBadge() {
+            try {
+                const userId = getUserId();
+                const response = await fetch(`${API_BASE}/chat/sessions/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const totalUnread = data.sessions.reduce((sum, session) => sum + session.unread_count, 0);
+                    
+                    if (totalUnread > 0) {
+                        elements.chatBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                        elements.chatBadge.style.display = 'flex';
+                    } else {
+                        elements.chatBadge.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка обновления бейджа:', error);
+            }
+        }
+
+        function getUserId() {
+            // Генерируем или получаем ID пользователя
+            let userId = localStorage.getItem('user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('user_id', userId);
+            }
+            return userId;
+        }
+
+        function getUserInfo() {
+            // Возвращает информацию о пользователе
+            // В реальном приложении это может быть из Telegram Web App
+            const userId = getUserId();
+            let userName = localStorage.getItem('user_name');
+            if (!userName) {
+                userName = 'Пользователь';
+                localStorage.setItem('user_name', userName);
+            }
+            
+            return {
+                id: userId,
+                name: userName
+            };
+        }
+
+        // ========== ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS ==========
+
         function makePhoneCall() {
             const phoneNumber = CONTACT_INFO.phone;
             if (tg) {
@@ -1322,7 +1842,8 @@
             }
         }
 
-        // ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ
+        // ========== ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ ==========
+
         function callTaxi() {
             const address = encodeURIComponent(CONTACT_INFO.address);
             const lat = CONTACT_INFO.coordinates.lat;
@@ -1394,7 +1915,8 @@
             }
         }
 
-        // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
+        // ========== ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН ==========
+
         function installPWA() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
@@ -1499,7 +2021,8 @@
             installPWA();
         }
 
-        // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
+        // ========== ФУНКЦИИ ДЛЯ ИЗБРАННОГО ==========
+
         function toggleFavorite(product, productIndex) {
             const productId = generateProductId(product);
             const isFavorite = favorites.some(fav => fav.id === productId);
@@ -1723,7 +2246,8 @@
             }
         }
 
-        // ФУНКЦИЯ ДЛЯ ПОДЕЛИТЬСЯ ТОВАРОМ
+        // ========== ФУНКЦИЯ ДЛЯ ПОДЕЛИТЬСЯ ТОВАРОМ ==========
+
         function shareProduct(productIndex) {
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
@@ -1788,7 +2312,8 @@
             }
         }
 
-        // УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ ИЗОБРАЖЕНИЙ
+        // ========== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ ИЗОБРАЖЕНИЙ ==========
+
         function renderUniversalImage(imageUrl, alternativeUrls, altText, originalUrl = '') {
             if (imageUrl || alternativeUrls.length > 0) {
                 const finalImageUrl = imageUrl || alternativeUrls[0];
@@ -2099,6 +2624,15 @@
                                         Информация по объекту
                                     </button>
                                 ` : ''}
+                                
+                                <!-- КНОПКА ЧАТА С БРИГАДОЙ -->
+                                <div class="mt-4">
+                                    <button onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                            class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center">
+                                        <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                                        Написать бригаде
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -2233,12 +2767,22 @@
             html += `
                         </div>
                         
-                        <div class="space-y-3">
-                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                ${CONTACT_INFO.phone}
+                        <!-- КНОПКА ЧАТА С БРИГАДОЙ -->
+                        <div class="bg-white rounded-xl p-6 shadow-sm">
+                            <h3 class="text-lg font-semibold mb-4 text-contrast">Свяжитесь с бригадой</h3>
+                            <button onclick="startChatWithBrigade('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                    class="w-full py-4 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center text-lg mb-3">
+                                <i data-feather="message-circle" class="w-5 h-5 mr-3"></i>
+                                Написать в чат
                             </button>
                             
+                            <button onclick="makePhoneCall()" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center">
+                                <i data-feather="phone" class="w-4 h-4 mr-2"></i>
+                                ${CONTACT_INFO.phone}
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-3">
                             <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
                                 <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
                                 Назад к объектам
@@ -2263,6 +2807,7 @@
                 window.event.preventDefault();
             }
         }
+
         // ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
         function openInfoModal(description) {
             console.log('Opening info modal with description:', description);
@@ -2777,6 +3322,22 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-sm text-gray-500">Строительные бригады</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            html += `
+                <div class="category-card fade-in" onclick="showChatList()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="message-circle" class="w-5 h-5 mr-3 text-green-500"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Мои чаты</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">Общение с бригадами</span>
                             </div>
                         </div>
                     </div>
@@ -3433,8 +3994,12 @@
                     }
                 });
                 
+                // Запускаем обновление бейджа чата
+                chatBadgeUpdateInterval = setInterval(updateChatBadge, 30000);
+                
                 setTimeout(() => {
                     loadSections();
+                    updateChatBadge(); // Первоначальное обновление бейджа
                 }, 100);
                 
             } catch (error) {
@@ -3443,7 +4008,6 @@
             }
         });
 
-        // Глобальные функции
         // Глобальные функции
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
@@ -3459,7 +4023,7 @@
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
         window.openInfoModal = openInfoModal;
-        window.openInfoModalFromButton = openInfoModalFromButton; // ДОБАВЬТЕ ЭТУ СТРОКУ
+        window.openInfoModalFromButton = openInfoModalFromButton;
         window.closeInfoModal = closeInfoModal;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
@@ -3486,6 +4050,16 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
+        
+        // Функции чата
+        window.toggleChatWindow = toggleChatWindow;
+        window.showChatList = showChatList;
+        window.closeChatList = closeChatList;
+        window.startChatWithBrigade = startChatWithBrigade;
+        window.closeChat = closeChat;
+        window.openChatSession = openChatSession;
+        window.sendChatMessage = sendChatMessage;
+        window.handleChatInputKeypress = handleChatInputKeypress;
     </script>
 </body>
 </html>
