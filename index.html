@@ -2243,7 +2243,7 @@
                                     </button>
                                 ` : ''}
                                 <button class="chat-button mt-3" 
-                                        onclick="handleChatButtonClick(event, '${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, '${escapeHtml(object.object_name)}'); return false;">
+                                        onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(groupName)}', {brigade_name: '${escapeHtml(brigade.brigade_name)}', contact_id: '${brigade.contact_id || ''}'}, '${escapeHtml(object.object_name)}'); return false;">
                                     <i data-feather="message-circle" class="w-4 h-4"></i>
                                     Написать
                                 </button>
@@ -3610,17 +3610,13 @@
             return currentUserId;
         }
         
-        // Обработчик нажатия на кнопку чата
-        function handleChatButtonClick(event, groupName, brigade, objectName) {
-            if (event) {
-                event.stopPropagation();
-                event.preventDefault();
-            }
-            startChatWithBrigade(groupName, brigade, objectName);
-        }
-        
         // Функция для начала чата с бригадой
         function startChatWithBrigade(groupName, brigade, objectName) {
+            // Временная проверка - показываем данные
+            alert(`Создание чата:\nГруппа: ${groupName}\nБригада: ${brigade.brigade_name}\nОбъект: ${objectName}\nContact ID: ${brigade.contact_id || 'не указан'}`);
+            
+            // Раскомментируйте когда API заработает
+            /*
             if (!groupName || !brigade || !objectName) {
                 alert('Ошибка: не хватает параметров для создания чата');
                 return;
@@ -3648,7 +3644,9 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
                 }
                 return response.json();
             })
@@ -3660,8 +3658,10 @@
                 }
             })
             .catch(error => {
+                console.error('Chat creation error:', error);
                 alert('Ошибка при создании чата: ' + error.message);
             });
+            */
         }
         
         // Функция открытия чата
@@ -4017,7 +4017,6 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
-        window.handleChatButtonClick = handleChatButtonClick;
         window.startChatWithBrigade = startChatWithBrigade;
         window.openChat = openChat;
         window.loadUserChats = loadUserChats;
