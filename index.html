@@ -2209,7 +2209,7 @@
                                     </button>
                                 ` : ''}
                                 <button class="chat-button mt-3" 
-                                        onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(groupName)}', '${brigade.contact_id || ''}', '${escapeHtml(object.object_name)}')">
+                                        onclick="event.stopPropagation(); console.log('Brigade object:', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}); startChatWithBrigade('${escapeHtml(groupName)}', '${brigade.contact_id || ''}', '${escapeHtml(object.object_name)}')">
                                     <i data-feather="message-circle" class="w-4 h-4"></i>
                                     НАПИСАТЬ
                                 </button>
@@ -3608,12 +3608,21 @@
         }
         
         async function startChatWithBrigade(groupName, brigadeContactId, objectName) {
-            if (!brigadeContactId) {
-                alert('Ошибка: ID бригады не найден');
+            // Отладочная информация
+            console.log('startChatWithBrigade вызван с параметрами:', {
+                groupName,
+                brigadeContactId, 
+                objectName
+            });
+            
+            if (!brigadeContactId || brigadeContactId.trim() === '') {
+                alert(`Ошибка: ID бригады не найден для группы "${groupName}"`);
+                console.error('Пустой brigadeContactId:', brigadeContactId);
                 return;
             }
             
             const userTelegramId = getCurrentUserId();
+            console.log('User Telegram ID:', userTelegramId);
             
             try {
                 const response = await fetch(`${API_BASE}/chat/start`, {
