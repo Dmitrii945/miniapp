@@ -1185,6 +1185,15 @@
                             </div>
                         </div>
 
+                        <!-- Чаты -->
+                        <div class="menu-item" onclick="loadChats(); closeSideMenu();">
+                            <i data-feather="message-circle"></i>
+                            <div>
+                                <div class="font-medium">Чаты</div>
+                                <div class="text-sm text-gray-600">Мои сообщения с бригадами</div>
+                            </div>
+                        </div>
+
                         <div class="menu-divider"></div>
                         
                         <!-- Контакты -->
@@ -3604,16 +3613,69 @@
             return tg?.initDataUnsafe?.user?.id || 'demo_user_456';
         }
         
-        async function openNewChat(objectName, brigadeId) {
-            console.log('Открытие чата:', { objectName, brigadeId });
+        async function loadChats() {
+            lastAction = { type: 'loadChats' };
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Чаты', action: 'loadChats' }]);
+            elements.pageTitle.textContent = 'Мои чаты';
+            showLoading();
             
-            // Показываем модальное окно для ввода сообщения
-            const message = prompt(`Напишите сообщение бригаде по объекту "${objectName}":`);
+            const userId = getCurrentUserId();
             
-            if (!message || message.trim() === '') {
-                return;
+            try {
+                const response = await fetch(`${API_BASE}/new-chat/list/${userId}`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.success && data.chats && data.chats.length > 0) {
+                    renderChatsList(data.chats);
+                } else {
+                    showEmptyState('У вас пока нет чатов с бригадами');
+                }
+                updateBackButton();
+            } catch (error) {
+                hideLoading();
+                showError('Ошибка загрузки чатов');
             }
+        }
+        
+        function renderChatsList(chats) {
+            let html = '<div class="space-y-4">';
             
+            chats.forEach(chat => {
+                html += `
+                    <div class="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" 
+                         onclick="openChatFromList(${chat.chat_id}, '${chat.object_name}')">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-lg">${chat.title}</h3>
+                                <p class="text-gray-600 text-sm">Объект: ${chat.object_name}</p>
+                                <p class="text-gray-400 text-xs mt-1">${new Date(chat.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <i data-feather="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <button onclick="loadSections()" class="back-button mt-6">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            </div>`;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+        
+        function openChatFromList(chatId, objectName) {
+            currentChatId = chatId;
+            openChatModal(chatId, objectName, '');
+        }
+        
+        async function openNewChat(objectName, brigadeId) {
             const buyerId = getCurrentUserId();
             
             try {
@@ -3626,20 +3688,18 @@
                         buyer_id: buyerId,
                         brigade_id: brigadeId,
                         object_name: objectName,
-                        message_text: message.trim()
+                        message_text: "Здравствуйте! Интересует этот объект."
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('Сообщение отправлено! Бригада получит уведомление.');
                     openChatModal(data.chat_id, objectName, brigadeId);
                 } else {
-                    alert('Ошибка: ' + (data.error || 'Не удалось отправить сообщение'));
+                    alert('Ошибка: ' + (data.error || 'Не удалось открыть чат'));
                 }
             } catch (error) {
-                console.error('Ошибка отправки:', error);
                 alert('Ошибка соединения с сервером');
             }
         }
@@ -3790,6 +3850,8 @@
         window.loadChatMessages = loadChatMessages;
         window.sendChatMessage = sendChatMessage;
         window.closeChatModal = closeChatModal;
+        window.loadChats = loadChats;
+        window.openChatFromList = openChatFromList;
     </script>
 </body>
 </html>
