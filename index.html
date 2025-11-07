@@ -1721,14 +1721,28 @@
             const input = elements.chatInput;
             const message = input.value.trim();
             
-            if (!message || !currentChatSession || !currentBrigadeChat) {
+            if (!message) {
+                showError('Введите сообщение');
                 return;
             }
-
+            
+            if (!currentChatSession || !currentBrigadeChat) {
+                showError('Чат не инициализирован');
+                return;
+            }
+        
             // Получаем информацию о пользователе
             const userInfo = getUserInfo();
             
             try {
+                console.log('Отправка сообщения:', {
+                    user_id: userInfo.id,
+                    user_name: userInfo.name,
+                    brigade_name: currentBrigadeChat,
+                    message_text: message,
+                    object_name: currentObjectChat
+                });
+        
                 const response = await fetch(`${API_BASE}/chat/send_message`, {
                     method: 'POST',
                     headers: {
@@ -1744,17 +1758,18 @@
                 });
                 
                 const data = await response.json();
+                console.log('Ответ сервера:', data);
                 
                 if (data.success) {
                     input.value = '';
                     // Обновляем историю чата
-                    loadChatHistory(currentChatSession);
+                    await loadChatHistory(currentChatSession);
                 } else {
-                    showError('Ошибка отправки сообщения');
+                    showError(data.error || 'Ошибка отправки сообщения');
                 }
             } catch (error) {
                 console.error('Ошибка отправки сообщения:', error);
-                showError('Ошибка отправки сообщения');
+                showError('Ошибка сети при отправке сообщения');
             }
         }
 
@@ -1800,9 +1815,22 @@
         }
 
         function getUserInfo() {
-            // Возвращает информацию о пользователе
-            // В реальном приложении это может быть из Telegram Web App
-            const userId = getUserId();
+            // Используем данные из Telegram Web App если доступно
+            if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+                const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+                return {
+                    id: tgUser.id,
+                    name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь'
+                };
+            }
+            
+            // Fallback на сохраненные данные
+            let userId = localStorage.getItem('user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('user_id', userId);
+            }
+            
             let userName = localStorage.getItem('user_name');
             if (!userName) {
                 userName = 'Пользователь';
@@ -1814,7 +1842,6 @@
                 name: userName
             };
         }
-
         // ========== ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS ==========
 
         function makePhoneCall() {
