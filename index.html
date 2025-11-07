@@ -2213,7 +2213,7 @@
                                     </button>
                                 ` : ''}
                                 <button class="chat-button mt-3" 
-                                        onclick="event.stopPropagation(); openNewChat('${escapeHtml(object.object_name)}', '${object.brigade_telegram_id || 'demo_brigade_123'}')">
+                                        onclick="event.stopPropagation(); openNewChat('${escapeHtml(object.object_name)}', '${object.brigade_telegram_id || 'demo_brigade_123'}', '${escapeHtml(object.brigade_name || 'Бригада')}')">
                                     <i data-feather="message-circle" class="w-4 h-4"></i>
                                     НАПИСАТЬ
                                 </button>
@@ -3674,7 +3674,7 @@
                 
                 html += `
                     <div class="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" 
-                         onclick="openChatFromList(${chat.chat_id}, '${chat.object_name}')">
+                         onclick="openChatFromList(${chat.chat_id}, '${chat.object_name}', '${chat.brigade_id}', '${chat.brigade_name || 'Бригада'}')">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
                                 <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -3703,12 +3703,12 @@
             scheduleFeatherReplace();
         }
         
-        function openChatFromList(chatId, objectName) {
+        function openChatFromList(chatId, objectName, brigadeId = '', brigadeName = 'Бригада') {
             currentChatId = chatId;
-            openChatModal(chatId, objectName, '');
+            openChatModal(chatId, objectName, brigadeId, brigadeName);
         }
         
-        async function openNewChat(objectName, brigadeId) {
+        async function openNewChat(objectName, brigadeId, brigadeName = 'Бригада') {
             const buyerId = getCurrentUserId();
             
             // Проверяем не является ли покупатель бригадой
@@ -3726,6 +3726,7 @@
                     body: JSON.stringify({
                         buyer_id: buyerId,
                         brigade_id: brigadeId,
+                        brigade_name: brigadeName,
                         object_name: objectName,
                         message_text: "Здравствуйте! Интересует этот объект."
                     })
@@ -3734,16 +3735,18 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    openChatModal(data.chat_id, objectName, brigadeId);
+                    console.log('✅ Чат создан с ID:', data.chat_id, 'Ключ:', data.unique_chat_key);
+                    openChatModal(data.chat_id, objectName, brigadeId, brigadeName);
                 } else {
                     alert('Ошибка: ' + (data.error || 'Не удалось открыть чат'));
                 }
             } catch (error) {
+                console.error('❌ Ошибка создания чата:', error);
                 alert('Ошибка соединения с сервером');
             }
         }
         
-        function openChatModal(chatId, objectName, brigadeId) {
+        function openChatModal(chatId, objectName, brigadeId, brigadeName = 'Бригада') {
             currentChatId = chatId;
             
             const modal = document.createElement('div');
@@ -3754,7 +3757,7 @@
                 <div class="chat-container">
                     <div class="chat-header">
                         <div>
-                            <h3>Чат с бригадой</h3>
+                            <h3>Чат с ${brigadeName}</h3>
                             <div style="font-size: 12px; color: #666;">Объект: ${objectName}</div>
                         </div>
                         <button onclick="closeChatModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
