@@ -1214,13 +1214,12 @@
             </div>
             
             <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" 
-                       placeholder="Введите сообщение..." 
-                       onkeydown="handleChatInputKeypress(event)">
-                <button class="chat-send-btn" onclick="sendChatMessage()" id="sendChatBtn">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." onkeypress="handleChatInputKeypress(event)">
+                <button class="chat-send-btn" onclick="sendChatMessage()">
                     <i data-feather="send"></i>
                 </button>
             </div>
+        </div>
 
         <!-- Список чатов -->
         <div class="chat-container" id="chatListContainer" style="display: none;">
@@ -1575,17 +1574,18 @@
             if (chatUpdateInterval) {
                 clearInterval(chatUpdateInterval);
             }
-            
-            chatUpdateInterval = setInterval(async () => {
+            chatUpdateInterval = setInterval(() => {
                 if (currentChatSession) {
-                    try {
-                        await loadChatHistory(currentChatSession);
-                    } catch (error) {
-                        console.error('❌ Ошибка обновления чата:', error);
-                        // Не показываем ошибку пользователю при автообновлении
-                    }
+                    loadChatHistory(currentChatSession);
                 }
             }, 3000);
+        }
+
+        function stopChatUpdates() {
+            if (chatUpdateInterval) {
+                clearInterval(chatUpdateInterval);
+                chatUpdateInterval = null;
+            }
         }
 
         async function loadChatSessions() {
@@ -1660,33 +1660,8 @@
 
         async function loadChatHistory(sessionId) {
             try {
-                console.log('📖 Загрузка истории чата для сессии:', sessionId);
-                
-                // Кодируем sessionId для URL
-                const encodedSessionId = encodeURIComponent(sessionId);
-                console.log('🔗 Закодированный sessionId:', encodedSessionId);
-                
-                const response = await fetch(`${API_BASE}/chat/history/${encodedSessionId}`);
-                
-                console.log('📡 Статус ответа истории:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Ошибка загрузки истории:', errorText);
-                    
-                    let errorMessage = `Ошибка ${response.status}`;
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        errorMessage = errorData.error || errorMessage;
-                    } catch (e) {
-                        // Не JSON ответ
-                    }
-                    
-                    throw new Error(errorMessage);
-                }
-                
+                const response = await fetch(`${API_BASE}/chat/history/${sessionId}`);
                 const data = await response.json();
-                console.log('📦 Данные истории:', data);
                 
                 if (data.success) {
                     renderChatMessages(data.messages);
@@ -1696,19 +1671,10 @@
                         await markMessagesAsRead(sessionId);
                         updateChatBadge();
                     }
-                } else {
-                    throw new Error(data.error || 'Ошибка загрузки истории');
                 }
             } catch (error) {
-                console.error('❌ Ошибка загрузки истории чата:', error);
-                elements.chatMessages.innerHTML = `
-                    <div class="text-center text-gray-500 p-4">
-                        <i data-feather="alert-circle" class="w-8 h-8 mx-auto mb-2"></i>
-                        <div>Ошибка загрузки сообщений</div>
-                        <div class="text-sm mt-1">${error.message}</div>
-                    </div>
-                `;
-                scheduleFeatherReplace();
+                console.error('Ошибка загрузки истории чата:', error);
+                elements.chatMessages.innerHTML = '<div class="text-center text-gray-500">Ошибка загрузки сообщений</div>';
             }
         }
 
@@ -1746,27 +1712,15 @@
         }
 
         function handleChatInputKeypress(event) {
-            console.log('⌨️ Нажата клавиша:', event.key);
-            
             if (event.key === 'Enter') {
-                // Предотвращаем перенос строки
-                event.preventDefault();
-                
-                // Проверяем, не нажат ли Shift для переноса строки
-                if (!event.shiftKey) {
-                    console.log('🚀 Отправка сообщения по Enter');
-                    sendChatMessage();
-                }
+                sendChatMessage();
             }
         }
 
         async function sendChatMessage() {
-            console.log('🔧 sendChatMessage вызвана');
-            
             const input = elements.chatInput;
             const message = input.value.trim();
             
-            // Валидация сообщения
             if (!message) {
                 showError('Введите сообщение');
                 return;
@@ -1776,188 +1730,63 @@
                 showError('Чат не инициализирован');
                 return;
             }
-            
-            // Блокировка интерфейса
-            const sendBtn = document.querySelector('.chat-send-btn');
-            const originalHtml = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i>';
-            sendBtn.disabled = true;
-            input.disabled = true;
+        
+            // Получаем информацию о пользователе
+            const userInfo = getUserInfo();
             
             try {
-                const userInfo = getUserInfo();
-                
-                // ВАЖНО: Валидация данных перед отправкой
-                if (!userInfo.id || !userInfo.name) {
-                    throw new Error('Неполные данные пользователя');
-                }
-                
-                const requestData = {
+                console.log('Отправка сообщения:', {
                     user_id: userInfo.id,
                     user_name: userInfo.name,
                     brigade_name: currentBrigadeChat,
                     message_text: message,
-                    object_name: currentObjectChat || null,
-                    chat_session_id: currentChatSession
-                };
-                
-                console.log('📤 Отправка данных на сервер:', requestData);
-                
-                // Отправка с обработкой ошибок
+                    object_name: currentObjectChat
+                });
+        
                 const response = await fetch(`${API_BASE}/chat/send_message`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify({
+                        user_id: userInfo.id,
+                        user_name: userInfo.name,
+                        brigade_name: currentBrigadeChat,
+                        message_text: message,
+                        object_name: currentObjectChat
+                    })
                 });
-                
-                console.log('📡 Ответ сервера:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Ошибка сервера:', errorText);
-                    
-                    // Пытаемся распарсить JSON ошибки
-                    let errorMessage = `Ошибка ${response.status}`;
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        errorMessage = errorData.error || errorMessage;
-                    } catch (e) {
-                        errorMessage = errorText || errorMessage;
-                    }
-                    
-                    throw new Error(errorMessage);
-                }
                 
                 const data = await response.json();
-                console.log('📦 Ответ сервера (JSON):', data);
+                console.log('Ответ сервера:', data);
                 
                 if (data.success) {
-                    // Очищаем поле ввода только при успешной отправке
                     input.value = '';
-                    
                     // Обновляем историю чата
                     await loadChatHistory(currentChatSession);
-                    
-                    // Прокручиваем к последнему сообщению
-                    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-                    
-                    console.log('✅ Сообщение успешно отправлено на сервер');
-                    showError('✅ Сообщение отправлено'); // Временное уведомление об успехе
                 } else {
-                    throw new Error(data.error || 'Неизвестная ошибка сервера');
+                    showError(data.error || 'Ошибка отправки сообщения');
                 }
-                
             } catch (error) {
-                console.error('❌ Ошибка отправки сообщения:', error);
-                
-                // Показываем понятное сообщение об ошибке
-                let userMessage = 'Ошибка отправки сообщения';
-                if (error.message.includes('Failed to fetch')) {
-                    userMessage = 'Проблемы с подключением к интернету';
-                } else if (error.message.includes('500')) {
-                    userMessage = 'Временная проблема на сервере. Попробуйте позже.';
-                } else {
-                    userMessage = error.message;
-                }
-                
-                showError(userMessage);
-                
-                // НЕ используем локальное сохранение - просим пользователя повторить
-                console.log('🔄 Сообщение НЕ сохранено локально. Попробуйте отправить снова.');
-                
-            } finally {
-                // Разблокировка интерфейса
-                sendBtn.innerHTML = originalHtml;
-                sendBtn.disabled = false;
-                input.disabled = false;
-                input.focus();
-                
-                // Обновляем иконки feather
-                scheduleFeatherReplace();
+                console.error('Ошибка отправки сообщения:', error);
+                showError('Ошибка сети при отправке сообщения');
             }
         }
 
-        // Добавьте эти функции в ваш JavaScript файл
-
-// 1. Функция тестирования соединения с сервером
-        async function testChatConnection() {
-            console.log('🧪 Тестирование соединения с сервером...');
-            
+        async function markMessagesAsRead(sessionId) {
             try {
-                const response = await fetch(`${API_BASE}/`, {
-                    method: 'GET'
+                await fetch(`${API_BASE}/chat/mark_read/${sessionId}`, {
+                    method: 'POST'
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Сервер доступен:', data);
-                    return true;
-                } else {
-                    console.error('❌ Сервер недоступен:', response.status);
-                    return false;
-                }
             } catch (error) {
-                console.error('❌ Ошибка соединения:', error);
-                return false;
-            }
-        }
-        
-        // 2. Функция тестирования отправки сообщения
-        async function testSimpleMessage() {
-            console.log('🧪 Тестирование отправки сообщения...');
-            
-            const testData = {
-                user_id: "test_user_" + Date.now(),
-                user_name: "Тестовый пользователь",
-                brigade_name: "Тестовая бригада",
-                message_text: "Тестовое сообщение " + new Date().toLocaleTimeString(),
-                object_name: null,
-                chat_session_id: "test_session_" + Date.now()
-            };
-            
-            console.log('📤 Тестовые данные:', testData);
-            
-            try {
-                const response = await fetch(`${API_BASE}/chat/send_message`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(testData)
-                });
-                
-                console.log('📡 Статус ответа:', response.status, response.statusText);
-                
-                const responseText = await response.text();
-                console.log('📦 Тело ответа:', responseText);
-                
-                if (response.ok) {
-                    console.log('✅ Тестовое сообщение отправлено успешно');
-                    return true;
-                } else {
-                    console.error('❌ Тестовое сообщение не отправлено:', responseText);
-                    return false;
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка тестирования:', error);
-                return false;
+                console.error('Ошибка отметки сообщений как прочитанных:', error);
             }
         }
 
         async function updateChatBadge() {
             try {
                 const userId = getUserId();
-                const encodedUserId = encodeURIComponent(userId);
-                const response = await fetch(`${API_BASE}/chat/sessions/${encodedUserId}`);
-                
-                if (!response.ok) {
-                    console.error('❌ Ошибка обновления бейджа:', response.status);
-                    return;
-                }
-                
+                const response = await fetch(`${API_BASE}/chat/sessions/${userId}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1971,300 +1800,47 @@
                     }
                 }
             } catch (error) {
-                console.error('❌ Ошибка обновления бейджа:', error);
-            }
-        }
-        // 3. Функция проверки API эндпоинтов
-        async function testChatEndpoints() {
-            console.log('🔍 Проверка эндпоинтов чата...');
-            
-            const endpoints = [
-                '/chat/send_message',
-                '/chat/test',
-                '/brigades'
-            ];
-            
-            for (const endpoint of endpoints) {
-                try {
-                    const response = await fetch(`${API_BASE}${endpoint}`);
-                    console.log(`📍 ${endpoint}: ${response.status} ${response.statusText}`);
-                } catch (error) {
-                    console.error(`❌ ${endpoint}:`, error.message);
-                }
-            }
-        }
-        
-        // 4. Функция диагностики всей системы чата
-        async function diagnoseChatSystem() {
-            console.log('🩺 Диагностика системы чата...');
-            
-            // Проверяем соединение с сервером
-            const serverOk = await testChatConnection();
-            if (!serverOk) {
-                showError('Сервер недоступен');
-                return;
-            }
-            
-            // Проверяем эндпоинты
-            await testChatEndpoints();
-            
-            // Тестируем отправку сообщения
-            const messageOk = await testSimpleMessage();
-            
-            if (messageOk) {
-                showError('✅ Система чата работает. Проблема в данных вашего сообщения.');
-            } else {
-                showError('❌ Проблема с отправкой сообщений на сервере.');
-            }
-        }
-        
-        // 5. Временное решение для обхода ошибки 500
-       
-        async function checkServerConnection() {
-            try {
-                console.log('🔍 Проверка соединения с сервером...');
-                const response = await fetch(`${API_BASE}/`, {
-                    method: 'GET',
-                    timeout: 5000
-                });
-                
-                if (response.ok) {
-                    console.log('✅ Сервер доступен');
-                    return true;
-                } else {
-                    console.log('❌ Сервер недоступен:', response.status);
-                    return false;
-                }
-            } catch (error) {
-                console.log('❌ Ошибка соединения с сервером:', error);
-                return false;
-            }
-        }
-        // 6. Обновленная функция отправки с fallback
-        async function sendChatMessage() {
-            console.log('🔧 sendChatMessage вызвана');
-            
-            const input = elements.chatInput;
-            const message = input.value.trim();
-            
-            if (!message) {
-                showError('Введите сообщение');
-                return;
-            }
-            
-            if (!currentChatSession || !currentBrigadeChat) {
-                showError('Чат не инициализирован');
-                return;
-            }
-            
-            // Блокировка интерфейса
-            const sendBtn = document.querySelector('.chat-send-btn');
-            const originalHtml = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i>';
-            sendBtn.disabled = true;
-            input.disabled = true;
-            
-            try {
-                const userInfo = getUserInfo();
-                const requestData = {
-                    user_id: userInfo.id,
-                    user_name: userInfo.name,
-                    brigade_name: currentBrigadeChat,
-                    message_text: message,
-                    object_name: currentObjectChat,
-                    chat_session_id: currentChatSession
-                };
-                
-                console.log('📤 Отправка данных:', requestData);
-                
-                const response = await fetch(`${API_BASE}/chat/send_message`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                });
-                
-                console.log('📡 Ответ сервера:', response.status);
-                
-                if (response.status === 500) {
-                    // Если серверная ошибка, используем fallback
-                    console.log('🔄 Серверная ошибка, используем локальное сохранение');
-                    await sendChatMessageWithFallback();
-                    return;
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    input.value = '';
-                    await loadChatHistory(currentChatSession);
-                    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-                    console.log('✅ Сообщение отправлено');
-                } else {
-                    throw new Error(data.error || 'Ошибка сервера');
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка:', error);
-                
-                if (error.message.includes('500') || error.message.includes('Failed to fetch')) {
-                    // Используем fallback при сетевых ошибках
-                    await sendChatMessageWithFallback();
-                } else {
-                    showError(`Ошибка: ${error.message}`);
-                }
-            } finally {
-                // Разблокировка интерфейса
-                sendBtn.innerHTML = originalHtml;
-                sendBtn.disabled = false;
-                input.disabled = false;
-                input.focus();
-                scheduleFeatherReplace();
-            }
-        }
-
-        function validateChatData(userInfo, brigadeName, message) {
-            const errors = [];
-            
-            if (!userInfo || !userInfo.id) {
-                errors.push('Отсутствует ID пользователя');
-            }
-            
-            if (!userInfo || !userInfo.name) {
-                errors.push('Отсутствует имя пользователя');
-            }
-            
-            if (!brigadeName || brigadeName.trim() === '') {
-                errors.push('Отсутствует название бригады');
-            }
-            
-            if (!message || message.trim() === '') {
-                errors.push('Отсутствует текст сообщения');
-            }
-            
-            // Проверяем типы данных
-            if (userInfo.id && typeof userInfo.id !== 'string' && typeof userInfo.id !== 'number') {
-                errors.push('Неверный тип ID пользователя');
-            }
-            
-            if (brigadeName && typeof brigadeName !== 'string') {
-                errors.push('Неверный тип названия бригады');
-            }
-            
-            return errors;
-        }
-        
-        async function markMessagesAsRead(sessionId) {
-            try {
-                const encodedSessionId = encodeURIComponent(sessionId);
-                const response = await fetch(`${API_BASE}/chat/mark_read/${encodedSessionId}`, {
-                    method: 'POST'
-                });
-                
-                if (!response.ok) {
-                    console.error('❌ Ошибка отметки сообщений как прочитанных:', response.status);
-                    return;
-                }
-                
-                const data = await response.json();
-                if (data.success) {
-                    console.log('✅ Сообщения отмечены как прочитанные');
-                }
-            } catch (error) {
-                console.error('❌ Ошибка отметки сообщений как прочитанных:', error);
+                console.error('Ошибка обновления бейджа:', error);
             }
         }
 
         function getUserId() {
-            try {
-                let userId = localStorage.getItem('user_id');
-                
-                if (!userId) {
-                    // Создаем более стабильный ID
-                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('user_id', userId);
-                    console.log('🆕 Создан новый user_id:', userId);
-                }
-                
-                return userId;
-            } catch (error) {
-                console.error('❌ Ошибка получения user_id:', error);
-                // Fallback ID
-                return 'fallback_user_' + Date.now();
+            // Генерируем или получаем ID пользователя
+            let userId = localStorage.getItem('user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('user_id', userId);
             }
+            return userId;
         }
 
         function getUserInfo() {
-            try {
-                let userId = localStorage.getItem('user_id');
-                let userName = localStorage.getItem('user_name');
-                
-                // Создаем ID пользователя если отсутствует
-                if (!userId) {
-                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('user_id', userId);
-                    console.log('🆕 Создан новый user_id:', userId);
-                }
-                
-                // Создаем имя пользователя если отсутствует
-                if (!userName) {
-                    // Пробуем получить из Telegram
-                    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
-                        const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-                        userName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь Telegram';
-                    } else {
-                        userName = 'Пользователь';
-                    }
-                    localStorage.setItem('user_name', userName);
-                }
-                
-                const userInfo = {
-                    id: userId,
-                    name: userName
-                };
-                
-                console.log('👤 Используются данные пользователя:', userInfo);
-                return userInfo;
-                
-            } catch (error) {
-                console.error('❌ Ошибка получения информации о пользователе:', error);
-                // Fallback данные
+            // Используем данные из Telegram Web App если доступно
+            if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+                const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
                 return {
-                    id: 'fallback_user_' + Date.now(),
-                    name: 'Пользователь'
+                    id: tgUser.id,
+                    name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь'
                 };
             }
-        }
-
-        
-        function showError(message) {
-            console.error('❌ Ошибка:', message);
             
-            // Временное уведомление об ошибке
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50';
-            errorDiv.innerHTML = `
-                <div class="flex items-center">
-                    <i data-feather="alert-triangle" class="w-5 h-5 mr-2"></i>
-                    <span>${message}</span>
-                </div>
-            `;
+            // Fallback на сохраненные данные
+            let userId = localStorage.getItem('user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('user_id', userId);
+            }
             
-            document.body.appendChild(errorDiv);
+            let userName = localStorage.getItem('user_name');
+            if (!userName) {
+                userName = 'Пользователь';
+                localStorage.setItem('user_name', userName);
+            }
             
-            // Автоматическое скрытие через 5 секунд
-            setTimeout(() => {
-                if (errorDiv.parentNode) {
-                    errorDiv.parentNode.removeChild(errorDiv);
-                }
-            }, 5000);
-            
-            scheduleFeatherReplace();
+            return {
+                id: userId,
+                name: userName
+            };
         }
         // ========== ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS ==========
 
@@ -3462,8 +3038,7 @@
             if (tg) {
                 try {
                     tg.expand();
-                    // Уберите эту строку, так как она не поддерживается
-                    // tg.enableClosingConfirmation();
+                    tg.enableClosingConfirmation();
                 } catch (error) {
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
