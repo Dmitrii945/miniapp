@@ -1865,17 +1865,45 @@
             }
         }
 
+        // Добавьте эти функции в ваш JavaScript файл
+
+// 1. Функция тестирования соединения с сервером
+        async function testChatConnection() {
+            console.log('🧪 Тестирование соединения с сервером...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/`, {
+                    method: 'GET'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Сервер доступен:', data);
+                    return true;
+                } else {
+                    console.error('❌ Сервер недоступен:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Ошибка соединения:', error);
+                return false;
+            }
+        }
+        
+        // 2. Функция тестирования отправки сообщения
         async function testSimpleMessage() {
+            console.log('🧪 Тестирование отправки сообщения...');
+            
             const testData = {
-                user_id: "test_user_123",
-                user_name: "Тестовый пользователь", 
+                user_id: "test_user_" + Date.now(),
+                user_name: "Тестовый пользователь",
                 brigade_name: "Тестовая бригада",
-                message_text: "Тестовое сообщение",
+                message_text: "Тестовое сообщение " + new Date().toLocaleTimeString(),
                 object_name: null,
-                chat_session_id: "test_session"
+                chat_session_id: "test_session_" + Date.now()
             };
             
-            console.log('🧪 Отправка тестового сообщения:', testData);
+            console.log('📤 Тестовые данные:', testData);
             
             try {
                 const response = await fetch(`${API_BASE}/chat/send_message`, {
@@ -1886,36 +1914,198 @@
                     body: JSON.stringify(testData)
                 });
                 
-                console.log('📡 Тестовый ответ:', response.status);
-                const text = await response.text();
-                console.log('📦 Тестовое тело ответа:', text);
+                console.log('📡 Статус ответа:', response.status, response.statusText);
                 
-            } catch (error) {
-                console.error('❌ Тестовая ошибка:', error);
-            }
-        }
-
-// Вызовите в консоли: testSimpleMessage()
-        async function testChatConnection() {
-            console.log('🧪 Тестирование соединения с чатом...');
-            
-            try {
-                // Простой запрос для проверки доступности API
-                const response = await fetch(`${API_BASE}/`, {
-                    method: 'GET',
-                    timeout: 5000
-                });
+                const responseText = await response.text();
+                console.log('📦 Тело ответа:', responseText);
                 
                 if (response.ok) {
-                    console.log('✅ API сервер доступен');
+                    console.log('✅ Тестовое сообщение отправлено успешно');
                     return true;
                 } else {
-                    console.error('❌ API сервер недоступен:', response.status);
+                    console.error('❌ Тестовое сообщение не отправлено:', responseText);
                     return false;
                 }
+                
             } catch (error) {
-                console.error('❌ Ошибка соединения с API:', error);
+                console.error('❌ Ошибка тестирования:', error);
                 return false;
+            }
+        }
+        
+        // 3. Функция проверки API эндпоинтов
+        async function testChatEndpoints() {
+            console.log('🔍 Проверка эндпоинтов чата...');
+            
+            const endpoints = [
+                '/chat/send_message',
+                '/chat/test',
+                '/brigades'
+            ];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`${API_BASE}${endpoint}`);
+                    console.log(`📍 ${endpoint}: ${response.status} ${response.statusText}`);
+                } catch (error) {
+                    console.error(`❌ ${endpoint}:`, error.message);
+                }
+            }
+        }
+        
+        // 4. Функция диагностики всей системы чата
+        async function diagnoseChatSystem() {
+            console.log('🩺 Диагностика системы чата...');
+            
+            // Проверяем соединение с сервером
+            const serverOk = await testChatConnection();
+            if (!serverOk) {
+                showError('Сервер недоступен');
+                return;
+            }
+            
+            // Проверяем эндпоинты
+            await testChatEndpoints();
+            
+            // Тестируем отправку сообщения
+            const messageOk = await testSimpleMessage();
+            
+            if (messageOk) {
+                showError('✅ Система чата работает. Проблема в данных вашего сообщения.');
+            } else {
+                showError('❌ Проблема с отправкой сообщений на сервере.');
+            }
+        }
+        
+        // 5. Временное решение для обхода ошибки 500
+        async function sendChatMessageWithFallback() {
+            console.log('🔄 Используем обходной путь для отправки...');
+            
+            const userInfo = getUserInfo();
+            const message = elements.chatInput.value.trim();
+            
+            // Сохраняем сообщение локально
+            const messageData = {
+                id: 'local_' + Date.now(),
+                user_id: userInfo.id,
+                user_name: userInfo.name,
+                brigade_name: currentBrigadeChat,
+                message_text: message,
+                object_name: currentObjectChat,
+                timestamp: new Date().toISOString(),
+                message_type: 'user_to_brigade',
+                is_read: false,
+                status: 'pending' // помечаем как ожидающее отправку
+            };
+            
+            // Сохраняем в localStorage
+            const pendingMessages = JSON.parse(localStorage.getItem('pending_chat_messages') || '[]');
+            pendingMessages.push(messageData);
+            localStorage.setItem('pending_chat_messages', JSON.stringify(pendingMessages));
+            
+            // Очищаем поле ввода
+            elements.chatInput.value = '';
+            
+            // Показываем сообщение в чате сразу
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message-user';
+            messageElement.innerHTML = `
+                <div class="text-sm">${escapeHtml(message)}</div>
+                <div class="text-xs opacity-70 mt-1">${new Date().toLocaleTimeString()} (ожидает отправки)</div>
+            `;
+            elements.chatMessages.appendChild(messageElement);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+            
+            showError('⚠️ Сообщение сохранено локально. Сервер временно недоступен.');
+            
+            console.log('💾 Сообщение сохранено локально:', messageData);
+        }
+        
+        // 6. Обновленная функция отправки с fallback
+        async function sendChatMessage() {
+            console.log('🔧 sendChatMessage вызвана');
+            
+            const input = elements.chatInput;
+            const message = input.value.trim();
+            
+            if (!message) {
+                showError('Введите сообщение');
+                return;
+            }
+            
+            if (!currentChatSession || !currentBrigadeChat) {
+                showError('Чат не инициализирован');
+                return;
+            }
+            
+            // Блокировка интерфейса
+            const sendBtn = document.querySelector('.chat-send-btn');
+            const originalHtml = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i>';
+            sendBtn.disabled = true;
+            input.disabled = true;
+            
+            try {
+                const userInfo = getUserInfo();
+                const requestData = {
+                    user_id: userInfo.id,
+                    user_name: userInfo.name,
+                    brigade_name: currentBrigadeChat,
+                    message_text: message,
+                    object_name: currentObjectChat,
+                    chat_session_id: currentChatSession
+                };
+                
+                console.log('📤 Отправка данных:', requestData);
+                
+                const response = await fetch(`${API_BASE}/chat/send_message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                console.log('📡 Ответ сервера:', response.status);
+                
+                if (response.status === 500) {
+                    // Если серверная ошибка, используем fallback
+                    console.log('🔄 Серверная ошибка, используем локальное сохранение');
+                    await sendChatMessageWithFallback();
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    input.value = '';
+                    await loadChatHistory(currentChatSession);
+                    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+                    console.log('✅ Сообщение отправлено');
+                } else {
+                    throw new Error(data.error || 'Ошибка сервера');
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка:', error);
+                
+                if (error.message.includes('500') || error.message.includes('Failed to fetch')) {
+                    // Используем fallback при сетевых ошибках
+                    await sendChatMessageWithFallback();
+                } else {
+                    showError(`Ошибка: ${error.message}`);
+                }
+            } finally {
+                // Разблокировка интерфейса
+                sendBtn.innerHTML = originalHtml;
+                sendBtn.disabled = false;
+                input.disabled = false;
+                input.focus();
+                scheduleFeatherReplace();
             }
         }
 
