@@ -1729,13 +1729,20 @@
 
         async function sendChatMessage() {
             console.log('🔧 sendChatMessage вызвана');
-            
+            // Валидация данных перед отправкой
+            const validationErrors = validateChatData(userInfo, currentBrigadeChat, message);
+            if (validationErrors.length > 0) {
+                console.error('❌ Ошибки валидации:', validationErrors);
+                showError(`Ошибка данных: ${validationErrors.join(', ')}`);
+                return;
+            }
             const input = elements.chatInput;
             const message = input.value.trim();
             
             console.log('📨 Сообщение для отправки:', message);
             console.log('💬 Текущая сессия:', currentChatSession);
             console.log('👷 Текущая бригада:', currentBrigadeChat);
+            console.log('🏠 Текущий объект:', currentObjectChat);
             
             // Валидация сообщения
             if (!message) {
@@ -1768,28 +1775,55 @@
                     user_name: userInfo.name,
                     brigade_name: currentBrigadeChat,
                     message_text: message,
-                    object_name: currentObjectChat
+                    object_name: currentObjectChat || null, // Явно указываем null если undefined
+                    chat_session_id: currentChatSession
                 };
                 
-                console.log('📤 Отправка данных на сервер:', requestData);
+                console.log('📤 Отправка данных на сервер:', JSON.stringify(requestData, null, 2));
                 
-                // Отправка запроса
+                // Отправка запроса с таймаутом
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
                 const response = await fetch(`${API_BASE}/chat/send_message`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify(requestData),
+                    signal: controller.signal
                 });
                 
-                console.log('📡 Ответ сервера:', response.status, response.statusText);
+                clearTimeout(timeoutId);
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                console.log('📡 Ответ сервера:', response.status, response.statusText);
+                console.log('🔗 URL запроса:', `${API_BASE}/chat/send_message`);
+                
+                // Получаем полный текст ответа для диагностики
+                const responseText = await response.text();
+                console.log('📦 Тело ответа:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('📊 Парсинг JSON успешен:', data);
+                } catch (parseError) {
+                    console.error('❌ Ошибка парсинга JSON:', parseError, responseText);
+                    throw new Error(`Неверный формат ответа сервера: ${responseText.substring(0, 100)}`);
                 }
                 
-                const data = await response.json();
-                console.log('📦 Данные ответа:', data);
+                if (!response.ok) {
+                    // Детальная информация об ошибке 500
+                    if (response.status === 500) {
+                        console.error('🚨 СЕРВЕРНАЯ ОШИБКА 500. Детали:');
+                        console.error('URL:', `${API_BASE}/chat/send_message`);
+                        console.error('Данные:', requestData);
+                        console.error('Ответ:', responseText);
+                        
+                        throw new Error(`Серверная ошибка: ${data?.error || responseText || 'Неизвестная ошибка сервера'}`);
+                    }
+                    throw new Error(`HTTP ${response.status}: ${data?.error || response.statusText}`);
+                }
                 
                 if (data.success) {
                     // Очищаем поле ввода только при успешной отправке
@@ -1801,14 +1835,24 @@
                     // Прокручиваем к последнему сообщению
                     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
                     
-                    console.log('✅ Сообщение успешно отправлено');
+                    console.log('✅ Сообщение успешно отправлено, ID:', data.message_id);
                 } else {
                     throw new Error(data.error || 'Неизвестная ошибка сервера');
                 }
                 
             } catch (error) {
                 console.error('❌ Ошибка отправки сообщения:', error);
-                showError(`Ошибка отправки: ${error.message}`);
+                
+                // Детальный анализ ошибки
+                if (error.name === 'AbortError') {
+                    showError('Таймаут запроса. Сервер не отвечает.');
+                } else if (error.message.includes('Failed to fetch')) {
+                    showError('Проблемы с подключением к интернету.');
+                } else if (error.message.includes('Серверная ошибка')) {
+                    showError('Проблема на сервере. Попробуйте позже.');
+                } else {
+                    showError(`Ошибка отправки: ${error.message}`);
+                }
             } finally {
                 // Разблокировка интерфейса
                 sendBtn.innerHTML = originalHtml;
@@ -1821,6 +1865,91 @@
             }
         }
 
+        async function testSimpleMessage() {
+            const testData = {
+                user_id: "test_user_123",
+                user_name: "Тестовый пользователь", 
+                brigade_name: "Тестовая бригада",
+                message_text: "Тестовое сообщение",
+                object_name: null,
+                chat_session_id: "test_session"
+            };
+            
+            console.log('🧪 Отправка тестового сообщения:', testData);
+            
+            try {
+                const response = await fetch(`${API_BASE}/chat/send_message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                console.log('📡 Тестовый ответ:', response.status);
+                const text = await response.text();
+                console.log('📦 Тестовое тело ответа:', text);
+                
+            } catch (error) {
+                console.error('❌ Тестовая ошибка:', error);
+            }
+        }
+
+// Вызовите в консоли: testSimpleMessage()
+        async function testChatConnection() {
+            console.log('🧪 Тестирование соединения с чатом...');
+            
+            try {
+                // Простой запрос для проверки доступности API
+                const response = await fetch(`${API_BASE}/`, {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    console.log('✅ API сервер доступен');
+                    return true;
+                } else {
+                    console.error('❌ API сервер недоступен:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Ошибка соединения с API:', error);
+                return false;
+            }
+        }
+
+        function validateChatData(userInfo, brigadeName, message) {
+            const errors = [];
+            
+            if (!userInfo || !userInfo.id) {
+                errors.push('Отсутствует ID пользователя');
+            }
+            
+            if (!userInfo || !userInfo.name) {
+                errors.push('Отсутствует имя пользователя');
+            }
+            
+            if (!brigadeName || brigadeName.trim() === '') {
+                errors.push('Отсутствует название бригады');
+            }
+            
+            if (!message || message.trim() === '') {
+                errors.push('Отсутствует текст сообщения');
+            }
+            
+            // Проверяем типы данных
+            if (userInfo.id && typeof userInfo.id !== 'string' && typeof userInfo.id !== 'number') {
+                errors.push('Неверный тип ID пользователя');
+            }
+            
+            if (brigadeName && typeof brigadeName !== 'string') {
+                errors.push('Неверный тип названия бригады');
+            }
+            
+            return errors;
+        }
+        
         async function markMessagesAsRead(sessionId) {
             try {
                 await fetch(`${API_BASE}/chat/mark_read/${sessionId}`, {
