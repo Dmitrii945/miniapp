@@ -1214,12 +1214,13 @@
             </div>
             
             <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." onkeypress="handleChatInputKeypress(event)">
-                <button class="chat-send-btn" onclick="sendChatMessage()">
+                <input type="text" class="chat-input" id="chatInput" 
+                       placeholder="Введите сообщение..." 
+                       onkeydown="handleChatInputKeypress(event)">
+                <button class="chat-send-btn" onclick="sendChatMessage()" id="sendChatBtn">
                     <i data-feather="send"></i>
                 </button>
             </div>
-        </div>
 
         <!-- Список чатов -->
         <div class="chat-container" id="chatListContainer" style="display: none;">
@@ -1712,64 +1713,111 @@
         }
 
         function handleChatInputKeypress(event) {
+            console.log('⌨️ Нажата клавиша:', event.key);
+            
             if (event.key === 'Enter') {
-                sendChatMessage();
+                // Предотвращаем перенос строки
+                event.preventDefault();
+                
+                // Проверяем, не нажат ли Shift для переноса строки
+                if (!event.shiftKey) {
+                    console.log('🚀 Отправка сообщения по Enter');
+                    sendChatMessage();
+                }
             }
         }
 
         async function sendChatMessage() {
+            console.log('🔧 sendChatMessage вызвана');
+            
             const input = elements.chatInput;
             const message = input.value.trim();
             
+            console.log('📨 Сообщение для отправки:', message);
+            console.log('💬 Текущая сессия:', currentChatSession);
+            console.log('👷 Текущая бригада:', currentBrigadeChat);
+            
+            // Валидация сообщения
             if (!message) {
                 showError('Введите сообщение');
                 return;
             }
             
+            // Проверка инициализации чата
             if (!currentChatSession || !currentBrigadeChat) {
-                showError('Чат не инициализирован');
+                showError('Чат не инициализирован. Закройте и откройте чат заново.');
+                console.error('❌ Чат не инициализирован:', { currentChatSession, currentBrigadeChat });
                 return;
             }
-        
-            // Получаем информацию о пользователе
-            const userInfo = getUserInfo();
+            
+            // Блокировка интерфейса во время отправки
+            const sendBtn = document.querySelector('.chat-send-btn');
+            const originalHtml = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i>';
+            sendBtn.disabled = true;
+            input.disabled = true;
             
             try {
-                console.log('Отправка сообщения:', {
+                // Получаем информацию о пользователе
+                const userInfo = getUserInfo();
+                console.log('👤 Информация пользователя:', userInfo);
+                
+                // Подготовка данных для отправки
+                const requestData = {
                     user_id: userInfo.id,
                     user_name: userInfo.name,
                     brigade_name: currentBrigadeChat,
                     message_text: message,
                     object_name: currentObjectChat
-                });
-        
+                };
+                
+                console.log('📤 Отправка данных на сервер:', requestData);
+                
+                // Отправка запроса
                 const response = await fetch(`${API_BASE}/chat/send_message`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        user_id: userInfo.id,
-                        user_name: userInfo.name,
-                        brigade_name: currentBrigadeChat,
-                        message_text: message,
-                        object_name: currentObjectChat
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
+                console.log('📡 Ответ сервера:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
-                console.log('Ответ сервера:', data);
+                console.log('📦 Данные ответа:', data);
                 
                 if (data.success) {
+                    // Очищаем поле ввода только при успешной отправке
                     input.value = '';
+                    
                     // Обновляем историю чата
                     await loadChatHistory(currentChatSession);
+                    
+                    // Прокручиваем к последнему сообщению
+                    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+                    
+                    console.log('✅ Сообщение успешно отправлено');
                 } else {
-                    showError(data.error || 'Ошибка отправки сообщения');
+                    throw new Error(data.error || 'Неизвестная ошибка сервера');
                 }
+                
             } catch (error) {
-                console.error('Ошибка отправки сообщения:', error);
-                showError('Ошибка сети при отправке сообщения');
+                console.error('❌ Ошибка отправки сообщения:', error);
+                showError(`Ошибка отправки: ${error.message}`);
+            } finally {
+                // Разблокировка интерфейса
+                sendBtn.innerHTML = originalHtml;
+                sendBtn.disabled = false;
+                input.disabled = false;
+                input.focus();
+                
+                // Обновляем иконки feather
+                scheduleFeatherReplace();
             }
         }
 
@@ -1805,42 +1853,86 @@
         }
 
         function getUserId() {
-            // Генерируем или получаем ID пользователя
-            let userId = localStorage.getItem('user_id');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('user_id', userId);
+            try {
+                let userId = localStorage.getItem('user_id');
+                
+                if (!userId) {
+                    // Создаем более стабильный ID
+                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('user_id', userId);
+                    console.log('🆕 Создан новый user_id:', userId);
+                }
+                
+                return userId;
+            } catch (error) {
+                console.error('❌ Ошибка получения user_id:', error);
+                // Fallback ID
+                return 'fallback_user_' + Date.now();
             }
-            return userId;
         }
 
         function getUserInfo() {
-            // Используем данные из Telegram Web App если доступно
-            if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
-                const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+            try {
+                // Используем данные из Telegram Web App если доступно
+                if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+                    const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+                    const userInfo = {
+                        id: String(tgUser.id),
+                        name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь Telegram'
+                    };
+                    console.log('👤 Используются Telegram данные:', userInfo);
+                    return userInfo;
+                }
+                
+                // Fallback на сохраненные данные
+                let userId = getUserId();
+                let userName = localStorage.getItem('user_name');
+                
+                if (!userName) {
+                    userName = 'Пользователь';
+                    localStorage.setItem('user_name', userName);
+                }
+                
+                const userInfo = {
+                    id: userId,
+                    name: userName
+                };
+                
+                console.log('👤 Используются локальные данные:', userInfo);
+                return userInfo;
+                
+            } catch (error) {
+                console.error('❌ Ошибка получения информации о пользователе:', error);
                 return {
-                    id: tgUser.id,
-                    name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь'
+                    id: 'error_user_' + Date.now(),
+                    name: 'Пользователь'
                 };
             }
+        }
+
+        function showError(message) {
+            console.error('❌ Ошибка:', message);
             
-            // Fallback на сохраненные данные
-            let userId = localStorage.getItem('user_id');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('user_id', userId);
-            }
+            // Временное уведомление об ошибке
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="alert-triangle" class="w-5 h-5 mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
             
-            let userName = localStorage.getItem('user_name');
-            if (!userName) {
-                userName = 'Пользователь';
-                localStorage.setItem('user_name', userName);
-            }
+            document.body.appendChild(errorDiv);
             
-            return {
-                id: userId,
-                name: userName
-            };
+            // Автоматическое скрытие через 5 секунд
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+            
+            scheduleFeatherReplace();
         }
         // ========== ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS ==========
 
