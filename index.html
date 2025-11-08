@@ -1575,18 +1575,17 @@
             if (chatUpdateInterval) {
                 clearInterval(chatUpdateInterval);
             }
-            chatUpdateInterval = setInterval(() => {
+            
+            chatUpdateInterval = setInterval(async () => {
                 if (currentChatSession) {
-                    loadChatHistory(currentChatSession);
+                    try {
+                        await loadChatHistory(currentChatSession);
+                    } catch (error) {
+                        console.error('❌ Ошибка обновления чата:', error);
+                        // Не показываем ошибку пользователю при автообновлении
+                    }
                 }
             }, 3000);
-        }
-
-        function stopChatUpdates() {
-            if (chatUpdateInterval) {
-                clearInterval(chatUpdateInterval);
-                chatUpdateInterval = null;
-            }
         }
 
         async function loadChatSessions() {
@@ -1661,8 +1660,33 @@
 
         async function loadChatHistory(sessionId) {
             try {
-                const response = await fetch(`${API_BASE}/chat/history/${sessionId}`);
+                console.log('📖 Загрузка истории чата для сессии:', sessionId);
+                
+                // Кодируем sessionId для URL
+                const encodedSessionId = encodeURIComponent(sessionId);
+                console.log('🔗 Закодированный sessionId:', encodedSessionId);
+                
+                const response = await fetch(`${API_BASE}/chat/history/${encodedSessionId}`);
+                
+                console.log('📡 Статус ответа истории:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Ошибка загрузки истории:', errorText);
+                    
+                    let errorMessage = `Ошибка ${response.status}`;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        // Не JSON ответ
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
                 const data = await response.json();
+                console.log('📦 Данные истории:', data);
                 
                 if (data.success) {
                     renderChatMessages(data.messages);
@@ -1672,10 +1696,19 @@
                         await markMessagesAsRead(sessionId);
                         updateChatBadge();
                     }
+                } else {
+                    throw new Error(data.error || 'Ошибка загрузки истории');
                 }
             } catch (error) {
-                console.error('Ошибка загрузки истории чата:', error);
-                elements.chatMessages.innerHTML = '<div class="text-center text-gray-500">Ошибка загрузки сообщений</div>';
+                console.error('❌ Ошибка загрузки истории чата:', error);
+                elements.chatMessages.innerHTML = `
+                    <div class="text-center text-gray-500 p-4">
+                        <i data-feather="alert-circle" class="w-8 h-8 mx-auto mb-2"></i>
+                        <div>Ошибка загрузки сообщений</div>
+                        <div class="text-sm mt-1">${error.message}</div>
+                    </div>
+                `;
+                scheduleFeatherReplace();
             }
         }
 
@@ -2101,32 +2134,22 @@
         
         async function markMessagesAsRead(sessionId) {
             try {
-                await fetch(`${API_BASE}/chat/mark_read/${sessionId}`, {
+                const encodedSessionId = encodeURIComponent(sessionId);
+                const response = await fetch(`${API_BASE}/chat/mark_read/${encodedSessionId}`, {
                     method: 'POST'
                 });
-            } catch (error) {
-                console.error('Ошибка отметки сообщений как прочитанных:', error);
-            }
-        }
-
-        async function updateChatBadge() {
-            try {
-                const userId = getUserId();
-                const response = await fetch(`${API_BASE}/chat/sessions/${userId}`);
-                const data = await response.json();
                 
+                if (!response.ok) {
+                    console.error('❌ Ошибка отметки сообщений как прочитанных:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
                 if (data.success) {
-                    const totalUnread = data.sessions.reduce((sum, session) => sum + session.unread_count, 0);
-                    
-                    if (totalUnread > 0) {
-                        elements.chatBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
-                        elements.chatBadge.style.display = 'flex';
-                    } else {
-                        elements.chatBadge.style.display = 'none';
-                    }
+                    console.log('✅ Сообщения отмечены как прочитанные');
                 }
             } catch (error) {
-                console.error('Ошибка обновления бейджа:', error);
+                console.error('❌ Ошибка отметки сообщений как прочитанных:', error);
             }
         }
 
