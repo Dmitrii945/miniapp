@@ -1946,7 +1946,34 @@
                 return false;
             }
         }
-        
+
+        async function updateChatBadge() {
+            try {
+                const userId = getUserId();
+                const encodedUserId = encodeURIComponent(userId);
+                const response = await fetch(`${API_BASE}/chat/sessions/${encodedUserId}`);
+                
+                if (!response.ok) {
+                    console.error('❌ Ошибка обновления бейджа:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const totalUnread = data.sessions.reduce((sum, session) => sum + session.unread_count, 0);
+                    
+                    if (totalUnread > 0) {
+                        elements.chatBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                        elements.chatBadge.style.display = 'flex';
+                    } else {
+                        elements.chatBadge.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Ошибка обновления бейджа:', error);
+            }
+        }
         // 3. Функция проверки API эндпоинтов
         async function testChatEndpoints() {
             console.log('🔍 Проверка эндпоинтов чата...');
@@ -2214,6 +2241,7 @@
             }
         }
 
+        
         function showError(message) {
             console.error('❌ Ошибка:', message);
             
@@ -3434,7 +3462,8 @@
             if (tg) {
                 try {
                     tg.expand();
-                    tg.enableClosingConfirmation();
+                    // Уберите эту строку, так как она не поддерживается
+                    // tg.enableClosingConfirmation();
                 } catch (error) {
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
