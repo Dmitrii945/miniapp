@@ -1633,7 +1633,7 @@
                 
                 html += `
                     <div class="chat-session-item ${hasUnread ? 'chat-session-unread' : ''}" 
-                         onclick="openChatSession('${session.session_id}', '${escapeHtml(session.brigade_name)}', '${escapeHtml(session.object_name || '')}')">
+                         onclick="openChatSession('${session.session_id}', '${escapeHtml(session.brigade_name).replace(/'/g, "\\'")}', '${escapeHtml(session.object_name || '').replace(/'/g, "\\'")}')">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
                                 <div class="font-semibold">${escapeHtml(session.brigade_name)}</div>
@@ -1642,7 +1642,7 @@
                                     <div class="text-xs text-gray-500 mt-1">
                                         <span class="${session.last_message.is_from_brigade ? 'text-blue-600' : 'text-gray-600'}">
                                             ${session.last_message.is_from_brigade ? '👷 ' : '👤 '}
-                                            ${escapeHtml(session.last_message.text.substring(0, 40)}${session.last_message.text.length > 40 ? '...' : ''}
+                                            ${escapeHtml(session.last_message.text.substring(0, 40))}${session.last_message.text.length > 40 ? '...' : ''}
                                         </span>
                                         <span class="ml-2">${lastMessageTime}</span>
                                     </div>
