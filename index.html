@@ -1797,26 +1797,17 @@
             const input = elements.chatInput;
             const message = input.value.trim();
             
-            console.log("📝 Введенное сообщение:", message);
-            console.log("💬 currentChatSession:", currentChatSession);
-            console.log("👷 currentBrigadeChat:", currentBrigadeChat);
-            console.log("🏠 currentObjectChat:", currentObjectChat);
-            
             if (!message) {
-                console.log("❌ Сообщение пустое");
                 showError('Введите сообщение');
                 return;
             }
             
             if (!currentChatSession || !currentBrigadeChat) {
-                console.log("❌ Нет активного чата");
                 showError('Чат не инициализирован');
                 return;
             }
         
             const userInfo = getUserInfo();
-            console.log("👤 Информация о пользователе:", userInfo);
-            
             const requestData = {
                 user_id: userInfo.id,
                 user_name: userInfo.name,
@@ -1827,34 +1818,54 @@
             
             console.log("📤 Отправка сообщения:", requestData);
             
-            try {
-                const response = await fetch(`${API_BASE}/chat/send_message`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                });
+            // ← ИСПРАВЛЕНИЕ: Используем XMLHttpRequest для Telegram WebView
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `${API_BASE}/chat/send_message`);
+                xhr.setRequestHeader('Content-Type', 'application/json');
                 
-                console.log("📨 Статус ответа:", response.status);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            console.log("✅ Сообщение отправлено:", data);
+                            
+                            if (data.success) {
+                                input.value = '';
+                                loadChatHistory(currentChatSession);
+                                updateChatBadge();
+                                resolve(data);
+                            } else {
+                                showError(data.error || 'Ошибка отправки');
+                                reject(data.error);
+                            }
+                        } catch (error) {
+                            console.error("❌ Ошибка парсинга ответа:", error);
+                            showError('Ошибка обработки ответа');
+                            reject(error);
+                        }
+                    } else {
+                        console.error("❌ HTTP ошибка:", xhr.status);
+                        showError('Ошибка сети: ' + xhr.status);
+                        reject(new Error('HTTP ' + xhr.status));
+                    }
+                };
                 
-                // ← ИСПРАВЛЕННАЯ ЧАСТЬ:
-                const data = await response.json();
-                console.log("✅ Данные ответа:", data);
+                xhr.onerror = function() {
+                    console.error("❌ Ошибка сети XHR");
+                    showError('Ошибка сети при отправке');
+                    reject(new Error('Network error'));
+                };
                 
-                if (data.success) {
-                    input.value = '';
-                    console.log("✅ Сообщение отправлено успешно");
-                    await loadChatHistory(currentChatSession);
-                    updateChatBadge();
-                } else {
-                    console.log("❌ Ошибка отправки:", data.error);
-                    showError(data.error || 'Ошибка отправки сообщения');
-                }
-            } catch (error) {
-                console.error("❌ Ошибка сети при отправке:", error);
-                showError('Ошибка сети при отправке сообщения');
-            }
+                xhr.ontimeout = function() {
+                    console.error("❌ Таймаут XHR");
+                    showError('Таймаут соединения');
+                    reject(new Error('Timeout'));
+                };
+                
+                xhr.timeout = 10000; // 10 секунд таймаут
+                xhr.send(JSON.stringify(requestData));
+            });
         }
 
         async function markMessagesAsRead(sessionId) {
