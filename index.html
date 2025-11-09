@@ -1928,79 +1928,38 @@
         }
                 
         function renderChatMessages(messages) {
-            console.log("🎨 Рендерим сообщения. Всего из истории:", messages ? messages.length : 0);
+            console.log("🎨 Рендерим сообщения. Всего:", messages ? messages.length : 0);
+            
+            // Полностью очищаем чат
+            elements.chatMessages.innerHTML = '';
             
             if (!messages || messages.length === 0) {
-                // Проверяем, есть ли временные сообщения
-                const tempMessages = elements.chatMessages.querySelectorAll('[data-temp-id]');
-                const errorMessages = elements.chatMessages.querySelectorAll('[data-is-error]');
-                
-                if (tempMessages.length === 0 && errorMessages.length === 0) {
-                    elements.chatMessages.innerHTML = `
-                        <div class="text-center text-gray-500">
-                            <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
-                            <div>Нет сообщений</div>
-                            <div class="text-sm mt-2">Начните общение первым</div>
-                        </div>
-                    `;
-                }
-                // Если есть временные сообщения - не перезаписываем чат
+                elements.chatMessages.innerHTML = `
+                    <div class="text-center text-gray-500">
+                        <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                        <div>Нет сообщений</div>
+                        <div class="text-sm mt-2">Начните общение первым</div>
+                    </div>
+                `;
                 scheduleFeatherReplace();
                 return;
             }
             
-            // СОХРАНЯЕМ ВРЕМЕННЫЕ СООБЩЕНИЯ ПЕРЕД ОЧИСТКОЙ
-            const tempMessages = [];
-            const errorMessages = [];
-            
-            elements.chatMessages.querySelectorAll('[data-temp-id]').forEach(msg => {
-                tempMessages.push({
-                    id: msg.getAttribute('data-temp-id'),
-                    html: msg.outerHTML
-                });
-            });
-            
-            elements.chatMessages.querySelectorAll('[data-is-error]').forEach(msg => {
-                errorMessages.push({
-                    id: msg.getAttribute('data-is-error'),
-                    html: msg.outerHTML
-                });
-            });
-            
-            // Очищаем чат
-            elements.chatMessages.innerHTML = '';
-            
-            // Рендерим сообщения из истории
+            // Рендерим ВСЕ сообщения из истории
             messages.forEach(message => {
-                // Пропускаем системные сообщения из истории
-                if (message.message_type === 'system') {
+                // Пропускаем только системные сообщения из истории
+                if (message.message_type === 'system' && !message.is_error) {
                     return;
                 }
                 
                 addMessageToUI(message);
             });
             
-            // ВОССТАНАВЛИВАЕМ ВРЕМЕННЫЕ СООБЩЕНИЯ
-            tempMessages.forEach(tempMsg => {
-                const tempElement = document.createElement('div');
-                tempElement.innerHTML = tempMsg.html;
-                elements.chatMessages.appendChild(tempElement.firstElementChild);
-            });
-            
-            // ВОССТАНАВЛИВАЕМ СООБЩЕНИЯ ОБ ОШИБКАХ
-            errorMessages.forEach(errorMsg => {
-                const errorElement = document.createElement('div');
-                errorElement.innerHTML = errorMsg.html;
-                elements.chatMessages.appendChild(errorElement.firstElementChild);
-            });
-            
             // Прокручиваем вниз
             elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
             scheduleFeatherReplace();
             
-            console.log("✅ Отображено сообщений из истории:", messages.length);
-            console.log("✅ Восстановлено временных сообщений:", tempMessages.length);
-            console.log("✅ Восстановлено сообщений об ошибках:", errorMessages.length);
+            console.log("✅ Отображено сообщений:", messages.length);
         }
         
         function handleChatInputKeypress(event) {
@@ -2039,19 +1998,7 @@
             const messageText = message;
             input.value = '';
             
-            // НЕМЕДЛЕННО добавляем сообщение в UI как "отправляемое"
-            const tempMessageId = 'temp_' + Date.now();
-            addMessageToUI({
-                id: tempMessageId,
-                message_text: messageText,
-                message_type: 'user_to_brigade',
-                user_name: getUserInfo().name,
-                timestamp: new Date().toISOString(),
-                is_read: true,
-                is_user: true,
-                is_sending: true
-            });
-            
+            // НЕ создаем временное сообщение - сразу отправляем
             const userInfo = getUserInfo();
             const requestData = {
                 user_id: userInfo.id,
@@ -2080,14 +2027,8 @@
                 console.log("✅ Сообщение отправлено:", data);
                 
                 if (data.success) {
-                    // Убираем временное сообщение
-                    removeTempMessage(tempMessageId);
-                    
-                    // Загружаем актуальную историю с небольшой задержкой
-                    setTimeout(() => {
-                        loadChatHistory(currentChatSession);
-                    }, 1500); // Увеличили задержку до 1 секунды
-                    
+                    // Сразу обновляем историю
+                    await loadChatHistory(currentChatSession);
                     updateChatBadge();
                 } else {
                     throw new Error(data.error || 'Ошибка отправки');
@@ -2099,9 +2040,8 @@
                 // Показываем сообщение об ошибке и возвращаем текст в поле
                 showError('Не удалось отправить сообщение');
                 input.value = messageText;
-                removeTempMessage(tempMessageId);
                 
-                // Также показываем сообщение об ошибке в чате
+                // Показываем сообщение об ошибке в чате
                 addMessageToUI({
                     id: 'error_' + Date.now(),
                     message_text: '❌ Не удалось отправить сообщение. Попробуйте еще раз.',
@@ -2169,8 +2109,8 @@
 
         // Функция для немедленного добавления сообщения в UI
         function addMessageToUI(messageData) {
-            // Пропускаем системные сообщения из истории
-            if (messageData.message_type === 'system' && !messageData.is_error && !messageData.is_sending) {
+            // Пропускаем только системные сообщения без ошибок
+            if (messageData.message_type === 'system' && !messageData.is_error) {
                 return;
             }
             
@@ -2185,12 +2125,7 @@
                 messageElement.className = 'message-system';
                 messageElement.setAttribute('data-is-error', 'true');
             } else {
-                messageElement.className = `${messageData.is_user ? 'message-user' : 'message-brigade'} ${messageData.is_sending ? 'message-sending' : ''}`;
-            }
-            
-            // Добавляем ID для временных сообщений
-            if (messageData.id && messageData.is_sending) {
-                messageElement.setAttribute('data-temp-id', messageData.id);
+                messageElement.className = messageData.is_user ? 'message-user' : 'message-brigade';
             }
             
             let messageContent = '';
@@ -2216,7 +2151,6 @@
                             <div class="text-xs opacity-70 mt-1 flex justify-between items-center">
                                 <span>${time}</span>
                                 <span class="text-xs opacity-50">${escapeHtml(messageData.user_name)}</span>
-                                ${messageData.is_sending ? '<span class="text-xs opacity-50">⏳</span>' : ''}
                             </div>
                         </div>
                         ${messageData.is_user ? `
@@ -2231,7 +2165,29 @@
             messageElement.innerHTML = messageContent;
             elements.chatMessages.appendChild(messageElement);
         }
-        
+
+        function checkSpecificMessage(messageText) {
+            if (!currentChatSession) return;
+            
+            console.log(`🔍 Ищем сообщение: "${messageText}"`);
+            
+            loadChatHistory(currentChatSession).then(() => {
+                // Проверяем, отображается ли сообщение
+                const messageElements = elements.chatMessages.querySelectorAll('.text-sm');
+                let found = false;
+                
+                messageElements.forEach(element => {
+                    if (element.textContent.includes(messageText)) {
+                        console.log(`✅ Сообщение найдено в интерфейсе: "${element.textContent}"`);
+                        found = true;
+                    }
+                });
+                
+                if (!found) {
+                    console.log(`❌ Сообщение "${messageText}" не найдено в интерфейсе`);
+                }
+            });
+        }
         // Функция для удаления флага "отправляется"
         function removeSendingFlag() {
             const sendingMessages = elements.chatMessages.querySelectorAll('.message-sending');
@@ -4656,6 +4612,7 @@
         window.handleGalleryImageLoad = handleGalleryImageLoad;
         window.debugStorage = debugStorage;
         window.forceRefreshChat = forceRefreshChat;
+        window.checkSpecificMessage = checkSpecificMessage;
         // Функции чата
         window.toggleChatWindow = toggleChatWindow;
         window.showChatList = showChatList;
