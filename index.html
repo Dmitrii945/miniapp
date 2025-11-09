@@ -1540,9 +1540,13 @@
             currentBrigadeChat = brigadeName;
             currentObjectChat = objectName;
             
-            // Создаем ID сессии
+            // Создаем ID сессии - ИСПРАВЛЕННАЯ ВЕРСИЯ
             const userId = getUserId();
-            currentChatSession = `${userId}_${brigadeName}_${objectName || 'general'}`;
+            let sessionId = `chat_${userId}_${brigadeName.replace(/ /g, '_')}`;
+            if (objectName) {
+                sessionId += `_${objectName.replace(/ /g, '_')}`;
+            }
+            currentChatSession = sessionId;
             
             // Обновляем заголовок чата
             elements.chatTitle.textContent = `Чат с ${brigadeName}`;
@@ -1596,6 +1600,8 @@
                 
                 if (data.success) {
                     renderChatSessions(data.sessions);
+                    // Обновляем бейдж
+                    updateChatBadgeFromSessions(data.sessions);
                 } else {
                     elements.chatSessionsList.innerHTML = '<div class="text-center text-gray-500 p-4">Ошибка загрузки чатов</div>';
                 }
@@ -1611,38 +1617,65 @@
                     <div class="text-center text-gray-500 p-4">
                         <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
                         <div>Нет активных чатов</div>
-                        <div class="text-sm mt-2">Начните общение с бригадой</div>
+                        <div class="text-sm mt-2">Начните общение с бригадой из раздела "Бригады"</div>
                     </div>
                 `;
                 scheduleFeatherReplace();
                 return;
             }
-
+        
             let html = '';
             sessions.forEach(session => {
                 const hasUnread = session.unread_count > 0;
                 const lastActivity = new Date(session.last_activity).toLocaleDateString('ru-RU');
+                const lastMessageTime = session.last_message ? 
+                    new Date(session.last_message.timestamp).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) : '';
                 
                 html += `
                     <div class="chat-session-item ${hasUnread ? 'chat-session-unread' : ''}" 
-                         onclick="openChatSession('${session.session_id}', '${session.brigade_name}', '${session.object_name || ''}')">
-                        <div class="flex justify-between items-center">
-                            <div>
+                         onclick="openChatSession('${session.session_id}', '${escapeHtml(session.brigade_name)}', '${escapeHtml(session.object_name || '')}')">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
                                 <div class="font-semibold">${escapeHtml(session.brigade_name)}</div>
                                 <div class="text-sm text-gray-600">${escapeHtml(session.object_name || 'Общий чат')}</div>
-                                <div class="text-xs text-gray-500">${lastActivity}</div>
+                                ${session.last_message ? `
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <span class="${session.last_message.is_from_brigade ? 'text-blue-600' : 'text-gray-600'}">
+                                            ${session.last_message.is_from_brigade ? '👷 ' : '👤 '}
+                                            ${escapeHtml(session.last_message.text.substring(0, 40)}${session.last_message.text.length > 40 ? '...' : ''}
+                                        </span>
+                                        <span class="ml-2">${lastMessageTime}</span>
+                                    </div>
+                                ` : ''}
                             </div>
                             ${hasUnread ? `
-                                <div class="unread-badge">${session.unread_count}</div>
+                                <div class="unread-badge ml-2">${session.unread_count}</div>
                             ` : ''}
                         </div>
                     </div>
                 `;
             });
-
+        
             elements.chatSessionsList.innerHTML = html;
+            scheduleFeatherReplace();
         }
 
+        function updateChatBadgeFromSessions(sessions) {
+            if (!sessions || sessions.length === 0) {
+                elements.chatBadge.style.display = 'none';
+                return;
+            }
+            
+            const totalUnread = sessions.reduce((sum, session) => sum + (session.unread_count || 0), 0);
+            
+            if (totalUnread > 0) {
+                elements.chatBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                elements.chatBadge.style.display = 'flex';
+            } else {
+                elements.chatBadge.style.display = 'none';
+            }
+        }
+        
         function openChatSession(sessionId, brigadeName, objectName) {
             currentChatSession = sessionId;
             currentBrigadeChat = brigadeName;
@@ -1656,6 +1689,21 @@
             
             loadChatHistory(sessionId);
             startChatUpdates();
+            
+            // Помечаем сообщения как прочитанные
+            markMessagesAsRead(sessionId);
+        }
+
+        async function markMessagesAsRead(sessionId) {
+            try {
+                await fetch(`${API_BASE}/chat/mark_read/${sessionId}`, {
+                    method: 'POST'
+                });
+                // Обновляем бейдж после отметки как прочитанных
+                updateChatBadge();
+            } catch (error) {
+                console.error('Ошибка отметки сообщений как прочитанных:', error);
+            }
         }
 
         async function loadChatHistory(sessionId) {
@@ -1701,16 +1749,34 @@
                 
                 html += `
                     <div class="${isUser ? 'message-user' : 'message-brigade'}">
-                        <div class="text-sm">${escapeHtml(message.message_text)}</div>
-                        <div class="text-xs opacity-70 mt-1">${time}</div>
+                        <div class="flex items-end gap-2">
+                            ${!isUser ? `
+                                <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                                    👷
+                                </div>
+                            ` : ''}
+                            <div class="flex-1">
+                                <div class="text-sm">${escapeHtml(message.message_text)}</div>
+                                <div class="text-xs opacity-70 mt-1 flex justify-between items-center">
+                                    <span>${time}</span>
+                                    <span class="text-xs opacity-50">${escapeHtml(message.user_name)}</span>
+                                </div>
+                            </div>
+                            ${isUser ? `
+                                <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                                    👤
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
             });
             
             elements.chatMessages.innerHTML = html;
             elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+            scheduleFeatherReplace();
         }
-
+        
         function handleChatInputKeypress(event) {
             if (event.key === 'Enter') {
                 sendChatMessage();
@@ -1764,6 +1830,8 @@
                     input.value = '';
                     // Обновляем историю чата
                     await loadChatHistory(currentChatSession);
+                    // Обновляем бейдж уведомлений
+                    updateChatBadge();
                 } else {
                     showError(data.error || 'Ошибка отправки сообщения');
                 }
@@ -1790,7 +1858,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    const totalUnread = data.sessions.reduce((sum, session) => sum + session.unread_count, 0);
+                    const totalUnread = data.sessions.reduce((sum, session) => sum + (session.unread_count || 0), 0);
                     
                     if (totalUnread > 0) {
                         elements.chatBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
