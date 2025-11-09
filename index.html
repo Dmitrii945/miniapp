@@ -1221,6 +1221,16 @@
             </div>
         </div>
 
+        <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" 
+                       placeholder="Введите сообщение..." 
+                       onkeypress="handleChatInputKeypress(event)">
+                <button class="chat-send-btn" onclick="sendChatMessage()">
+                    <i data-feather="send"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- Список чатов -->
         <div class="chat-container" id="chatListContainer" style="display: none;">
             <div class="chat-header">
@@ -1355,6 +1365,12 @@
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
+
+        console.log("🚀 Инициализация приложения");
+        console.log("🌍 User Agent:", navigator.userAgent);
+        console.log("📱 Telegram WebApp доступен:", !!window.Telegram?.WebApp);
+        console.log("📱 Platform:", window.Telegram?.WebApp?.platform);
+        console.log("🌐 API Base:", API_BASE);
 
         // Состояние приложения
         let navigationStack = [];
@@ -1787,6 +1803,7 @@
         
         function handleChatInputKeypress(event) {
             if (event.key === 'Enter') {
+                event.preventDefault(); // ← ДОБАВЬТЕ ЭТУ СТРОКУ
                 sendChatMessage();
             }
         }
