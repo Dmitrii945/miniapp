@@ -1814,7 +1814,6 @@
                 return;
             }
         
-            // Получаем информацию о пользователе
             const userInfo = getUserInfo();
             console.log("👤 Информация о пользователе:", userInfo);
             
@@ -1838,12 +1837,9 @@
                 });
                 
                 console.log("📨 Статус ответа:", response.status);
-                console.log("📨 Ответ сервера:", await response.text());
                 
-                // Снова парсим JSON для обработки
-                const responseClone = response.clone();
-                const data = await responseClone.json();
-                
+                // ← ИСПРАВЛЕННАЯ ЧАСТЬ:
+                const data = await response.json();
                 console.log("✅ Данные ответа:", data);
                 
                 if (data.success) {
