@@ -1801,64 +1801,139 @@
             }
         }
 
+        function showChatError(message) {
+            console.error("💥 Ошибка чата:", message);
+            
+            // Показываем сообщение об ошибке в чате
+            addMessageToUI({
+                id: 'error_' + Date.now(),
+                message_text: '❌ ' + message,
+                message_type: 'system',
+                user_name: 'Система',
+                timestamp: new Date().toISOString(),
+                is_read: true,
+                is_user: false,
+                is_error: true
+            });
+            
+            // Также показываем всплывающее уведомление
+            if (tg) {
+                tg.showAlert(message);
+            } else {
+                alert(message);
+            }
+        }
+                
         function renderChatMessages(messages) {
+            console.log("🎨 Рендерим сообщения. Всего:", messages ? messages.length : 0);
+            
+            // Сохраняем ВСЕ существующие сообщения (временные, ошибки, системные)
+            const existingMessages = elements.chatMessages.innerHTML;
+            
+            // Полностью очищаем чат
+            elements.chatMessages.innerHTML = '';
+            
+            // Если нет сообщений из истории, но есть временные - показываем только временные
             if (!messages || messages.length === 0) {
-                // Сохраняем временные сообщения если они есть
-                const tempMessages = elements.chatMessages.querySelectorAll('[data-temp-id]');
-                if (tempMessages.length > 0) {
-                    console.log("📝 Сохраняем временные сообщения, история пустая");
-                    return;
+                const tempMessages = document.querySelectorAll('[data-temp-id]');
+                const errorMessages = document.querySelectorAll('[data-is-error]');
+                
+                if (tempMessages.length === 0 && errorMessages.length === 0) {
+                    elements.chatMessages.innerHTML = `
+                        <div class="text-center text-gray-500">
+                            <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                            <div>Нет сообщений</div>
+                            <div class="text-sm mt-2">Начните общение первым</div>
+                        </div>
+                    `;
+                } else {
+                    // Восстанавливаем временные сообщения и ошибки
+                    elements.chatMessages.innerHTML = existingMessages;
                 }
                 
-                elements.chatMessages.innerHTML = `
-                    <div class="text-center text-gray-500">
-                        <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
-                        <div>Нет сообщений</div>
-                        <div class="text-sm mt-2">Начните общение первым</div>
-                    </div>
-                `;
                 scheduleFeatherReplace();
                 return;
             }
             
-            console.log("🎨 Рендерим", messages.length, "сообщений");
+            console.log("📋 Рендерим историю + временные сообщения");
             
-            // Сохраняем временные сообщения и сообщения об ошибках
-            const tempMessages = elements.chatMessages.querySelectorAll('[data-temp-id]');
-            const errorMessages = elements.chatMessages.querySelectorAll('[data-is-error]');
-            const preservedMessages = [];
+            // Собираем ВСЕ сообщения для отображения
+            const allMessagesToShow = [];
             
-            tempMessages.forEach(msg => preservedMessages.push(msg.outerHTML));
-            errorMessages.forEach(msg => preservedMessages.push(msg.outerHTML));
-            
-            // Очищаем чат
-            elements.chatMessages.innerHTML = '';
-            
-            // Восстанавливаем временные сообщения и сообщения об ошибках
-            preservedMessages.forEach(html => {
-                elements.chatMessages.innerHTML += html;
-            });
-            
-            // Добавляем сообщения из истории (исключая дубликаты временных)
+            // 1. Добавляем сообщения из истории
             messages.forEach(message => {
-                // Пропускаем системные сообщения об ошибках
+                // Пропускаем системные сообщения об ошибках из истории
                 if (message.message_type === 'system') {
                     return;
                 }
                 
-                // Проверяем, нет ли уже такого временного сообщения
-                const isDuplicate = Array.from(tempMessages).some(tempMsg => {
-                    const tempText = tempMsg.querySelector('.text-sm')?.textContent;
-                    return tempText === message.message_text;
+                allMessagesToShow.push({
+                    ...message,
+                    is_from_history: true
                 });
+            });
+            
+            // 2. Добавляем временные сообщения (которые еще отправляются)
+            const tempMessages = elements.chatMessages.querySelectorAll('[data-temp-id]');
+            tempMessages.forEach(tempMsg => {
+                const tempId = tempMsg.getAttribute('data-temp-id');
+                const messageText = tempMsg.querySelector('.text-sm')?.textContent;
                 
-                if (!isDuplicate) {
-                    addMessageToUI(message);
+                if (messageText) {
+                    // Проверяем, нет ли такого сообщения уже в истории
+                    const isDuplicate = messages.some(msg => 
+                        msg.message_text === messageText && 
+                        msg.message_type === 'user_to_brigade'
+                    );
+                    
+                    if (!isDuplicate) {
+                        allMessagesToShow.push({
+                            id: tempId,
+                            message_text: messageText,
+                            message_type: 'user_to_brigade',
+                            user_name: getUserInfo().name,
+                            timestamp: new Date().toISOString(),
+                            is_read: true,
+                            is_user: true,
+                            is_sending: true,
+                            is_temporary: true
+                        });
+                    }
                 }
             });
             
+            // 3. Добавляем сообщения об ошибках
+            const errorMessages = elements.chatMessages.querySelectorAll('[data-is-error]');
+            errorMessages.forEach(errorMsg => {
+                const errorText = errorMsg.querySelector('.text-sm')?.textContent;
+                
+                if (errorText) {
+                    allMessagesToShow.push({
+                        id: 'error_' + Date.now(),
+                        message_text: errorText,
+                        message_type: 'system',
+                        user_name: 'Система',
+                        timestamp: new Date().toISOString(),
+                        is_read: true,
+                        is_user: false,
+                        is_error: true
+                    });
+                }
+            });
+            
+            // Сортируем все сообщения по времени
+            allMessagesToShow.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            // Рендерим все сообщения
+            allMessagesToShow.forEach(message => {
+                addMessageToUI(message);
+            });
+            
+            // Прокручиваем вниз
             elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
             scheduleFeatherReplace();
+            
+            console.log("✅ Отображено сообщений:", allMessagesToShow.length);
         }
         
         function handleChatInputKeypress(event) {
@@ -1944,7 +2019,7 @@
                     // Загружаем актуальную историю с небольшой задержкой
                     setTimeout(() => {
                         loadChatHistory(currentChatSession);
-                    }, 500);
+                    }, 1000); // Увеличили задержку до 1 секунды
                     
                     updateChatBadge();
                 } else {
@@ -1989,8 +2064,8 @@
 
         // Функция для немедленного добавления сообщения в UI
         function addMessageToUI(messageData) {
-            // Пропускаем системные сообщения об ошибках при обычном рендеринге
-            if (messageData.message_type === 'system' && !messageData.is_sending && !messageData.is_error) {
+            // Пропускаем системные сообщения об ошибках из истории
+            if (messageData.message_type === 'system' && !messageData.is_error && !messageData.is_sending) {
                 return;
             }
             
@@ -2009,7 +2084,7 @@
             }
             
             // Добавляем ID для временных сообщений
-            if (messageData.id && messageData.is_sending) {
+            if (messageData.id && (messageData.is_sending || messageData.is_temporary)) {
                 messageElement.setAttribute('data-temp-id', messageData.id);
             }
             
@@ -2050,7 +2125,6 @@
             
             messageElement.innerHTML = messageContent;
             elements.chatMessages.appendChild(messageElement);
-            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
         }
         
         // Функция для удаления флага "отправляется"
