@@ -1467,7 +1467,110 @@
             chatSessionsList: document.getElementById('chatSessionsList')
         };
 
-        // ========== УТИЛИТЫ ==========
+       // ========== УНИВЕРСАЛЬНОЕ ХРАНИЛИЩЕ ДЛЯ TELEGRAM MINI APP ==========
+
+        function getUniversalStorage(key, defaultValue = null) {
+            try {
+                // Пробуем получить данные из Telegram WebApp
+                if (window.Telegram?.WebApp?.initData) {
+                    // Для Telegram Mini App используем CloudStorage
+                    if (window.Telegram.WebApp.CloudStorage) {
+                        return new Promise((resolve) => {
+                            window.Telegram.WebApp.CloudStorage.getItem(key, (err, value) => {
+                                if (err || value === null || value === undefined) {
+                                    resolve(defaultValue);
+                                } else {
+                                    try {
+                                        resolve(JSON.parse(value));
+                                    } catch {
+                                        resolve(value);
+                                    }
+                                }
+                            });
+                        });
+                    }
+                }
+                
+                // Fallback на localStorage для браузера
+                const item = localStorage.getItem(key);
+                if (item === null || item === undefined) {
+                    return Promise.resolve(defaultValue);
+                }
+                
+                try {
+                    return Promise.resolve(JSON.parse(item));
+                } catch {
+                    return Promise.resolve(item);
+                }
+            } catch (error) {
+                console.log('Ошибка чтения хранилища:', error);
+                return Promise.resolve(defaultValue);
+            }
+        }
+        
+        function setUniversalStorage(key, value) {
+            try {
+                // Пробуем сохранить в Telegram WebApp
+                if (window.Telegram?.WebApp?.initData) {
+                    // Для Telegram Mini App используем CloudStorage
+                    if (window.Telegram.WebApp.CloudStorage) {
+                        return new Promise((resolve) => {
+                            const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+                            window.Telegram.WebApp.CloudStorage.setItem(key, stringValue, (err) => {
+                                if (err) {
+                                    console.log('Ошибка CloudStorage:', err);
+                                    // Fallback на localStorage
+                                    try {
+                                        localStorage.setItem(key, JSON.stringify(value));
+                                    } catch (e) {
+                                        console.log('Ошибка localStorage:', e);
+                                    }
+                                }
+                                resolve();
+                            });
+                        });
+                    }
+                }
+                
+                // Fallback на localStorage для браузера
+                localStorage.setItem(key, JSON.stringify(value));
+                return Promise.resolve();
+            } catch (error) {
+                console.log('Ошибка записи хранилища:', error);
+                return Promise.resolve();
+            }
+        }
+        
+        // ========== ИНИЦИАЛИЗАЦИЯ ХРАНИЛИЩА ==========
+        
+        async function initStorage() {
+            try {
+                // Инициализируем favorites
+                const storedFavorites = await getUniversalStorage('favorites', []);
+                favorites = Array.isArray(storedFavorites) ? storedFavorites : [];
+                
+                // Инициализируем user_id и user_name
+                const storedUserId = await getUniversalStorage('user_id');
+                const storedUserName = await getUniversalStorage('user_name');
+                
+                if (!storedUserId) {
+                    const newUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+                    await setUniversalStorage('user_id', newUserId);
+                }
+                
+                if (!storedUserName) {
+                    await setUniversalStorage('user_name', 'Пользователь');
+                }
+                
+                console.log("✅ Хранилище инициализировано");
+            } catch (error) {
+                console.error('❌ Ошибка инициализации хранилища:', error);
+                // Fallback значения
+                favorites = [];
+            }
+        }
+
+        
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -2052,6 +2155,44 @@
                 input.disabled = false;
                 input.focus();
             }
+        }
+
+        async function getUserId() {
+            let userId = await getUniversalStorage('user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                await setUniversalStorage('user_id', userId);
+            }
+            return userId;
+        }
+        
+        async function getUserInfo() {
+            // Используем данные из Telegram Web App если доступно
+            if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+                const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+                return {
+                    id: tgUser.id,
+                    name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь'
+                };
+            }
+            
+            // Fallback на сохраненные данные
+            let userId = await getUniversalStorage('user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                await setUniversalStorage('user_id', userId);
+            }
+            
+            let userName = await getUniversalStorage('user_name');
+            if (!userName) {
+                userName = 'Пользователь';
+                await setUniversalStorage('user_name', userName);
+            }
+            
+            return {
+                id: userId,
+                name: userName
+            };
         }
         
         // Функция для удаления временного сообщения
@@ -4353,14 +4494,33 @@
             }
         }
 
+                // Проверка доступности CloudStorage
+        function isCloudStorageAvailable() {
+            return !!(window.Telegram?.WebApp?.CloudStorage);
+        }
+        
+        // Универсальный метод для отладки
+        function debugStorage() {
+            console.log('=== DEBUG STORAGE ===');
+            console.log('Telegram WebApp:', !!window.Telegram?.WebApp);
+            console.log('CloudStorage:', !!window.Telegram?.WebApp?.CloudStorage);
+            console.log('localStorage:', !!window.localStorage);
+            console.log('favorites:', favorites);
+            console.log('user_id:', localStorage.getItem('user_id'));
+            console.log('=====================');
+        }
+
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             try {
                 console.log("🚀 Запуск инициализации приложения");
                 
                 // Инициализация Telegram Web App
                 initTelegramApp();
+                
+                // Инициализация хранилища
+                await initStorage();
                 
                 // Исправление цветов для мобильных устройств
                 fixMobileColors();
@@ -4523,7 +4683,7 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
-        
+        window.debugStorage = debugStorage;
         // Функции чата
         window.toggleChatWindow = toggleChatWindow;
         window.showChatList = showChatList;
