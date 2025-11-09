@@ -1537,16 +1537,24 @@
         }
 
         function startChatWithBrigade(brigadeName, objectName = null) {
+            console.log("🔍 startChatWithBrigade вызвана:", brigadeName, objectName);
+            
             currentBrigadeChat = brigadeName;
             currentObjectChat = objectName;
             
-            // Создаем ID сессии - ИСПРАВЛЕННАЯ ВЕРСИЯ
+            // Создаем ID сессии
             const userId = getUserId();
             let sessionId = `chat_${userId}_${brigadeName.replace(/ /g, '_')}`;
             if (objectName) {
                 sessionId += `_${objectName.replace(/ /g, '_')}`;
             }
             currentChatSession = sessionId;
+            
+            console.log("✅ Установлены переменные чата:");
+            console.log("   Session ID:", currentChatSession);
+            console.log("   Brigade:", currentBrigadeChat);
+            console.log("   Object:", currentObjectChat);
+            console.log("   User ID:", userId);
             
             // Обновляем заголовок чата
             elements.chatTitle.textContent = `Чат с ${brigadeName}`;
@@ -1784,59 +1792,71 @@
         }
 
         async function sendChatMessage() {
+            console.log("🔍 sendChatMessage ВЫЗВАНА В TELEGRAM");
+            
             const input = elements.chatInput;
             const message = input.value.trim();
             
+            console.log("📝 Введенное сообщение:", message);
+            console.log("💬 currentChatSession:", currentChatSession);
+            console.log("👷 currentBrigadeChat:", currentBrigadeChat);
+            console.log("🏠 currentObjectChat:", currentObjectChat);
+            
             if (!message) {
+                console.log("❌ Сообщение пустое");
                 showError('Введите сообщение');
                 return;
             }
             
             if (!currentChatSession || !currentBrigadeChat) {
+                console.log("❌ Нет активного чата");
                 showError('Чат не инициализирован');
                 return;
             }
         
             // Получаем информацию о пользователе
             const userInfo = getUserInfo();
+            console.log("👤 Информация о пользователе:", userInfo);
+            
+            const requestData = {
+                user_id: userInfo.id,
+                user_name: userInfo.name,
+                brigade_name: currentBrigadeChat,
+                message_text: message,
+                object_name: currentObjectChat
+            };
+            
+            console.log("📤 Отправка сообщения:", requestData);
             
             try {
-                console.log('Отправка сообщения:', {
-                    user_id: userInfo.id,
-                    user_name: userInfo.name,
-                    brigade_name: currentBrigadeChat,
-                    message_text: message,
-                    object_name: currentObjectChat
-                });
-        
                 const response = await fetch(`${API_BASE}/chat/send_message`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        user_id: userInfo.id,
-                        user_name: userInfo.name,
-                        brigade_name: currentBrigadeChat,
-                        message_text: message,
-                        object_name: currentObjectChat
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
-                const data = await response.json();
-                console.log('Ответ сервера:', data);
+                console.log("📨 Статус ответа:", response.status);
+                console.log("📨 Ответ сервера:", await response.text());
+                
+                // Снова парсим JSON для обработки
+                const responseClone = response.clone();
+                const data = await responseClone.json();
+                
+                console.log("✅ Данные ответа:", data);
                 
                 if (data.success) {
                     input.value = '';
-                    // Обновляем историю чата
+                    console.log("✅ Сообщение отправлено успешно");
                     await loadChatHistory(currentChatSession);
-                    // Обновляем бейдж уведомлений
                     updateChatBadge();
                 } else {
+                    console.log("❌ Ошибка отправки:", data.error);
                     showError(data.error || 'Ошибка отправки сообщения');
                 }
             } catch (error) {
-                console.error('Ошибка отправки сообщения:', error);
+                console.error("❌ Ошибка сети при отправке:", error);
                 showError('Ошибка сети при отправке сообщения');
             }
         }
