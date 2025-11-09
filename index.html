@@ -1775,6 +1775,12 @@
 
         function renderChatMessages(messages) {
             if (!messages || messages.length === 0) {
+                // Сохраняем временные сообщения если они есть
+                const tempMessages = elements.chatMessages.querySelectorAll('[data-temp-id]');
+                if (tempMessages.length > 0) {
+                    return; // Не перерисовываем если есть временные сообщения
+                }
+                
                 elements.chatMessages.innerHTML = `
                     <div class="text-center text-gray-500">
                         <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
@@ -1786,24 +1792,27 @@
                 return;
             }
             
-            // Очищаем чат, но сохраняем сообщения с флагом "отправляется"
-            const sendingMessages = elements.chatMessages.querySelectorAll('.message-sending');
+            // Сохраняем временные сообщения
+            const tempMessages = elements.chatMessages.querySelectorAll('[data-temp-id]');
+            const tempMessagesArray = Array.from(tempMessages);
+            
+            // Очищаем чат
             elements.chatMessages.innerHTML = '';
             
-            // Восстанавливаем сообщения, которые отправляются
-            sendingMessages.forEach(msg => {
+            // Восстанавливаем временные сообщения
+            tempMessagesArray.forEach(msg => {
                 elements.chatMessages.appendChild(msg);
             });
             
-            // Добавляем все сообщения из истории
+            // Добавляем все сообщения из истории (исключая дубликаты временных)
             messages.forEach(message => {
-                // Проверяем, нет ли уже такого сообщения (чтобы избежать дубликатов)
-                const existingMessage = Array.from(elements.chatMessages.children).find(child => {
-                    const textElement = child.querySelector('.text-sm');
-                    return textElement && textElement.textContent === message.message_text;
+                // Проверяем, нет ли уже такого временного сообщения
+                const isDuplicate = tempMessagesArray.some(tempMsg => {
+                    const tempText = tempMsg.querySelector('.text-sm')?.textContent;
+                    return tempText === message.message_text;
                 });
                 
-                if (!existingMessage) {
+                if (!isDuplicate) {
                     addMessageToUI(message);
                 }
             });
@@ -1840,7 +1849,9 @@
             input.value = '';
             
             // НЕМЕДЛЕННО добавляем сообщение в UI как "отправляемое"
+            const tempMessageId = 'temp_' + Date.now();
             addMessageToUI({
+                id: tempMessageId,
                 message_text: messageText,
                 message_type: 'user_to_brigade',
                 user_name: getUserInfo().name,
@@ -1878,9 +1889,12 @@
                 console.log("✅ Сообщение отправлено:", data);
                 
                 if (data.success) {
-                    // Убираем флаг "отправляется" и обновляем историю
-                    removeSendingFlag();
-                    loadChatHistory(currentChatSession);
+                    // Убираем временное сообщение и загружаем актуальную историю
+                    removeTempMessage(tempMessageId);
+                    // Небольшая задержка чтобы сервер успел сохранить сообщение
+                    setTimeout(() => {
+                        loadChatHistory(currentChatSession);
+                    }, 300);
                     updateChatBadge();
                 } else {
                     throw new Error(data.error || 'Ошибка отправки');
@@ -1891,7 +1905,15 @@
                 // Показываем сообщение об ошибке и возвращаем текст в поле
                 showError('Не удалось отправить сообщение');
                 input.value = messageText;
-                removeSendingFlag();
+                removeTempMessage(tempMessageId);
+            }
+        }
+        
+        // Функция для удаления временного сообщения
+        function removeTempMessage(tempId) {
+            const tempMessage = elements.chatMessages.querySelector(`[data-temp-id="${tempId}"]`);
+            if (tempMessage) {
+                tempMessage.remove();
             }
         }
 
@@ -1904,6 +1926,12 @@
             
             const messageElement = document.createElement('div');
             messageElement.className = `${messageData.is_user ? 'message-user' : 'message-brigade'} ${messageData.is_sending ? 'message-sending' : ''}`;
+            
+            // Добавляем ID для временных сообщений
+            if (messageData.id && messageData.is_sending) {
+                messageElement.setAttribute('data-temp-id', messageData.id);
+            }
+            
             messageElement.innerHTML = `
                 <div class="flex items-end gap-2">
                     ${!messageData.is_user ? `
