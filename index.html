@@ -3218,6 +3218,10 @@
                 navigationStack = [];
                 updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
                 elements.pageTitle.textContent = 'Каталог товаров';
+
+                closeAllChatWindows(); // Закрываем чат
+                elements.chatContainer.style.display = 'none';
+                elements.chatListContainer.style.display = 'none';
                 
                 const data = await apiFetch('/sections');
                 
