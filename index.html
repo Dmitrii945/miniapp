@@ -1065,6 +1065,17 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
             z-index: 999;
             border: none;
+            transition: all 0.3s ease;
+        }
+        
+        /* Скрыть кнопку чата по умолчанию */
+        .chat-toggle {
+            display: none !important;
+        }
+        
+        /* Показывать кнопку чата только когда нужно */
+        .chat-toggle.visible {
+            display: flex !important;
         }
 
         .chat-sessions-list {
@@ -1522,13 +1533,17 @@
         function toggleChatWindow() {
             const chatContainer = elements.chatContainer;
             const chatListContainer = elements.chatListContainer;
+            const chatToggle = document.querySelector('.chat-toggle');
             
             if (chatContainer.style.display !== 'none') {
                 closeChat();
+                chatToggle.classList.remove('visible');
             } else if (chatListContainer.style.display !== 'none') {
                 closeChatList();
+                chatToggle.classList.remove('visible');
             } else {
                 showChatList();
+                chatToggle.classList.add('visible');
             }
         }
 
@@ -3208,10 +3223,17 @@
                 navigationStack = [];
                 updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
                 elements.pageTitle.textContent = 'Каталог товаров';
-
-                closeAllChatWindows(); // Закрываем чат
+        
+                // Скрыть все элементы чата
+                closeAllChatWindows();
                 elements.chatContainer.style.display = 'none';
                 elements.chatListContainer.style.display = 'none';
+                
+                // Скрыть кнопку чата
+                const chatToggle = document.querySelector('.chat-toggle');
+                if (chatToggle) {
+                    chatToggle.classList.remove('visible');
+                }
                 
                 const data = await apiFetch('/sections');
                 
@@ -3224,7 +3246,7 @@
                     showEmptyState('Разделы не найдены');
                     return;
                 }
-
+        
                 renderSections(data.sections);
                 updateBackButton();
             } catch (error) {
@@ -4086,61 +4108,130 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
+                console.log("🚀 Запуск инициализации приложения");
+                
+                // Инициализация Telegram Web App
                 initTelegramApp();
+                
+                // Исправление цветов для мобильных устройств
                 fixMobileColors();
+                
+                // Инициализация иконок Feather
                 scheduleFeatherReplace();
                 
+                // Получаем элементы управления
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
                 const installButton = document.getElementById('installButton');
+                const chatToggle = document.querySelector('.chat-toggle');
                 
+                // Настройка кнопки меню
                 if (toggleMenuBtn) {
                     toggleMenuBtn.addEventListener('click', openSideMenu);
+                    console.log("✅ Кнопка меню инициализирована");
                 }
                 
+                // Настройка кнопки закрытия меню
                 if (closeMenuBtn) {
                     closeMenuBtn.addEventListener('click', closeSideMenu);
+                    console.log("✅ Кнопка закрытия меню инициализирована");
                 }
-
+        
+                // Настройка кнопки установки PWA
                 if (installButton) {
                     installButton.addEventListener('click', installPWA);
+                    console.log("✅ Кнопка установки PWA инициализирована");
                 }
                 
-                elements.sideMenu.addEventListener('click', (e) => {
-                    if (e.target === elements.sideMenu) {
-                        closeSideMenu();
-                    }
-                });
-
+                // Закрытие меню при клике вне его области
+                if (elements.sideMenu) {
+                    elements.sideMenu.addEventListener('click', (e) => {
+                        if (e.target === elements.sideMenu) {
+                            closeSideMenu();
+                        }
+                    });
+                    console.log("✅ Обработчик закрытия меню настроен");
+                }
+        
+                // Обработчик для PWA установки
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     deferredPrompt = e;
+                    console.log("📱 PWA: установка доступна");
                     if (installButton) {
                         installButton.style.display = 'flex';
                     }
                 });
-
+        
+                // Обработчик успешной установки PWA
                 window.addEventListener('appinstalled', (e) => {
                     deferredPrompt = null;
+                    console.log("✅ PWA успешно установлено");
                     if (installButton) {
                         installButton.style.display = 'none';
                     }
                 });
                 
-                // Запускаем обновление бейджа чата
-                chatBadgeUpdateInterval = setInterval(updateChatBadge, 30000);
+                // Скрываем кнопку чата при запуске приложения
+                if (chatToggle) {
+                    chatToggle.style.display = 'none';
+                    console.log("✅ Кнопка чата скрыта при запуске");
+                }
                 
+                // Скрываем контейнеры чата при запуске
+                if (elements.chatContainer) {
+                    elements.chatContainer.style.display = 'none';
+                }
+                
+                if (elements.chatListContainer) {
+                    elements.chatListContainer.style.display = 'none';
+                }
+                
+                console.log("✅ Все элементы чата скрыты при запуске");
+                
+                // Запускаем периодическое обновление бейджа чата (но сам чат скрыт)
+                chatBadgeUpdateInterval = setInterval(updateChatBadge, 30000);
+                console.log("✅ Интервал обновления бейджа чата запущен");
+                
+                // Загружаем основной контент с небольшой задержкой
                 setTimeout(() => {
+                    console.log("📦 Загрузка основного контента...");
                     loadSections();
-                    updateChatBadge(); // Первоначальное обновление бейджа
+                    updateChatBadge(); // Первоначальное обновление бейджа (не показывает кнопку)
+                    
+                    // Дополнительная проверка - убеждаемся что чат скрыт
+                    setTimeout(() => {
+                        const chatElements = document.querySelectorAll('.chat-toggle, .chat-container, .chat-list-container');
+                        chatElements.forEach(element => {
+                            if (element) {
+                                element.style.display = 'none';
+                            }
+                        });
+                        console.log("✅ Дополнительная проверка: все элементы чата скрыты");
+                    }, 500);
+                    
                 }, 100);
                 
+                console.log("🎉 Инициализация приложения завершена успешно");
+                
             } catch (error) {
-                console.error('Ошибка инициализации:', error);
-                showError('Ошибка загрузки приложения');
+                console.error('❌ Ошибка инициализации:', error);
+                showError('Ошибка загрузки приложения: ' + error.message);
+                
+                // Показываем кнопку возврата в случае ошибки
+                elements.content.innerHTML = `
+                    <div class="p-8 text-center">
+                        <i data-feather="alert-triangle" class="w-16 h-16 mx-auto text-red-500 mb-4"></i>
+                        <h2 class="text-xl font-bold text-red-600 mb-2">Ошибка загрузки</h2>
+                        <p class="text-gray-600 mb-4">${error.message}</p>
+                        <button onclick="location.reload()" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium">
+                            Перезагрузить приложение
+                        </button>
+                    </div>
+                `;
+                scheduleFeatherReplace();
             }
         });
-
         // Глобальные функции
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
