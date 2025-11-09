@@ -1110,6 +1110,24 @@
             font-size: 12px;
             font-weight: bold;
         }
+
+        /* ДОБАВЬТЕ ЭТИ СТИЛИ ПОСЛЕ СУЩЕСТВУЮЩИХ СТИЛЕЙ ДЛЯ ЧАТА */
+        .message-sending {
+            opacity: 0.7;
+        }
+        
+        .message-sending .text-sm {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .message-user .message-sending .text-sm {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        .message-brigade .message-sending .text-sm {
+            color: rgba(55, 65, 81, 0.8) !important;
+        }
+        
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -1608,7 +1626,7 @@
                 clearInterval(chatUpdateInterval);
             }
             chatUpdateInterval = setInterval(() => {
-                if (currentChatSession) {
+                if (currentChatSession && !isSendingMessage) {
                     loadChatHistory(currentChatSession);
                 }
             }, 3000);
@@ -1768,47 +1786,35 @@
                 return;
             }
             
-            let html = '';
-            messages.forEach(message => {
-                const isUser = message.message_type === 'user_to_brigade';
-                const time = new Date(message.timestamp).toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                html += `
-                    <div class="${isUser ? 'message-user' : 'message-brigade'}">
-                        <div class="flex items-end gap-2">
-                            ${!isUser ? `
-                                <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
-                                    👷
-                                </div>
-                            ` : ''}
-                            <div class="flex-1">
-                                <div class="text-sm">${escapeHtml(message.message_text)}</div>
-                                <div class="text-xs opacity-70 mt-1 flex justify-between items-center">
-                                    <span>${time}</span>
-                                    <span class="text-xs opacity-50">${escapeHtml(message.user_name)}</span>
-                                </div>
-                            </div>
-                            ${isUser ? `
-                                <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
-                                    👤
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
+            // Очищаем чат, но сохраняем сообщения с флагом "отправляется"
+            const sendingMessages = elements.chatMessages.querySelectorAll('.message-sending');
+            elements.chatMessages.innerHTML = '';
+            
+            // Восстанавливаем сообщения, которые отправляются
+            sendingMessages.forEach(msg => {
+                elements.chatMessages.appendChild(msg);
             });
             
-            elements.chatMessages.innerHTML = html;
+            // Добавляем все сообщения из истории
+            messages.forEach(message => {
+                // Проверяем, нет ли уже такого сообщения (чтобы избежать дубликатов)
+                const existingMessage = Array.from(elements.chatMessages.children).find(child => {
+                    const textElement = child.querySelector('.text-sm');
+                    return textElement && textElement.textContent === message.message_text;
+                });
+                
+                if (!existingMessage) {
+                    addMessageToUI(message);
+                }
+            });
+            
             elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
             scheduleFeatherReplace();
         }
         
         function handleChatInputKeypress(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // ← ДОБАВЬТЕ ЭТУ СТРОКУ
+                event.preventDefault();
                 sendChatMessage();
             }
         }
@@ -1829,67 +1835,114 @@
                 return;
             }
         
+            // Сохраняем сообщение и очищаем поле ВМЕСТЕ
+            const messageText = message;
+            input.value = '';
+            
+            // НЕМЕДЛЕННО добавляем сообщение в UI как "отправляемое"
+            addMessageToUI({
+                message_text: messageText,
+                message_type: 'user_to_brigade',
+                user_name: getUserInfo().name,
+                timestamp: new Date().toISOString(),
+                is_read: true,
+                is_user: true,
+                is_sending: true // флаг что сообщение отправляется
+            });
+        
             const userInfo = getUserInfo();
             const requestData = {
                 user_id: userInfo.id,
                 user_name: userInfo.name,
                 brigade_name: currentBrigadeChat,
-                message_text: message,
+                message_text: messageText,
                 object_name: currentObjectChat
             };
             
             console.log("📤 Отправка сообщения:", requestData);
             
-            // ← ИСПРАВЛЕНИЕ: Используем XMLHttpRequest для Telegram WebView
-            return new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', `${API_BASE}/chat/send_message`);
-                xhr.setRequestHeader('Content-Type', 'application/json');
+            try {
+                const response = await fetch(`${API_BASE}/chat/send_message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+        
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+        
+                const data = await response.json();
+                console.log("✅ Сообщение отправлено:", data);
                 
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            console.log("✅ Сообщение отправлено:", data);
-                            
-                            if (data.success) {
-                                input.value = '';
-                                loadChatHistory(currentChatSession);
-                                updateChatBadge();
-                                resolve(data);
-                            } else {
-                                showError(data.error || 'Ошибка отправки');
-                                reject(data.error);
-                            }
-                        } catch (error) {
-                            console.error("❌ Ошибка парсинга ответа:", error);
-                            showError('Ошибка обработки ответа');
-                            reject(error);
-                        }
-                    } else {
-                        console.error("❌ HTTP ошибка:", xhr.status);
-                        showError('Ошибка сети: ' + xhr.status);
-                        reject(new Error('HTTP ' + xhr.status));
-                    }
-                };
+                if (data.success) {
+                    // Убираем флаг "отправляется" и обновляем историю
+                    removeSendingFlag();
+                    loadChatHistory(currentChatSession);
+                    updateChatBadge();
+                } else {
+                    throw new Error(data.error || 'Ошибка отправки');
+                }
                 
-                xhr.onerror = function() {
-                    console.error("❌ Ошибка сети XHR");
-                    showError('Ошибка сети при отправке');
-                    reject(new Error('Network error'));
-                };
-                
-                xhr.ontimeout = function() {
-                    console.error("❌ Таймаут XHR");
-                    showError('Таймаут соединения');
-                    reject(new Error('Timeout'));
-                };
-                
-                xhr.timeout = 10000; // 10 секунд таймаут
-                xhr.send(JSON.stringify(requestData));
-            });
+            } catch (error) {
+                console.error("❌ Ошибка отправки:", error);
+                // Показываем сообщение об ошибке и возвращаем текст в поле
+                showError('Не удалось отправить сообщение');
+                input.value = messageText;
+                removeSendingFlag();
+            }
         }
 
+        // Функция для немедленного добавления сообщения в UI
+        function addMessageToUI(messageData) {
+            const time = new Date(messageData.timestamp).toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = `${messageData.is_user ? 'message-user' : 'message-brigade'} ${messageData.is_sending ? 'message-sending' : ''}`;
+            messageElement.innerHTML = `
+                <div class="flex items-end gap-2">
+                    ${!messageData.is_user ? `
+                        <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                            👷
+                        </div>
+                    ` : ''}
+                    <div class="flex-1">
+                        <div class="text-sm">${escapeHtml(messageData.message_text)}</div>
+                        <div class="text-xs opacity-70 mt-1 flex justify-between items-center">
+                            <span>${time}</span>
+                            <span class="text-xs opacity-50">${escapeHtml(messageData.user_name)}</span>
+                            ${messageData.is_sending ? '<span class="text-xs opacity-50">⏳</span>' : ''}
+                        </div>
+                    </div>
+                    ${messageData.is_user ? `
+                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                            👤
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            elements.chatMessages.appendChild(messageElement);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }
+        
+        // Функция для удаления флага "отправляется"
+        function removeSendingFlag() {
+            const sendingMessages = elements.chatMessages.querySelectorAll('.message-sending');
+            sendingMessages.forEach(msg => {
+                msg.classList.remove('message-sending');
+                const sendingIcon = msg.querySelector('.text-xs.opacity-50:last-child');
+                if (sendingIcon) {
+                    sendingIcon.remove();
+                }
+            });
+        }
+        
         async function markMessagesAsRead(sessionId) {
             try {
                 await fetch(`${API_BASE}/chat/mark_read/${sessionId}`, {
