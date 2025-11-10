@@ -8,205 +8,790 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* ... (все предыдущие стили остаются без изменений) ... */
-
-        /* НОВЫЕ СТИЛИ ДЛЯ ЧАТА */
-        .chat-container {
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-secondary-bg-color: #f4f4f5;
+            --tg-theme-button-color: #3B82F6;
+            --tg-theme-button-text-color: #ffffff;
+        }
+        
+        .tg-theme-button {
+            background-color: var(--tg-theme-button-color, #3B82F6);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+        
+        .tg-theme-text {
+            color: var(--tg-theme-text-color, #000000) !important;
+        }
+        
+        .tg-theme-hint {
+            color: var(--tg-theme-hint-color, #999999);
+        }
+        
+        .tg-theme-secondary-bg {
+            background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #f3f4f6;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .external-link {
+            color: #3B82F6;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .price-badge {
+            background-color: #10B981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .image-loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #3B82F6 !important;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb-item:hover {
+            color: #1D4ED8 !important;
+            text-decoration: underline;
+        }
+        
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: #6B7280;
+        }
+        
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .product-card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             border: 1px solid #e5e7eb;
             overflow: hidden;
-            height: 500px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header {
-            padding: 16px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .chat-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1F2937;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
+            transition: all 0.2s;
+            cursor: pointer;
             position: relative;
-            word-wrap: break-word;
         }
 
-        .message-client {
-            align-self: flex-end;
-            background: #3B82F6;
-            color: white;
-            border-bottom-right-radius: 4px;
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-
-        .message-brigade {
-            align-self: flex-start;
-            background: #f3f4f6;
-            color: #1F2937;
-            border-bottom-left-radius: 4px;
-        }
-
-        .message-time {
-            font-size: 0.75rem;
-            opacity: 0.7;
-            margin-top: 4px;
-            text-align: right;
-        }
-
-        .chat-input-container {
-            padding: 16px;
-            border-top: 1px solid #e5e7eb;
+        
+        .category-card {
             background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
         }
 
-        .chat-input-wrapper {
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .retry-button {
+            background-color: #3B82F6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .retry-button:hover {
+            background-color: #2563EB;
+        }
+
+        .action-buttons {
             display: flex;
             gap: 8px;
-            align-items: flex-end;
+            margin-top: 12px;
         }
-
-        .chat-input {
+        
+        .action-button {
             flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #d1d5db;
-            border-radius: 24px;
-            resize: none;
-            max-height: 120px;
-            font-family: inherit;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white !important;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .phone-button {
+            background-color: #10B981;
+            color: white;
+        }
+        
+        .phone-button:hover {
+            background-color: #059669;
+        }
+        
+        .gis-button {
+            background-color: #F59E0B;
+            color: white;
+        }
+        
+        .gis-button:hover {
+            background-color: #D97706;
         }
 
-        .chat-input:focus {
-            outline: none;
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        .taxi-button {
+            background-color: #8B5CF6;
+            color: white;
+        }
+        
+        .taxi-button:hover {
+            background-color: #7C3AED;
         }
 
-        .send-button {
-            background: #3B82F6;
+        .share-button {
+            background-color: #EC4899;
+            color: white;
+        }
+        
+        .share-button:hover {
+            background-color: #DB2777;
+        }
+        
+        .back-button {
+            background-color: #6B7280;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .back-button:hover {
+            background-color: #4B5563;
+            transform: translateY(-1px);
+        }
+
+        .clickable-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clickable-card:hover {
+            background-color: #f8fafc;
+        }
+
+        body {
+            color: #000000;
+            background-color: #f9fafb;
+        }
+
+        header {
+            background-color: white;
+            color: #000000;
+        }
+
+        h1, h2, h3, h4, h5, h6, p, span, div {
+            color: #000000;
+        }
+
+        button {
+            color: inherit;
+        }
+
+        [data-feather] {
+            color: inherit;
+        }
+
+        .text-contrast {
+            color: #000000 !important;
+        }
+
+        .bg-contrast {
+            background-color: #ffffff !important;
+        }
+
+        .menu-button {
+            background-color: #10B981;
             color: white;
             border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-button:hover {
+            background-color: #059669;
+            transform: scale(1.05);
+        }
+
+        .install-button {
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .install-button:hover {
+            background-color: #2563EB;
+            transform: scale(1.05);
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1F2937;
+        }
+
+        .menu-item:hover {
+            background-color: #F3F4F6;
+            transform: translateX(4px);
+        }
+
+        .menu-item i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #E5E7EB;
+            margin: 8px 0;
+        }
+
+        .taxi-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .taxi-service-button {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white !important;
+        }
+        
+        .taxi-service-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .yandex-taxi {
+            background-color: #FFCC00;
+            color: #000 !important;
+        }
+        
+        .yandex-taxi:hover {
+            background-color: #E6B800;
+        }
+        
+        .uber-taxi {
+            background-color: #000000;
+            color: white !important;
+        }
+        
+        .uber-taxi:hover {
+            background-color: #333333;
+        }
+
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            font-size: 1.125rem;
+            color: #6B7280;
+            font-weight: 400;
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        .favorite-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #e5e7eb;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
+            z-index: 10;
         }
 
-        .send-button:hover {
-            background: #2563EB;
-            transform: scale(1.05);
+        .favorite-button:hover {
+            background-color: #f9fafb;
+            transform: scale(1.1);
         }
 
-        .send-button:disabled {
-            background: #9CA3AF;
-            cursor: not-allowed;
-            transform: none;
+        .favorite-button.active {
+            background-color: #EF4444;
+            border-color: #EF4444;
         }
 
-        .chat-list {
-            display: flex;
-            flex-direction: column;
+        .favorite-button.active i {
+            color: white;
+        }
+
+        .favorite-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #374151;
+            z-index: 10;
+        }
+
+        .two-column-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 8px;
+            margin-top: 12px;
         }
 
-        .chat-item {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid #e5e7eb;
+        .large-button {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white !important;
         }
 
-        .chat-item:hover {
-            background: #f8fafc;
+        .large-button:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .chat-item-info {
-            flex: 1;
+        /* Стили для бригад */
+        .brigade-group {
+            margin-bottom: 32px;
         }
 
-        .chat-item-name {
-            font-weight: 600;
+        .brigade-group-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding: 0 8px;
             color: #1F2937;
-            margin-bottom: 4px;
+            border-left: 4px solid #3B82F6;
+            padding-left: 12px;
         }
 
-        .chat-item-last-message {
-            color: #6B7280;
+        .brigade-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .brigade-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brigade-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .brigade-image-container {
+            position: relative;
+            width: 100%;
+            height: 80px;
+            overflow: hidden;
+        }
+
+        .brigade-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .brigade-image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .brigade-content {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brigade-title {
             font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1F2937;
+            line-height: 1.2;
             display: -webkit-box;
-            -webkit-line-clamp: 1;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        .chat-item-meta {
-            text-align: right;
-            min-width: 80px;
-        }
-
-        .chat-item-time {
-            font-size: 0.75rem;
-            color: #9CA3AF;
-            margin-bottom: 4px;
-        }
-
-        .chat-item-unread {
-            background: #EF4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-left: auto;
-        }
-
-        .no-chats {
-            text-align: center;
-            padding: 40px 20px;
+        .brigade-description {
             color: #6B7280;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .no-chats i {
+        .object-count {
+            background-color: #3B82F6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .object-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
             margin-bottom: 16px;
         }
 
-        .back-to-chats {
+        .object-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .object-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1F2937;
+        }
+
+        .object-description {
+            color: #6B7280;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        /* НОВЫЕ СТИЛИ ДЛЯ ГАЛЕРЕИ ОБЪЕКТОВ */
+        .object-gallery-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .object-gallery-header {
+            padding: 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .object-gallery-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1F2937;
+        }
+
+        .object-gallery-description {
+            color: #6B7280;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .object-gallery-images {
+            padding: 16px;
+        }
+
+        .object-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .object-gallery-image-item {
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e5e7eb;
+        }
+
+        .object-gallery-image-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .object-gallery-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .object-gallery-image-placeholder {
+            width: 100%;
+            height: 120px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+
+        /* Стили для полноэкранной галереи */
+        .gallery-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gallery-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .gallery-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .gallery-status {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-sold {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .status-sale {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .status-building {
+            background-color: #F59E0B;
+            color: white;
+        }
+
+        .gallery-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gallery-image {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.5rem;
+        }
+
+        .gallery-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .gallery-prev {
+            left: 20px;
+        }
+
+        .gallery-next {
+            right: 20px;
+        }
+
+        .gallery-footer {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .gallery-description {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .gallery-object-info {
+            font-size: 0.9rem;
+            color: #9CA3AF;
+        }
+
+        .gallery-counter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .back-to-brigades {
             background-color: #6B7280;
             color: white;
             padding: 12px 20px;
@@ -222,27 +807,154 @@
             justify-content: center;
         }
 
-        .back-to-chats:hover {
+        .back-to-brigades:hover {
             background-color: #4B5563;
             transform: translateY(-1px);
         }
 
-        .chat-brigade-info {
-            background: #f8fafc;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
+        .image-error {
+            display: none;
         }
 
-        .chat-brigade-name {
+        .image-error.show {
+            display: flex;
+        }
+
+        /* Стили для улучшенной загрузки изображений */
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            color: #6b7280;
+            width: 100%;
+            height: 100%;
+        }
+
+        .image-fallback {
+            display: none;
+        }
+
+        .image-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Универсальные стили для изображений */
+        .universal-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .universal-image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .universal-image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+
+        /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
+        /* НОВЫЕ СТИЛИ ДЛЯ ОКНА ИНФОРМАЦИИ */
+        .info-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-modal-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .info-modal-title {
+            font-size: 1.25rem;
             font-weight: 600;
-            color: #1F2937;
-            margin-bottom: 4px;
         }
-
-        .chat-brigade-description {
-            color: #6B7280;
-            font-size: 0.875rem;
+        
+        .info-modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .info-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .info-modal-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            color: white;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-line;
+            word-wrap: break-word;
+        }
+        
+        .info-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            width: 100%;
+        }
+        
+        .info-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
     </style>
 </head>
@@ -301,12 +1013,40 @@
 
         <!-- Gallery Modal -->
         <div id="galleryModal" class="gallery-container hidden">
-            <!-- ... (без изменений) ... -->
+            <div class="gallery-header">
+                <button onclick="closeGallery()" class="text-white p-2 rounded-lg hover:bg-gray-700">
+                    <i data-feather="x" class="w-6 h-6"></i>
+                </button>
+                <div class="gallery-title" id="galleryCardTitle"></div>
+                <div class="gallery-status" id="galleryStatus"></div>
+            </div>
+            <div class="gallery-content">
+                <div class="gallery-counter" id="galleryCounter"></div>
+                <button class="gallery-nav gallery-prev" onclick="prevGalleryImage()">
+                    <i data-feather="chevron-left"></i>
+                </button>
+                <img id="galleryCurrentImage" class="gallery-image" src="" alt="">
+                <button class="gallery-nav gallery-next" onclick="nextGalleryImage()">
+                    <i data-feather="chevron-right"></i>
+                </button>
+            </div>
+            <div class="gallery-footer">
+                <div class="gallery-description" id="galleryDescription"></div>
+                <div class="gallery-object-info" id="galleryObjectInfo"></div>
+            </div>
         </div>
 
         <!-- Info Modal -->
         <div id="infoModal" class="info-modal hidden">
-            <!-- ... (без изменений) ... -->
+            <div class="info-modal-header">
+                <h2 class="info-modal-title">Информация по объекту</h2>
+                <button onclick="closeInfoModal()" class="info-modal-close">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="info-modal-content" id="infoModalContent">
+                <!-- Сюда вставляется описание -->
+            </div>
         </div>
 
         <!-- Side Menu -->
@@ -327,15 +1067,6 @@
                             <div>
                                 <div class="font-medium">Избранное</div>
                                 <div class="text-sm text-gray-600">Сохраненные товары</div>
-                            </div>
-                        </div>
-
-                        <!-- ЧАТЫ -->
-                        <div class="menu-item" onclick="loadChats(); closeSideMenu();">
-                            <i data-feather="message-square"></i>
-                            <div>
-                                <div class="font-medium">Мои чаты</div>
-                                <div class="text-sm text-gray-600">Общение с бригадами</div>
                             </div>
                         </div>
 
@@ -439,11 +1170,6 @@
         let currentBrigadeData = null;
         let currentObjectData = null;
 
-        // Состояние для чата
-        let currentChatId = null;
-        let currentBrigadeChat = null;
-        let chatRefreshInterval = null;
-
         // Контактная информация
         const CONTACT_INFO = {
             phone: "60-01-60",
@@ -479,90 +1205,153 @@
             infoModalContent: document.getElementById('infoModalContent')
         };
 
-        // ========== ФУНКЦИИ ЧАТА ==========
+        // ========== УТИЛИТЫ ==========
 
-        function getUserId() {
-            // Используем Telegram Web App user ID или генерируем уникальный ID
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                return `tg_${tg.initDataUnsafe.user.id}`;
+        function fixMobileColors() {
+            if (!window.Telegram?.WebApp) {
+                document.documentElement.style.setProperty('--tg-theme-bg-color', '#ffffff');
+                document.documentElement.style.setProperty('--tg-theme-text-color', '#000000');
+                document.documentElement.style.setProperty('--tg-theme-hint-color', '#666666');
+                document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', '#f3f4f6');
+                document.documentElement.style.setProperty('--tg-theme-button-color', '#3B82F6');
+                document.documentElement.style.setProperty('--tg-theme-button-text-color', '#ffffff');
             }
-            
-            // Генерируем уникальный ID для браузера
-            let userId = localStorage.getItem('user_id');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('user_id', userId);
-            }
-            return userId;
         }
 
-        async function loadChats() {
-            lastAction = { type: 'loadChats' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Мои чаты', action: 'loadChats' }]);
-            elements.pageTitle.textContent = 'Мои чаты';
-            
-            showLoading();
-            
+        function escapeHtml(unsafe) {
+            if (unsafe == null) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function safeGet(obj, path, defaultValue = '') {
+            if (!obj) return defaultValue;
+            return path.split('.').reduce((acc, key) => 
+                acc && acc[key] !== undefined && acc[key] !== null ? acc[key] : defaultValue, obj);
+        }
+
+        function safeString(value, defaultValue = '') {
+            if (value == null) return defaultValue;
+            return String(value);
+        }
+
+        function safeNumber(value, defaultValue = 0) {
+            if (value == null) return defaultValue;
+            const num = Number(value);
+            return isNaN(num) ? defaultValue : num;
+        }
+
+        function scheduleFeatherReplace() {
+            clearTimeout(featherTimeout);
+            featherTimeout = setTimeout(() => {
+                try {
+                    feather.replace();
+                } catch (error) {
+                    console.log('Ошибка feather.replace:', error);
+                }
+            }, 100);
+        }
+
+        function extractNumericPrice(priceStr) {
+            if (!priceStr || typeof priceStr !== 'string') {
+                return Infinity;
+            }
+
             try {
-                const userId = getUserId();
-                const response = await fetch(`${API_BASE}/chat/get_chats/${userId}`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data.error) {
-                    showEmptyState('Ошибка загрузки чатов');
-                    return;
+                let cleanStr = priceStr.trim();
+                if (!cleanStr) return Infinity;
+
+                cleanStr = cleanStr.replace(/[^\d,.]/g, '');
+
+                if (!cleanStr) return Infinity;
+
+                cleanStr = cleanStr.replace(',', '.');
+
+                const parts = cleanStr.split('.');
+                if (parts.length > 2) {
+                    cleanStr = parts[0] + '.' + parts.slice(1).join('');
                 }
-                
-                if (!data.chats || data.chats.length === 0) {
-                    showEmptyState('У вас пока нет чатов');
-                    return;
-                }
-                
-                renderChatList(data.chats);
-                updateBackButton();
+
+                const result = parseFloat(cleanStr);
+                return isNaN(result) ? Infinity : result;
             } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки чатов');
+                console.log(`Ошибка преобразования цены '${priceStr}':`, error);
+                return Infinity;
             }
         }
 
-        function renderChatList(chats) {
+        function formatPriceText(price) {
+            if (price === null || price === Infinity || price === 0) return "";
+            return ` от ${Math.round(price)} р.`;
+        }
+
+        function formatPriceForBadge(price) {
+            if (!price || price === 'Цена не указана') return '';
+            const numericPrice = extractNumericPrice(price);
+            if (numericPrice === Infinity) return '';
+            return `${Math.round(numericPrice)} р.`;
+        }
+
+        // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
+        function makePhoneCall() {
+            const phoneNumber = CONTACT_INFO.phone;
+            if (tg) {
+                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            } else {
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            }
+        }
+
+        function open2GIS() {
+            if (tg) {
+                tg.openLink(CONTACT_INFO.gisUrl);
+            } else {
+                window.open(CONTACT_INFO.gisUrl, '_blank');
+            }
+        }
+
+        function openTelegramChannel() {
+            if (tg) {
+                tg.openLink(CONTACT_INFO.telegramChannel);
+            } else {
+                window.open(CONTACT_INFO.telegramChannel, '_blank');
+            }
+        }
+
+        // ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ
+        function callTaxi() {
+            const address = encodeURIComponent(CONTACT_INFO.address);
+            const lat = CONTACT_INFO.coordinates.lat;
+            const lon = CONTACT_INFO.coordinates.lon;
+            
             let html = `
-                <div class="space-y-4">
-                    <div class="bg-white rounded-xl p-4 shadow-sm">
-                        <h2 class="text-lg font-semibold text-contrast">Мои чаты</h2>
-                        <p class="text-gray-600 text-sm mt-1">Общение с бригадами</p>
+                <div class="bg-white rounded-xl p-4 shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-contrast">Вызвать такси</h3>
+                    <p class="text-gray-600 mb-4 text-contrast">Выберите сервис такси для поездки в наш магазин:</p>
+                    
+                    <div class="taxi-buttons">
+                        <button onclick="openYandexTaxi()" class="taxi-service-button yandex-taxi">
+                            <i data-feather="navigation" class="w-4 h-4"></i>
+                            Яндекс Такси
+                        </button>
+                        <button onclick="openUber()" class="taxi-service-button uber-taxi">
+                            <i data-feather="car" class="w-4 h-4"></i>
+                            Uber
+                        </button>
                     </div>
                     
-                    <div class="chat-list">
-            `;
-            
-            chats.forEach(chat => {
-                const lastMessageTime = formatMessageTime(chat.last_message_time);
-                const unreadCount = chat.unread_count || 0;
-                
-                html += `
-                    <div class="chat-item fade-in" onclick="openChat(${chat.chat_id}, '${escapeHtml(chat.brigade_name)}')">
-                        <div class="chat-item-info">
-                            <div class="chat-item-name">${escapeHtml(chat.brigade_name)}</div>
-                            <div class="chat-item-last-message">${escapeHtml(chat.last_message || 'Нет сообщений')}</div>
-                        </div>
-                        <div class="chat-item-meta">
-                            <div class="chat-item-time">${lastMessageTime}</div>
-                            ${unreadCount > 0 ? `<div class="chat-item-unread">${unreadCount}</div>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `
+                    <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                        <p class="text-sm text-blue-700">
+                            <i data-feather="map-pin" class="w-4 h-4 inline mr-1"></i>
+                            Адрес: ${CONTACT_INFO.address}
+                        </p>
                     </div>
                     
-                    <button onclick="loadSections()" class="back-to-chats">
+                    <button onclick="loadSections()" class="back-button mt-4">
                         <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
                         Назад в каталог
                     </button>
@@ -573,247 +1362,694 @@
             scheduleFeatherReplace();
         }
 
-        async function openChat(chatId, brigadeName) {
-            currentChatId = chatId;
-            currentBrigadeChat = { name: brigadeName };
-            
-            navigationStack.push({ 
-                type: 'chat', 
-                id: chatId, 
-                name: `Чат с ${brigadeName}` 
-            });
-            
-            updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = `Чат с ${brigadeName}`;
-            
-            await loadChatMessages(chatId);
-            
-            // Запускаем автообновление чата
-            if (chatRefreshInterval) {
-                clearInterval(chatRefreshInterval);
-            }
-            chatRefreshInterval = setInterval(() => {
-                loadChatMessages(chatId, true); // true - silent update
-            }, 5000); // Обновляем каждые 5 секунд
+        function openTaxiMenu() {
+            callTaxi();
         }
 
-        async function loadChatMessages(chatId, silent = false) {
-            if (!silent) {
-                showLoading();
-            }
+        function openYandexTaxi() {
+            const lat = CONTACT_INFO.coordinates.lat;
+            const lon = CONTACT_INFO.coordinates.lon;
+            const address = encodeURIComponent(CONTACT_INFO.address);
             
-            try {
-                const response = await fetch(`${API_BASE}/chat/get_messages/${chatId}`);
-                const data = await response.json();
+            const yandexTaxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lon}&end-text=${address}&appmetrica_tracking_id=1178268795219780156`;
+            
+            if (tg) {
+                tg.openLink(yandexTaxiUrl);
+            } else {
+                window.open(yandexTaxiUrl, '_blank');
+            }
+        }
+
+        function openUber() {
+            const lat = CONTACT_INFO.coordinates.lat;
+            const lon = CONTACT_INFO.coordinates.lon;
+            const address = encodeURIComponent(CONTACT_INFO.address);
+            
+            const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${address}&dropoff[latitude]=${lat}&dropoff[longitude]=${lon}`;
+            
+            if (tg) {
+                tg.openLink(uberUrl);
+            } else {
+                window.open(uberUrl, '_blank');
+            }
+        }
+
+        // ФУНКЦИИ ДЛЯ ДОБАВЛЕНИЯ НА ГЛАВНЫЙ ЭКРАН
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
                 
-                if (!silent) {
-                    hideLoading();
-                }
-                
-                if (data.error) {
-                    if (!silent) {
-                        showError('Ошибка загрузки сообщений');
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Пользователь принял установку');
+                        if (tg) {
+                            tg.showAlert('Приложение успешно добавлено на главный экран!');
+                        } else {
+                            alert('Приложение успешно добавлено на главный экран!');
+                        }
+                    } else {
+                        console.log('Пользователь отклонил установку');
                     }
-                    return;
-                }
-                
-                renderChatMessages(data.messages);
-            } catch (error) {
-                if (!silent) {
-                    hideLoading();
-                    showError('Ошибка загрузки сообщений');
-                }
+                    
+                    deferredPrompt = null;
+                });
+            } else {
+                showInstallInstructions();
             }
         }
 
-        function renderChatMessages(messages) {
-            let html = `
-                <div class="space-y-4">
-                    <div class="chat-brigade-info">
-                        <div class="chat-brigade-name">Чат с ${escapeHtml(currentBrigadeChat.name)}</div>
-                        <div class="chat-brigade-description">Задавайте вопросы по объектам и работам</div>
-                    </div>
-                    
-                    <div class="chat-container">
-                        <div class="chat-header">
-                            <div class="chat-title">${escapeHtml(currentBrigadeChat.name)}</div>
-                        </div>
-                        
-                        <div class="chat-messages" id="chatMessages">
-            `;
+        function showInstallInstructions() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isAndroid = /Android/.test(navigator.userAgent);
             
-            if (!messages || messages.length === 0) {
-                html += `
-                            <div class="no-chats">
-                                <i data-feather="message-square" class="w-12 h-12 mx-auto text-gray-400"></i>
-                                <p>Пока нет сообщений</p>
-                                <p class="text-sm mt-2">Напишите первое сообщение!</p>
+            let instructions = '';
+            
+            if (isIOS) {
+                instructions = `
+                    <div class="bg-white rounded-xl p-4 shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран (iOS)</h3>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                                <span>Нажмите кнопку "Поделиться" <i data-feather="share" class="w-4 h-4 inline"></i> в нижней панели Safari</span>
                             </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                                <span>Прокрутите меню и выберите "На экран «Домой»"</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                                <span>Подтвердите добавление, нажав "Добавить" в правом верхнем углу</span>
+                            </div>
+                        </div>
+                        <button onclick="loadSections()" class="back-button mt-4">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад в каталог
+                        </button>
+                    </div>
+                `;
+            } else if (isAndroid) {
+                instructions = `
+                    <div class="bg-white rounded-xl p-4 shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран (Android)</h3>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                                <span>Нажмите на меню (три точки) в правом верхнем углу браузера</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                                <span>Выберите "Добавить на главный экран" или "Установить приложение"</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                                <span>Подтвердите установку в появившемся диалоговом окне</span>
+                            </div>
+                        </div>
+                        <button onclick="loadSections()" class="back-button mt-4">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад в каталог
+                        </button>
+                    </div>
                 `;
             } else {
-                messages.forEach(message => {
-                    const messageTime = formatMessageTime(message.sent_time);
-                    const messageClass = message.sender_type === 'client' ? 'message-client' : 'message-brigade';
-                    
-                    html += `
-                        <div class="message ${messageClass}">
-                            <div class="message-text">${escapeHtml(message.message_text)}</div>
-                            <div class="message-time">${messageTime}</div>
+                instructions = `
+                    <div class="bg-white rounded-xl p-4 shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-contrast">Добавить на главный экран</h3>
+                        <p class="text-gray-600 mb-4 text-contrast">Используйте функцию "Добавить на главный экран" в меню вашего браузера.</p>
+                        <div class="p-3 bg-yellow-50 rounded-lg mb-4">
+                            <p class="text-sm text-yellow-700">
+                                <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
+                                В разных браузерах эта функция может находиться в разных местах меню.
+                            </p>
                         </div>
-                    `;
-                });
+                        <button onclick="loadSections()" class="back-button">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад в каталог
+                        </button>
+                    </div>
+                `;
             }
             
+            elements.content.innerHTML = instructions;
+            scheduleFeatherReplace();
+        }
+
+        function showInstallPrompt() {
+            installPWA();
+        }
+
+        // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
+        function toggleFavorite(product, productIndex) {
+            const productId = generateProductId(product);
+            const isFavorite = favorites.some(fav => fav.id === productId);
+            
+            if (isFavorite) {
+                favorites = favorites.filter(fav => fav.id !== productId);
+                if (tg) {
+                    tg.showAlert('Товар удален из избранного');
+                }
+            } else {
+                const navigation = getCurrentNavigation();
+                favorites.push({
+                    id: productId,
+                    product: product,
+                    navigation: navigation,
+                    timestamp: Date.now()
+                });
+                if (tg) {
+                    tg.showAlert('Товар добавлен в избранное');
+                }
+            }
+            
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            updateFavoriteButton(productId, productIndex);
+        }
+
+        function generateProductId(product) {
+            return btoa(encodeURIComponent(
+                `${product.color || ''}-${product.price || ''}-${product.photo_url || ''}`
+            )).substring(0, 20);
+        }
+
+        function updateFavoriteButton(productId, productIndex) {
+            const isFavorite = favorites.some(fav => fav.id === productId);
+            const button = document.querySelector(`[data-product-index="${productIndex}"] .favorite-button`);
+            
+            if (button) {
+                if (isFavorite) {
+                    button.classList.add('active');
+                    button.innerHTML = '<i data-feather="heart"></i>';
+                } else {
+                    button.classList.remove('active');
+                    button.innerHTML = '<i data-feather="heart"></i>';
+                }
+                scheduleFeatherReplace();
+            }
+        }
+
+        function loadFavorites() {
+            lastAction = { type: 'loadFavorites' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Избранное', action: 'loadFavorites' }]);
+            elements.pageTitle.textContent = 'Избранное';
+            
+            if (!favorites || favorites.length === 0) {
+                showEmptyState('В избранном пока нет товаров');
+                return;
+            }
+
+            renderFavorites();
+            updateBackButton();
+        }
+
+        function renderFavorites() {
+            let html = '<div class="product-list">';
+            
             html += `
-                        </div>
-                        
-                        <div class="chat-input-container">
-                            <div class="chat-input-wrapper">
-                                <textarea 
-                                    id="chatMessageInput" 
-                                    class="chat-input" 
-                                    placeholder="Введите сообщение..." 
-                                    rows="1"
-                                    onkeydown="handleChatInputKeydown(event)"
-                                ></textarea>
-                                <button id="sendMessageButton" class="send-button" onclick="sendMessage()">
-                                    <i data-feather="send" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button onclick="loadChats()" class="back-to-chats">
-                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                        Назад к чатам
-                    </button>
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
                 </div>
             `;
+
+            favorites.forEach((fav, index) => {
+                const product = fav.product;
+                const navigation = fav.navigation;
+                
+                if (!product) return;
+                
+                const color = safeString(product.color, 'Не указан');
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const description = safeString(product.description);
+                const photoUrl = safeString(product.photo_url);
+                const photoDescription = safeString(product.photo_description);
+                
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+
+                html += `
+                    <div class="product-card fade-in" data-product-index="${index}">
+                        <div class="favorite-label">В избранном</div>
+                        <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
+                            <i data-feather="heart"></i>
+                        </div>
+                `;
+
+                html += renderUniversalImage(imageUrl, alternativeUrls, color, photoUrl);
+                
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="space-y-2 mb-4">
+                `;
+
+                if (photoDescription) {
+                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
+                }
+
+                if (description) {
+                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
+                }
+
+                if (navigation) {
+                    const breadcrumbs = [];
+                    
+                    if (navigation.section) {
+                        breadcrumbs.push(navigation.section.name);
+                    }
+                    
+                    if (navigation.category) {
+                        breadcrumbs.push(navigation.category.name);
+                    }
+                    
+                    if (navigation.model && navigation.model.name !== "Без модели") {
+                        breadcrumbs.push(navigation.model.name);
+                    }
+                    
+                    if (navigation.submodel && navigation.submodel.name !== "Без подмодели") {
+                        breadcrumbs.push(navigation.submodel.name);
+                    }
+
+                    if (breadcrumbs.length > 0) {
+                        html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
+                    }
+                }
+
+                html += `</div>`;
+
+                html += `
+                    <div class="two-column-buttons">
+                        <button onclick="makePhoneCall()" class="large-button phone-button">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        <button onclick="shareProductFromFavorites(${index})" class="large-button share-button">
+                            <i data-feather="share-2" class="w-4 h-4"></i>
+                            Поделиться
+                        </button>
+                    </div>
+                `;
+
+                html += `
+                    <div class="mt-3">
+                        <button onclick="contactAboutSpecificProductFromFavorites(${index})" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                            Узнать подробнее
+                        </button>
+                    </div>
+                `;
+
+                html += `</div></div>`;
+            });
+
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+
+            html += '</div>';
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
-            // Прокручиваем вниз к последним сообщениям
-            setTimeout(() => {
-                const messagesContainer = document.getElementById('chatMessages');
-                if (messagesContainer) {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }
-            }, 100);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        async function sendMessage() {
-            const input = document.getElementById('chatMessageInput');
-            const button = document.getElementById('sendMessageButton');
-            const messageText = input.value.trim();
+        function toggleFavoriteFromFavorites(favoriteId) {
+            favorites = favorites.filter(fav => fav.id !== favoriteId);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
             
-            if (!messageText) return;
+            if (favorites.length === 0) {
+                showEmptyState('В избранном пока нет товаров');
+            } else {
+                renderFavorites();
+            }
             
-            // Блокируем кнопку и поле ввода
-            input.disabled = true;
-            button.disabled = true;
+            if (tg) {
+                tg.showAlert('Товар удален из избранного');
+            }
+        }
+
+        function contactAboutSpecificProductFromFavorites(favoriteIndex) {
+            const favorite = favorites[favoriteIndex];
+            const product = favorite.product;
+            const navigation = favorite.navigation;
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар из избранного: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        // ФУНКЦИЯ ДЛЯ ПОДЕЛИТЬСЯ ТОВАРОМ
+        function shareProduct(productIndex) {
+            const product = currentProducts[productIndex];
+            const navigation = getCurrentNavigation();
+            
+            if (!product || !navigation.section) {
+                if (tg) {
+                    tg.showAlert('Ошибка: не удалось получить данные товара');
+                }
+                return;
+            }
+
+            const sectionHash = navigation.section.id;
+            const categoryHash = navigation.category?.id || 'null';
+            const modelHash = navigation.model?.id || 'null';
+            const submodelHash = navigation.submodel?.id || 'null';
+            
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
+            
+            if (tg) {
+                tg.openTelegramLink(shareUrl);
+            } else {
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: `Товар: ${product.color || 'Без названия'}`,
+                        text: `Посмотрите этот товар в каталоге Скидка Сервис`,
+                        url: shareUrl
+                    }).catch(() => {
+                        alert(message);
+                    });
+                } else {
+                    alert(message);
+                }
+            }
+        }
+
+        function shareProductFromFavorites(favoriteIndex) {
+            const favorite = favorites[favoriteIndex];
+            const product = favorite.product;
+            const navigation = favorite.navigation;
+            
+            if (!product || !navigation.section) {
+                if (tg) {
+                    tg.showAlert('Ошибка: не удалось получить данные товара');
+                }
+                return;
+            }
+
+            const sectionHash = navigation.section.id;
+            const categoryHash = navigation.category?.id || 'null';
+            const modelHash = navigation.model?.id || 'null';
+            const submodelHash = navigation.submodel?.id || 'null';
+            
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
+            
+            if (tg) {
+                tg.openTelegramLink(shareUrl);
+            } else {
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} 0`;
+                alert(message);
+            }
+        }
+
+        // УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ ИЗОБРАЖЕНИЙ
+        function renderUniversalImage(imageUrl, alternativeUrls, altText, originalUrl = '') {
+            if (imageUrl || alternativeUrls.length > 0) {
+                const finalImageUrl = imageUrl || alternativeUrls[0];
+                return `
+                    <div class="universal-image-container">
+                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(altText)}" 
+                             class="universal-image"
+                             onerror="handleUniversalImageError(this, '${escapeHtml(originalUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                             onload="handleUniversalImageLoad(this)"
+                             loading="lazy"
+                             crossorigin="anonymous"
+                             data-tried-alternative="0">
+                        <div class="universal-image-placeholder hidden">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="image" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Не удалось загрузить фото</div>
+                                <div class="text-xs mt-1">ID: ${escapeHtml(originalUrl?.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="universal-image-container">
+                        <div class="universal-image-placeholder">
+                            <div class="text-center text-gray-400">
+                                <i data-feather="package" class="w-12 h-12 mx-auto mb-2"></i>
+                                <div class="text-sm">Фото не доступно</div>
+                                ${originalUrl ? `<div class="text-xs mt-1">ID: ${escapeHtml(originalUrl.match(/[?&]id=([^&]+)/)?.[1] || 'неизвестен')}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ИЗВЛЕЧЕНИЯ ФОТО
+        function extractPhotoFilenameFromUrl(url) {
+            try {
+                if (!url || typeof url !== 'string') return null;
+
+                url = url.trim();
+
+                // Если это уже прямая ссылка на изображение
+                if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i)) {
+                    return url.startsWith('http') ? url : null;
+                }
+
+                // Обработка Google Drive ссылок
+                if (url.includes('drive.google.com')) {
+                    let fileId = null;
+
+                    // Разные форматы Google Drive ссылок
+                    if (url.includes('/file/d/')) {
+                        const match = url.match(/\/file\/d\/([^\/]+)/);
+                        if (match && match[1]) {
+                            fileId = match[1];
+                        }
+                    } 
+                    else if (url.includes('uc?export=view&id=')) {
+                        fileId = url.split('uc?export=view&id=')[1];
+                    }
+                    else if (url.includes('id=')) {
+                        fileId = url.split('id=')[1].split('&')[0];
+                    }
+                    else if (url.includes('/open?id=')) {
+                        fileId = url.split('/open?id=')[1];
+                    }
+
+                    if (fileId) {
+                        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+                    }
+                }
+
+                // Если это обычная HTTP ссылка
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
+                }
+
+                return null;
+            } catch (error) {
+                console.log('Ошибка извлечения фото из URL:', error);
+                return null;
+            }
+        }
+
+        function getAlternativeImageUrls(originalUrl) {
+            const urls = [];
+            
+            if (!originalUrl || typeof originalUrl !== 'string') return urls;
             
             try {
-                const userId = getUserId();
+                let fileId = null;
                 
-                const response = await fetch(`${API_BASE}/chat/send_message`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        client_user_id: userId,
-                        brigade_name: currentBrigadeChat.name,
-                        message_text: messageText,
-                        brigade_telegram_id: currentBrigadeChat.telegram_id
-                    })
-                });
+                // Извлекаем fileId из разных форматов Google Drive ссылок
+                const match1 = originalUrl.match(/\/file\/d\/([^\/]+)/);
+                if (match1 && match1[1]) {
+                    fileId = match1[1];
+                }
                 
+                if (!fileId) {
+                    const match2 = originalUrl.match(/[?&]id=([^&]+)/);
+                    if (match2 && match2[1]) {
+                        fileId = match2[1];
+                    }
+                }
+                
+                if (!fileId) {
+                    const match3 = originalUrl.match(/\/open\?id=([^&]+)/);
+                    if (match3 && match3[1]) {
+                        fileId = match3[1];
+                    }
+                }
+                
+                if (fileId) {
+                    // Генерируем альтернативные форматы ссылок
+                    urls.push(`https://drive.google.com/uc?export=view&id=${fileId}`);
+                    urls.push(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`);
+                    urls.push(`https://docs.google.com/uc?id=${fileId}`);
+                    urls.push(`https://lh3.googleusercontent.com/d/${fileId}=w1000`);
+                }
+                
+            } catch (error) {
+                console.log('Ошибка генерации альтернативных URL:', error);
+            }
+            
+            return urls;
+        }
+
+        function handleUniversalImageError(imgElement, originalUrl = '', alternativeUrls = []) {
+            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
+            
+            if (alternativeUrls.length > triedAlternative) {
+                // Пробуем следующую альтернативную ссылку
+                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
+                imgElement.src = alternativeUrls[triedAlternative];
+                return;
+            }
+            
+            // Все альтернативы исчерпаны - показываем placeholder
+            imgElement.style.display = 'none';
+            const placeholder = imgElement.parentElement.querySelector('.universal-image-placeholder');
+            if (placeholder) {
+                placeholder.classList.remove('hidden');
+            }
+            scheduleFeatherReplace();
+        }
+
+        function handleUniversalImageLoad(imgElement) {
+            imgElement.style.display = 'block';
+            const placeholder = imgElement.parentElement.querySelector('.universal-image-placeholder');
+            if (placeholder) {
+                placeholder.classList.add('hidden');
+            }
+        }
+
+        // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
+
+        async function loadBrigades() {
+            lastAction = { type: 'loadBrigades' };
+            
+            navigationStack = [];
+            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
+            elements.pageTitle.textContent = 'Бригады';
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/brigades`);
                 const data = await response.json();
                 
-                if (data.success) {
-                    // Очищаем поле ввода
-                    input.value = '';
-                    
-                    // Перезагружаем сообщения
-                    await loadChatMessages(currentChatId, true);
-                } else {
-                    alert('Ошибка отправки сообщения: ' + (data.error || 'Неизвестная ошибка'));
+                hideLoading();
+                
+                if (data.error) {
+                    showEmptyState('Ошибка загрузки данных бригад');
+                    return;
                 }
+                
+                if (!data.brigades || data.brigades.length === 0) {
+                    showEmptyState('Бригады не найдены');
+                    return;
+                }
+                
+                renderBrigadeGroups(data.brigades);
+                updateBackButton();
             } catch (error) {
-                alert('Ошибка отправки сообщения');
-                console.error('Send message error:', error);
-            } finally {
-                // Разблокируем кнопку и поле ввода
-                input.disabled = false;
-                button.disabled = false;
-                input.focus();
+                hideLoading();
+                showError('Ошибка загрузки бригад');
             }
         }
 
-        function handleChatInputKeydown(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
+        function renderBrigadeGroups(brigadeGroups) {
+            let html = '<div class="space-y-8">';
             
-            // Авто-высота текстового поля
-            setTimeout(() => {
-                const textarea = event.target;
-                textarea.style.height = 'auto';
-                textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-            }, 0);
+            brigadeGroups.forEach(group => {
+                if (!group.group_name || !group.brigades || group.brigades.length === 0) return;
+                
+                html += `
+                    <div class="brigade-group">
+                        <h2 class="brigade-group-title">${escapeHtml(group.group_name)}</h2>
+                        <div class="brigade-grid">
+                `;
+                
+                group.brigades.forEach(brigade => {
+                    const objectCount = brigade.objects ? brigade.objects.length : 0;
+                    const firstObject = brigade.objects && brigade.objects.length > 0 ? brigade.objects[0] : null;
+                    const firstPhoto = firstObject && firstObject.all_photos && firstObject.all_photos.length > 0 
+                        ? firstObject.all_photos[0] 
+                        : null;
+                    const imageUrl = firstPhoto ? extractPhotoFilenameFromUrl(firstPhoto.photo_url) : null;
+                    const alternativeUrls = firstPhoto ? getAlternativeImageUrls(firstPhoto.photo_url) : [];
+                    
+                    html += `
+                        <div class="brigade-card fade-in" onclick="openBrigade('${escapeHtml(group.group_name)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})">
+                    `;
+                    
+                    html += renderUniversalImage(imageUrl, alternativeUrls, brigade.brigade_name, firstPhoto?.photo_url);
+                    
+                    html += `
+                            <div class="brigade-content">
+                                <h3 class="brigade-title">${escapeHtml(brigade.brigade_name)}</h3>
+                                <p class="brigade-description">${escapeHtml(group.group_name)}</p>
+                                <div class="object-count">${objectCount} объектов</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <button onclick="loadSections()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад в каталог
+                </button>
+            `;
+            
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
         }
 
-        function formatMessageTime(timeString) {
-            const time = new Date(timeString);
-            const now = new Date();
-            const diffMs = now - time;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
+        function openBrigade(groupName, brigade) {
+            currentBrigadeData = { groupName, brigade };
             
-            if (diffMins < 1) return 'только что';
-            if (diffMins < 60) return `${diffMins} мин назад`;
-            if (diffHours < 24) return `${diffHours} ч назад`;
-            if (diffDays < 7) return `${diffDays} д назад`;
-            
-            return time.toLocaleDateString('ru-RU');
-        }
-
-        function openChatWithBrigade(brigade) {
-            currentBrigadeChat = {
-                name: brigade.brigade_name,
-                telegram_id: brigade.telegram_id
-            };
-            
-            // Сразу открываем чат с этой бригадой
-            const userId = getUserId();
-            
-            // Создаем временный интерфейс чата
-            renderChatMessages([]);
-            
-            // Обновляем навигацию
-            navigationStack = [];
             navigationStack.push({ 
-                type: 'chat', 
-                id: 'new', 
-                name: `Чат с ${brigade.brigade_name}` 
+                type: 'brigade', 
+                id: brigade.brigade_name, 
+                name: brigade.brigade_name 
             });
             
             updateBreadcrumbsFromStack();
-            elements.pageTitle.textContent = `Чат с ${brigade.brigade_name}`;
+            elements.pageTitle.textContent = brigade.brigade_name;
+            
+            renderBrigadeObjects(groupName, brigade);
         }
-
-        // Останавливаем автообновление при уходе со страницы чата
-        function stopChatRefresh() {
-            if (chatRefreshInterval) {
-                clearInterval(chatRefreshInterval);
-                chatRefreshInterval = null;
-            }
-        }
-
-        // ========== ОБНОВЛЕННЫЕ ФУНКЦИИ ДЛЯ БРИГАД ==========
 
         function renderBrigadeObjects(groupName, brigade) {
             let html = `
@@ -821,13 +2057,6 @@
                     <div class="bg-white rounded-xl p-6 shadow-sm">
                         <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
                         <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
-                        
-                        <!-- КНОПКА ЧАТА -->
-                        <button onclick="openChatWithBrigade(${JSON.stringify(brigade).replace(/"/g, '&quot;')})" 
-                                class="w-full mt-4 py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center">
-                            <i data-feather="message-square" class="w-4 h-4 mr-2"></i>
-                            Написать бригаде
-                        </button>
                     </div>
             `;
         
@@ -897,12 +2126,1137 @@
             scheduleFeatherReplace();
         }
 
-        // ========== ОБНОВЛЕННЫЕ ФУНКЦИИ НАВИГАЦИИ ==========
+        function openObjectGalleryPage(groupName, brigade, objectIndex) {
+            const object = brigade.objects[objectIndex];
+            if (!object) return;
+            
+            currentObjectData = { groupName, brigade, object, objectIndex };
+            
+            navigationStack.push({ 
+                type: 'object', 
+                id: object.object_name, 
+                name: object.object_name 
+            });
+            
+            updateBreadcrumbsFromStack();
+            elements.pageTitle.textContent = object.object_name;
+            
+            renderObjectGalleryPage(groupName, brigade, object);
+        }
+
+        function renderObjectGalleryPage(groupName, brigade, object) {
+            let html = `
+                <div class="space-y-6">
+                    <div class="object-gallery-container">
+                        <div class="object-gallery-header">
+                            <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
+                            <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+            `;
+        
+            // Экранируем описание для использования в атрибуте data
+            const safeDescription = escapeHtml(object.object_description || '');
+            
+            if (object.object_description && object.object_description.trim() !== '') {
+                html += `
+                            <button class="info-button mt-3" 
+                                    onclick="openInfoModalFromButton(this)" 
+                                    data-description="${safeDescription}">
+                                <i data-feather="info" class="w-4 h-4"></i>
+                                Информация по объекту
+                            </button>
+                `;
+            }
+        
+            html += `
+                        </div>
+            `;
+        
+            if (!object.all_photos || object.all_photos.length === 0) {
+                html += `
+                            <div class="object-gallery-images">
+                                <div class="bg-gray-50 rounded-lg p-8 text-center">
+                                    <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                                    <p class="text-gray-500">Фотографии не найдены</p>
+                                </div>
+                            </div>
+                `;
+            } else {
+                html += `
+                            <div class="object-gallery-images">
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-semibold text-contrast mb-2">Фотографии объекта (${object.all_photos.length})</h3>
+                                </div>
+                                <div class="object-gallery-grid">
+                `;
+                
+                object.all_photos.forEach((photo, photoIndex) => {
+                    const imageUrl = extractPhotoFilenameFromUrl(photo.photo_url);
+                    const alternativeUrls = getAlternativeImageUrls(photo.photo_url);
+                    
+                    html += `
+                                    <div class="object-gallery-image-item fade-in" onclick="openFullScreenGallery(${photoIndex})">
+                    `;
+                    
+                    if (imageUrl || alternativeUrls.length > 0) {
+                        const finalImageUrl = imageUrl || alternativeUrls[0];
+                        html += `
+                                        <img src="${escapeHtml(finalImageUrl)}" alt="${escapeHtml(photo.description || object.object_name)}" 
+                                             class="object-gallery-image"
+                                             onerror="handleGalleryImageError(this, '${escapeHtml(photo.photo_url)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                             onload="handleGalleryImageLoad(this)"
+                                             loading="lazy"
+                                             data-tried-alternative="0">
+                                        <div class="object-gallery-image-placeholder hidden">
+                                            <div class="text-center text-gray-400">
+                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                                <div class="text-xs">Не удалось загрузить</div>
+                                            </div>
+                                        </div>
+                        `;
+                    } else {
+                        html += `
+                                        <div class="object-gallery-image-placeholder">
+                                            <div class="text-center text-gray-400">
+                                                <i data-feather="image" class="w-8 h-8 mx-auto mb-1"></i>
+                                                <div class="text-xs">Фото не доступно</div>
+                                            </div>
+                                        </div>
+                        `;
+                    }
+                    
+                    html += `</div>`;
+                });
+                
+                html += `</div></div>`;
+            }
+        
+            html += `
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                                ${CONTACT_INFO.phone}
+                            </button>
+                            
+                            <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                                Назад к объектам
+                            </button>
+                        </div>
+                    </div>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function openInfoModalFromButton(buttonElement) {
+            const description = buttonElement.getAttribute('data-description');
+            if (description) {
+                openInfoModal(description);
+            }
+            
+            // Останавливаем распространение события
+            if (window.event) {
+                window.event.stopPropagation();
+                window.event.preventDefault();
+            }
+        }
+        // ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ИНФОРМАЦИИ
+        function openInfoModal(description) {
+            console.log('Opening info modal with description:', description);
+            
+            if (!description || description.trim() === '') {
+                elements.infoModalContent.innerHTML = '<p style="color: white; text-align: center; padding: 20px;">Описание отсутствует</p>';
+            } else {
+                // Используем textContent для безопасности и создаем структуру
+                elements.infoModalContent.innerHTML = '';
+                
+                // Создаем контейнер для контента
+                const contentDiv = document.createElement('div');
+                contentDiv.style.color = 'white';
+                contentDiv.style.fontSize = '16px';
+                contentDiv.style.lineHeight = '1.5';
+                contentDiv.style.whiteSpace = 'pre-line';
+                contentDiv.style.padding = '20px';
+                contentDiv.style.overflowY = 'auto';
+                contentDiv.style.maxHeight = '70vh';
+                contentDiv.style.wordWrap = 'break-word';
+                contentDiv.style.overflowWrap = 'break-word';
+                
+                // Безопасно устанавливаем текст
+                contentDiv.textContent = description;
+                
+                elements.infoModalContent.appendChild(contentDiv);
+            }
+            
+            elements.infoModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Останавливаем распространение события
+            if (window.event) {
+                window.event.stopPropagation();
+            }
+        }
+
+        function closeInfoModal() {
+            elements.infoModal.classList.add('hidden');
+            document.body.style.overflow = '';
+            
+            // Очищаем содержимое при закрытии
+            elements.infoModalContent.innerHTML = '';
+            
+            // Останавливаем распространение события
+            if (window.event) {
+                window.event.stopPropagation();
+            }
+        }
+        
+        function openFullScreenGallery(photoIndex) {
+            if (!currentObjectData || !currentObjectData.object.all_photos) return;
+            
+            currentGalleryData = currentObjectData.object.all_photos;
+            currentGalleryIndex = photoIndex;
+            
+            updateFullScreenGallery();
+            elements.galleryModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function updateFullScreenGallery() {
+            if (!currentGalleryData || currentGalleryData.length === 0) return;
+            
+            const currentPhoto = currentGalleryData[currentGalleryIndex];
+            const imageUrl = extractPhotoFilenameFromUrl(currentPhoto.photo_url);
+            const alternativeUrls = getAlternativeImageUrls(currentPhoto.photo_url);
+            const finalImageUrl = imageUrl || (alternativeUrls.length > 0 ? alternativeUrls[0] : '');
+            
+            elements.galleryCardTitle.textContent = currentObjectData.object.object_name;
+            elements.galleryStatus.textContent = getStatusText(currentObjectData.object.status);
+            elements.galleryStatus.className = `gallery-status ${getStatusClass(currentObjectData.object.status)}`;
+            elements.galleryCurrentImage.src = finalImageUrl;
+            elements.galleryCurrentImage.alt = currentPhoto.description || '';
+            elements.galleryDescription.textContent = currentPhoto.description || '';
+            elements.galleryObjectInfo.textContent = `${currentObjectData.brigade.brigade_name} • ${currentObjectData.groupName}`;
+            elements.galleryCounter.textContent = `${currentGalleryIndex + 1} / ${currentGalleryData.length}`;
+            
+            // Сбрасываем обработчики ошибок
+            elements.galleryCurrentImage.onerror = function() {
+                handleGalleryImageError(this, currentPhoto.photo_url, alternativeUrls);
+            };
+            
+            elements.galleryCurrentImage.dataset.triedAlternative = '0';
+        }
+
+        // Функции для обработки изображений в галерее
+        function handleGalleryImageError(imgElement, originalUrl = '', alternativeUrls = []) {
+            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
+            
+            if (alternativeUrls.length > triedAlternative) {
+                // Пробуем следующую альтернативную ссылку
+                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
+                imgElement.src = alternativeUrls[triedAlternative];
+                return;
+            }
+            
+            // Все альтернативы исчерпаны - показываем placeholder
+            if (imgElement.classList.contains('object-gallery-image')) {
+                imgElement.style.display = 'none';
+                const placeholder = imgElement.parentElement.querySelector('.object-gallery-image-placeholder');
+                if (placeholder) {
+                    placeholder.classList.remove('hidden');
+                }
+            } else if (imgElement === elements.galleryCurrentImage) {
+                imgElement.style.display = 'none';
+                // Для полноэкранной галереи создаем placeholder
+                const placeholder = document.createElement('div');
+                placeholder.className = 'text-white text-center';
+                placeholder.innerHTML = `
+                    <i data-feather="image" class="w-16 h-16 mx-auto mb-2"></i>
+                    <div>Не удалось загрузить фото</div>
+                `;
+                imgElement.parentElement.appendChild(placeholder);
+                scheduleFeatherReplace();
+            }
+        }
+
+        function handleGalleryImageLoad(imgElement) {
+            imgElement.style.display = 'block';
+            if (imgElement.classList.contains('object-gallery-image')) {
+                const placeholder = imgElement.parentElement.querySelector('.object-gallery-image-placeholder');
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+            } else if (imgElement === elements.galleryCurrentImage) {
+                const placeholder = imgElement.parentElement.querySelector('.text-white');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+            }
+        }
+
+        function getStatusText(status) {
+            switch (String(status)) {
+                case '0': return 'Продано';
+                case '1': return 'В продаже';
+                case '3': return 'Строится';
+                default: return 'Неизвестно';
+            }
+        }
+
+        function getStatusClass(status) {
+            switch (String(status)) {
+                case '0': return 'status-sold';
+                case '1': return 'status-sale';
+                case '3': return 'status-building';
+                default: return 'status-sale';
+            }
+        }
+
+        // Функции галереи
+        function closeGallery() {
+            elements.galleryModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function prevGalleryImage() {
+            if (!currentGalleryData) return;
+            
+            currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryData.length) % currentGalleryData.length;
+            updateFullScreenGallery();
+        }
+
+        function nextGalleryImage() {
+            if (!currentGalleryData) return;
+            
+            currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryData.length;
+            updateFullScreenGallery();
+        }
+
+        // Обработчики свайпов для галереи
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        elements.galleryCurrentImage.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        elements.galleryCurrentImage.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextGalleryImage();
+                } else {
+                    prevGalleryImage();
+                }
+            }
+        }
+
+        // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
+
+        function initTelegramApp() {
+            if (tg) {
+                try {
+                    tg.expand();
+                    tg.enableClosingConfirmation();
+                } catch (error) {
+                    console.log('Ошибка инициализации Telegram Web App:', error);
+                }
+            }
+        }
+
+        // ========== API ФУНКЦИИ ==========
+
+        async function apiFetch(endpoint) {
+            const url = `${API_BASE}${endpoint}`;
+            
+            showLoading();
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+            }, API_TIMEOUT);
+            
+            try {
+                const response = await fetch(url, { 
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data) {
+                    throw new Error('Пустой ответ от сервера');
+                }
+                
+                hideLoading();
+                return data;
+                
+            } catch (error) {
+                clearTimeout(timeoutId);
+                let errorMessage = error.message;
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = `Таймаут запроса (${API_TIMEOUT/1000} секунд). Сервер не отвечает.`;
+                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+                }
+                
+                hideLoading();
+                showError(`Ошибка загрузки: ${errorMessage}`);
+                return { error: errorMessage };
+            }
+        }
+
+        // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
+
+        async function loadSections() {
+            lastAction = { type: 'loadSections' };
+            
+            try {
+                navigationStack = [];
+                updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
+                elements.pageTitle.textContent = 'Каталог товаров';
+                
+                const data = await apiFetch('/sections');
+                
+                if (data?.error) {
+                    showEmptyState('Ошибка загрузки разделов');
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+                    showEmptyState('Разделы не найдены');
+                    return;
+                }
+
+                renderSections(data.sections);
+                updateBackButton();
+            } catch (error) {
+                showError('Не удалось загрузить разделы');
+            }
+        }
+
+        async function loadCategories(sectionId, sectionName) {
+            lastAction = { type: 'loadCategories', sectionId, sectionName };
+            
+            try {
+                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
+                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = sectionName;
+                
+                const data = await apiFetch(`/categories/${sectionId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+
+                if (data.categories.length === 1) {
+                    const category = data.categories[0];
+                    const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+                    
+                    if (modelsData?.models && modelsData.models.length === 1 && 
+                        modelsData.models[0].name === "Без модели") {
+                        await loadProductsDirect(sectionId, category.id, null, null, category.name);
+                        return;
+                    }
+                }
+
+                renderCategories(data.categories, sectionId, sectionName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, null, null, null, sectionName);
+            }
+        }
+
+        async function loadModels(sectionId, sectionName, categoryId, categoryName) {
+            lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
+            
+            try {
+                navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
+                navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = categoryName;
+                
+                const data = await apiFetch(`/models/${sectionId}/${categoryId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.models) || data.models.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                if (data.models.length === 1 && data.models[0].name === "Без модели") {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                const filteredModels = data.models.filter(model => model.name !== "Без модели");
+                
+                if (filteredModels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+                    return;
+                }
+
+                renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
+            }
+        }
+
+        async function loadSubmodels(sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
+            lastAction = { type: 'loadSubmodels', sectionId, sectionName, categoryId, categoryName, modelId, modelName };
+            
+            try {
+                navigationStack = navigationStack.filter(item => item.type !== 'submodels');
+                navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = modelName;
+                
+                const data = await apiFetch(`/submodels/${sectionId}/${categoryId}/${modelId}`);
+                
+                if (data?.error) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.submodels) || data.submodels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                if (data.submodels.length === 1 && data.submodels[0].name === "Без подмодели") {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                const filteredSubmodels = data.submodels.filter(submodel => submodel.name !== "Без подмодели");
+                
+                if (filteredSubmodels.length === 0) {
+                    await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+                    return;
+                }
+
+                renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
+            }
+        }
+
+        async function loadProducts(sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName) {
+            lastAction = { type: 'loadProducts', sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName };
+            
+            try {
+                navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = submodelName;
+                
+                await loadProductsDirect(sectionId, categoryId, modelId, submodelId, submodelName);
+            } catch (error) {
+                showError('Не удалось загрузить товары');
+            }
+        }
+
+        async function loadProductsDirect(sectionId, categoryId, modelId, submodelId, currentName) {
+            const safeSectionId = sectionId || 'null';
+            const safeCategoryId = categoryId || 'null';
+            const safeModelId = modelId || 'null';
+            const safeSubmodelId = submodelId || 'null';
+            
+            const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
+            elements.pageTitle.textContent = currentName;
+            
+            const data = await apiFetch(endpoint);
+            
+            if (data?.error) {
+                showEmptyState(`Ошибка загрузки товаров для: ${currentName}`);
+                return;
+            }
+            
+            if (!data || !Array.isArray(data.products) || data.products.length === 0) {
+                showEmptyState(`Товары не найдены для: ${currentName}`);
+                return;
+            }
+
+            currentProducts = data.products.filter(product => product != null);
+            
+            if (currentProducts.length === 0) {
+                showEmptyState(`Товары не найдены для: ${currentName}`);
+                return;
+            }
+
+            renderAllProducts();
+            updateBackButton();
+        }
+
+        // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
+
+        function renderSections(sections) {
+            let html = '<div class="space-y-3">';
+            
+            sections.forEach(section => {
+                if (!section) return;
+                
+                const safeId = escapeHtml(section.id);
+                const safeName = escapeHtml(section.name);
+                const minPrice = safeNumber(section.min_price);
+                const priceText = formatPriceText(minPrice);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="category-card fade-in" onclick="loadFavorites()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="heart" class="w-5 h-5 mr-3 text-red-500"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Избранное</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">${favorites.length} товаров</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            html += `
+                <div class="category-card fade-in" onclick="loadBrigades()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="users" class="w-5 h-5 mr-3 text-blue-500"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Бригады</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">Строительные бригады</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            html += `
+                <div class="category-card fade-in" onclick="callTaxi()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="car" class="w-5 h-5 mr-3 text-purple-600"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Вызвать такси</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">До магазина</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            if (!html) {
+                showEmptyState('Нет доступных разделов');
+                return;
+            }
+            
+            if (navigationStack.length > 0) {
+                html += `
+                    <button onclick="goBack()" class="back-button">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад
+                    </button>
+                `;
+            }
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function renderCategories(categories, sectionId, sectionName) {
+            let html = '<div class="space-y-3">';
+            
+            categories.forEach(category => {
+                if (!category) return;
+                
+                const safeId = escapeHtml(category.id);
+                const safeName = escapeHtml(category.name);
+                const minPrice = safeNumber(category.min_price);
+                const priceText = formatPriceText(minPrice);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (!html) {
+                showEmptyState('Нет доступных категорий');
+                return;
+            }
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
+            let html = '<div class="space-y-3">';
+            
+            models.forEach(model => {
+                if (!model) return;
+                
+                const safeId = escapeHtml(model.id);
+                const safeName = escapeHtml(model.name);
+                const minPrice = safeNumber(model.min_price);
+                const priceText = formatPriceText(minPrice);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (!html) {
+                showEmptyState('Нет доступных моделей');
+                return;
+            }
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
+            let html = '<div class="space-y-3">';
+            
+            submodels.forEach(submodel => {
+                if (!submodel) return;
+                
+                const safeId = escapeHtml(submodel.id);
+                const safeName = escapeHtml(submodel.name);
+                const minPrice = safeNumber(submodel.min_price);
+                const priceText = formatPriceText(minPrice);
+                
+                html += `
+                    <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (!html) {
+                showEmptyState('Нет доступных подмоделей');
+                return;
+            }
+            
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+        }
+
+        function renderProductBreadcrumbs(navigation) {
+            if (!navigation.section && !navigation.category && !navigation.model && !navigation.submodel) {
+                return '';
+            }
+
+            const breadcrumbs = [];
+            
+            if (navigation.section) {
+                breadcrumbs.push({
+                    name: navigation.section.name,
+                    action: `loadCategories('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.category) {
+                breadcrumbs.push({
+                    name: navigation.category.name,
+                    action: `loadModels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.model && navigation.model.name !== "Без модели") {
+                breadcrumbs.push({
+                    name: navigation.model.name,
+                    action: `loadSubmodels('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}')`
+                });
+            }
+            
+            if (navigation.submodel && navigation.submodel.name !== "Без подмодели") {
+                breadcrumbs.push({
+                    name: navigation.submodel.name,
+                    action: `loadProducts('${navigation.section.id}', '${navigation.section.name.replace(/'/g, "\\'")}', '${navigation.category.id}', '${navigation.category.name.replace(/'/g, "\\'")}', '${navigation.model.id}', '${navigation.model.name.replace(/'/g, "\\'")}', '${navigation.submodel.id}', '${navigation.submodel.name.replace(/'/g, "\\'")}')`
+                });
+            }
+
+            if (breadcrumbs.length === 0) {
+                return '';
+            }
+
+            let html = '<div class="mb-4 p-3 bg-gray-50 rounded-lg">';
+            html += '<div class="flex items-center flex-wrap text-sm text-gray-600">';
+            
+            breadcrumbs.forEach((crumb, index) => {
+                if (index > 0) {
+                    html += '<span class="breadcrumb-separator">→</span>';
+                }
+                html += `<span class="breadcrumb-item" onclick="${crumb.action}">${escapeHtml(crumb.name)}</span>`;
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function renderAllProducts() {
+            if (!currentProducts || currentProducts.length === 0) {
+                showEmptyState('Товары не найдены');
+                return;
+            }
+
+            const navigation = getCurrentNavigation();
+            let html = '<div class="product-list">';
+            
+            html += `
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Найдено товаров: ${currentProducts.length}</h2>
+                </div>
+            `;
+            
+            html += renderProductBreadcrumbs(navigation);
+
+            currentProducts.forEach((product, index) => {
+                if (!product) return;
+                
+                const productId = generateProductId(product);
+                const isFavorite = favorites.some(fav => fav.id === productId);
+                const color = safeString(product.color, 'Не указан');
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const description = safeString(product.description);
+                const photoUrl = safeString(product.photo_url);
+                const photoDescription = safeString(product.photo_description);
+                
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+
+                html += `
+                    <div class="product-card fade-in" data-product-index="${index}">
+                        <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                            <i data-feather="heart"></i>
+                        </div>
+                `;
+
+                html += renderUniversalImage(imageUrl, alternativeUrls, color, photoUrl);
+                
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="space-y-2 mb-4">
+                `;
+
+                if (photoDescription) {
+                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
+                }
+
+                if (description) {
+                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
+                }
+
+                html += `</div>`;
+
+                html += `
+                    <div class="two-column-buttons">
+                        <button onclick="makePhoneCall()" class="large-button phone-button">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        <button onclick="shareProduct(${index})" class="large-button share-button">
+                            <i data-feather="share-2" class="w-4 h-4"></i>
+                            Поделиться
+                        </button>
+                    </div>
+                `;
+
+                html += `
+                    <div class="mt-3">
+                        <button onclick="contactAboutSpecificProduct(${index})" 
+                                class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                            Узнать подробнее
+                        </button>
+                    </div>
+                `;
+
+                html += `</div></div>`;
+            });
+
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
+
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function contactAboutSpecificProduct(productIndex) {
+            const product = currentProducts[productIndex];
+            const navigation = getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                product?.color,
+                product?.price && product.price !== 'Цена не указана' ? product.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        // ========== УПРАВЛЕНИЕ НАВИГАЦИЕЙ ==========
+
+        function getCurrentNavigation() {
+            const navigation = {
+                section: null,
+                category: null,
+                model: null,
+                submodel: null
+            };
+
+            navigationStack.forEach(item => {
+                switch (item.type) {
+                    case 'sections':
+                        navigation.section = { id: item.id, name: item.name };
+                        break;
+                    case 'categories':
+                        navigation.category = { id: item.id, name: item.name };
+                        break;
+                    case 'models':
+                        navigation.model = { id: item.id, name: item.name };
+                        break;
+                    case 'submodels':
+                        navigation.submodel = { id: item.id, name: item.name };
+                        break;
+                    case 'brigade':
+                        navigation.brigade = { id: item.id, name: item.name };
+                        break;
+                    case 'object':
+                        navigation.object = { id: item.id, name: item.name };
+                        break;
+                }
+            });
+
+            return navigation;
+        }
+
+        function updateBreadcrumbsFromStack() {
+            const items = [{ name: 'МЕНЮ', action: 'loadSections' }];
+            
+            navigationStack.forEach(item => {
+                if (item && item.name) {
+                    items.push({
+                        name: item.name,
+                        action: null
+                    });
+                }
+            });
+            
+            updateBreadcrumbs(items);
+        }
+
+        function updateBreadcrumbs(items) {
+            elements.breadcrumbs.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                if (!item || !item.name) return;
+                
+                const crumb = document.createElement('span');
+                crumb.className = 'flex items-center whitespace-nowrap';
+                
+                if (index > 0) {
+                    const separator = document.createElement('span');
+                    separator.className = 'mx-1 tg-theme-hint text-contrast';
+                    separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
+                    elements.breadcrumbs.appendChild(separator);
+                }
+                
+                const link = document.createElement('span');
+                link.className = 'tg-theme-text text-sm truncate max-w-[120px] text-contrast';
+                link.textContent = item.name;
+                link.title = item.name;
+                
+                if (item.action && index === 0) {
+                    link.style.cursor = 'pointer';
+                    link.addEventListener('click', () => {
+                        if (item.action === 'loadSections') {
+                            loadSections();
+                        }
+                    });
+                } else {
+                    link.style.cursor = 'default';
+                }
+                
+                crumb.appendChild(link);
+                elements.breadcrumbs.appendChild(crumb);
+            });
+            
+            scheduleFeatherReplace();
+        }
+
+        function updateBackButton() {
+            if (!tg) return;
+            
+            try {
+                if (navigationStack.length > 0) {
+                    if (tg.BackButton) {
+                        tg.BackButton.show();
+                        tg.BackButton.onClick(goBack);
+                    }
+                } else {
+                    if (tg.BackButton) {
+                        tg.BackButton.hide();
+                    }
+                }
+            } catch (error) {
+                console.log('Ошибка обновления кнопки назад:', error);
+            }
+        }
+
+        function goBack() {
+            if (navigationStack.length > 0) {
+                const currentItem = navigationStack.pop();
+                
+                if (navigationStack.length === 0) {
+                    loadSections();
+                } else {
+                    const previousItem = navigationStack[navigationStack.length - 1];
+                    handleBackNavigation(previousItem.type);
+                }
+            } else if (tg) {
+                tg.close();
+            }
+        }
 
         function handleBackNavigation(type) {
-            // Останавливаем автообновление чата при уходе
-            stopChatRefresh();
-            
             switch (type) {
                 case 'sections':
                     loadSections();
@@ -945,18 +3299,151 @@
                         loadBrigades();
                     }
                     break;
-                case 'chat':
-                    loadChats();
+                default:
+                    loadSections();
+            }
+        }
+
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+
+        function showLoading() {
+            elements.loading.classList.remove('hidden');
+            elements.content.classList.add('hidden');
+            elements.emptyState.classList.add('hidden');
+            elements.errorState.classList.add('hidden');
+        }
+
+        function hideLoading() {
+            elements.loading.classList.add('hidden');
+            elements.content.classList.remove('hidden');
+            elements.emptyState.classList.add('hidden');
+            elements.errorState.classList.add('hidden');
+        }
+
+        function showEmptyState(message = 'Товары не найдены') {
+            elements.content.classList.add('hidden');
+            elements.loading.classList.add('hidden');
+            elements.emptyState.classList.remove('hidden');
+            elements.errorState.classList.add('hidden');
+            elements.emptyMessage.textContent = message;
+            updateBackButton();
+        }
+
+        function showError(message = 'Произошла ошибка') {
+            elements.content.classList.add('hidden');
+            elements.loading.classList.add('hidden');
+            elements.emptyState.classList.add('hidden');
+            elements.errorState.classList.remove('hidden');
+            elements.errorMessage.textContent = message;
+            updateBackButton();
+        }
+
+        function openSideMenu() {
+            elements.sideMenu.classList.remove('hidden');
+            setTimeout(() => {
+                const menuPanel = elements.sideMenu.querySelector('div');
+                if (menuPanel) {
+                    menuPanel.classList.remove('translate-x-full');
+                }
+            }, 10);
+        }
+
+        function closeSideMenu() {
+            const menuPanel = elements.sideMenu.querySelector('div');
+            if (menuPanel) {
+                menuPanel.classList.add('translate-x-full');
+            }
+            setTimeout(() => {
+                elements.sideMenu.classList.add('hidden');
+            }, 300);
+        }
+
+        function retryLastAction() {
+            if (!lastAction) {
+                loadSections();
+                return;
+            }
+
+            switch (lastAction.type) {
+                case 'loadSections':
+                    loadSections();
+                    break;
+                case 'loadCategories':
+                    loadCategories(lastAction.sectionId, lastAction.sectionName);
+                    break;
+                case 'loadModels':
+                    loadModels(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName);
+                    break;
+                case 'loadSubmodels':
+                    loadSubmodels(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName);
+                    break;
+                case 'loadProducts':
+                    loadProducts(lastAction.sectionId, lastAction.sectionName, lastAction.categoryId, lastAction.categoryName, lastAction.modelId, lastAction.modelName, lastAction.submodelId, lastAction.submodelName);
+                    break;
+                case 'loadBrigades':
+                    loadBrigades();
                     break;
                 default:
                     loadSections();
             }
         }
 
-        // ========== ГЛОБАЛЬНЫЕ ФУНКЦИИ ==========
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
-        // ... (все остальные существующие функции остаются без изменений) ...
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                initTelegramApp();
+                fixMobileColors();
+                scheduleFeatherReplace();
+                
+                const toggleMenuBtn = document.getElementById('toggleMenu');
+                const closeMenuBtn = document.getElementById('closeMenu');
+                const installButton = document.getElementById('installButton');
+                
+                if (toggleMenuBtn) {
+                    toggleMenuBtn.addEventListener('click', openSideMenu);
+                }
+                
+                if (closeMenuBtn) {
+                    closeMenuBtn.addEventListener('click', closeSideMenu);
+                }
 
+                if (installButton) {
+                    installButton.addEventListener('click', installPWA);
+                }
+                
+                elements.sideMenu.addEventListener('click', (e) => {
+                    if (e.target === elements.sideMenu) {
+                        closeSideMenu();
+                    }
+                });
+
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    if (installButton) {
+                        installButton.style.display = 'flex';
+                    }
+                });
+
+                window.addEventListener('appinstalled', (e) => {
+                    deferredPrompt = null;
+                    if (installButton) {
+                        installButton.style.display = 'none';
+                    }
+                });
+                
+                setTimeout(() => {
+                    loadSections();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                showError('Ошибка загрузки приложения');
+            }
+        });
+
+        // Глобальные функции
         // Глобальные функции
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
@@ -965,11 +3452,6 @@
         window.loadProducts = loadProducts;
         window.loadFavorites = loadFavorites;
         window.loadBrigades = loadBrigades;
-        window.loadChats = loadChats;
-        window.openChat = openChat;
-        window.openChatWithBrigade = openChatWithBrigade;
-        window.sendMessage = sendMessage;
-        window.handleChatInputKeydown = handleChatInputKeydown;
         window.openBrigade = openBrigade;
         window.openObjectGalleryPage = openObjectGalleryPage;
         window.openFullScreenGallery = openFullScreenGallery;
@@ -977,7 +3459,7 @@
         window.prevGalleryImage = prevGalleryImage;
         window.nextGalleryImage = nextGalleryImage;
         window.openInfoModal = openInfoModal;
-        window.openInfoModalFromButton = openInfoModalFromButton;
+        window.openInfoModalFromButton = openInfoModalFromButton; // ДОБАВЬТЕ ЭТУ СТРОКУ
         window.closeInfoModal = closeInfoModal;
         window.contactAboutSpecificProduct = contactAboutSpecificProduct;
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
@@ -1004,10 +3486,6 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
-        window.stopChatRefresh = stopChatRefresh;
-
-        // Останавливаем автообновление при закрытии страницы
-        window.addEventListener('beforeunload', stopChatRefresh);
     </script>
 </body>
 </html>
