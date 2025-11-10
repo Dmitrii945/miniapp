@@ -1844,9 +1844,9 @@
                 scheduleFeatherReplace();
                 return;
             }
-            
+        
             let html = '';
-            sessions.forEach((session, index) => {
+            sessions.forEach(session => {
                 const hasUnread = session.unread_count > 0;
                 const lastActivity = new Date(session.last_activity).toLocaleDateString('ru-RU');
                 const lastMessageTime = session.last_message ? 
@@ -1876,7 +1876,7 @@
                     </div>
                 `;
             });
-            
+        
             elements.chatSessionsList.innerHTML = html;
             scheduleFeatherReplace();
         }
@@ -2106,11 +2106,6 @@
                 if (data.success) {
                     // Удаляем временное сообщение
                     removeTempMessage(tempMessageId);
-                    
-                    // Обновляем session_id если он вернулся с сервера
-                    if (data.session_id) {
-                        currentChatSession = data.session_id;
-                    }
                     
                     // НЕМЕДЛЕННО загружаем актуальную историю
                     await loadChatHistory(currentChatSession);
