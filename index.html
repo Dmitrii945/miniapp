@@ -1965,10 +1965,10 @@
         function handleChatInputKeypress(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
+                console.log("⌨️ Enter нажат, отправляем сообщение");
                 sendChatMessage();
             }
         }
-
         async function sendChatMessage() {
             console.log("🔍 sendChatMessage ВЫЗВАНА");
             
@@ -1997,9 +1997,25 @@
             // Сохраняем сообщение и очищаем поле
             const messageText = message;
             input.value = '';
+        
+            // ★★★★ ДОБАВЬТЕ: Сразу показываем сообщение в интерфейсе ★★★★
+            const tempMessageId = 'temp_' + Date.now();
+            const userInfo = await getUserInfo();
             
-            // НЕ создаем временное сообщение - сразу отправляем
-            const userInfo = getUserInfo();
+            const tempMessage = {
+                id: tempMessageId,
+                user_id: userInfo.id,
+                user_name: userInfo.name,
+                message_text: messageText,
+                message_type: 'user_to_brigade',
+                timestamp: new Date().toISOString(),
+                is_read: true,
+                is_user: true,
+                is_temp: true
+            };
+            
+            addMessageToUI(tempMessage);
+            
             const requestData = {
                 user_id: userInfo.id,
                 user_name: userInfo.name,
@@ -2027,6 +2043,9 @@
                 console.log("✅ Сообщение отправлено:", data);
                 
                 if (data.success) {
+                    // ★★★★ УДАЛЯЕМ ВРЕМЕННОЕ СООБЩЕНИЕ И ЗАГРУЖАЕМ АКТУАЛЬНУЮ ИСТОРИЮ ★★★★
+                    removeTempMessage(tempMessageId);
+                    
                     // Сразу обновляем историю
                     await loadChatHistory(currentChatSession);
                     updateChatBadge();
@@ -2037,21 +2056,12 @@
             } catch (error) {
                 console.error("❌ Ошибка отправки:", error);
                 
+                // ★★★★ ОБНОВЛЯЕМ СТАТУС ВРЕМЕННОГО СООБЩЕНИЯ НА ОШИБКУ ★★★★
+                markMessageAsError(tempMessageId);
+                
                 // Показываем сообщение об ошибке и возвращаем текст в поле
                 showError('Не удалось отправить сообщение');
                 input.value = messageText;
-                
-                // Показываем сообщение об ошибке в чате
-                addMessageToUI({
-                    id: 'error_' + Date.now(),
-                    message_text: '❌ Не удалось отправить сообщение. Попробуйте еще раз.',
-                    message_type: 'system',
-                    user_name: 'Система',
-                    timestamp: new Date().toISOString(),
-                    is_read: true,
-                    is_user: false,
-                    is_error: true
-                });
                 
             } finally {
                 // Разблокируем поле ввода
@@ -2107,10 +2117,26 @@
             }
         }
 
+        function markMessageAsError(tempId) {
+            const tempMessage = elements.chatMessages.querySelector(`[data-temp-id="${tempId}"]`);
+            if (tempMessage) {
+                tempMessage.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1">
+                            <div class="text-sm text-red-600">❌ Не удалось отправить сообщение</div>
+                            <div class="text-xs opacity-70 mt-1">${new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}</div>
+                        </div>
+                    </div>
+                `;
+                tempMessage.className = 'message-system';
+            }
+        }
+
+        // Функция для немедленного добавления сообщения в UI
         // Функция для немедленного добавления сообщения в UI
         function addMessageToUI(messageData) {
             // Пропускаем только системные сообщения без ошибок
-            if (messageData.message_type === 'system' && !messageData.is_error) {
+            if (messageData.message_type === 'system' && !messageData.is_error && !messageData.is_temp) {
                 return;
             }
             
@@ -2121,9 +2147,16 @@
             
             const messageElement = document.createElement('div');
             
+            // ★★★★ ДОБАВЬТЕ ID ДЛЯ ВРЕМЕННЫХ СООБЩЕНИЙ ★★★★
+            if (messageData.is_temp) {
+                messageElement.setAttribute('data-temp-id', messageData.id);
+            }
+            
             if (messageData.is_error) {
                 messageElement.className = 'message-system';
                 messageElement.setAttribute('data-is-error', 'true');
+            } else if (messageData.is_temp) {
+                messageElement.className = 'message-user message-sending';
             } else {
                 messageElement.className = messageData.is_user ? 'message-user' : 'message-brigade';
             }
@@ -2135,6 +2168,22 @@
                         <div class="flex-1">
                             <div class="text-sm text-red-600">${escapeHtml(messageData.message_text)}</div>
                             <div class="text-xs opacity-70 mt-1">${time}</div>
+                        </div>
+                    </div>
+                `;
+            } else if (messageData.is_temp) {
+                // ★★★★ ОСОБЫЙ ВИД ДЛЯ ВРЕМЕННЫХ СООБЩЕНИЙ ★★★★
+                messageContent = `
+                    <div class="flex items-end gap-2">
+                        <div class="flex-1">
+                            <div class="text-sm">${escapeHtml(messageData.message_text)}</div>
+                            <div class="text-xs opacity-70 mt-1 flex justify-between items-center">
+                                <span>${time}</span>
+                                <span class="text-xs opacity-50">Отправляется...</span>
+                            </div>
+                        </div>
+                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                            👤
                         </div>
                     </div>
                 `;
@@ -2164,6 +2213,9 @@
             
             messageElement.innerHTML = messageContent;
             elements.chatMessages.appendChild(messageElement);
+            
+            // ★★★★ ПРОКРУТКА ВНИЗ ★★★★
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
         }
 
         function checkSpecificMessage(messageText) {
