@@ -2758,6 +2758,100 @@
             
             // Проверяем URL параметры для автоматического открытия чата
             checkUrlParamsForChat();
+            checkUrlParamsForCatalog();
+        }
+
+        function checkUrlParamsForCatalog() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const section = urlParams.get('section');
+                const category = urlParams.get('category');
+                const model = urlParams.get('model');
+                const submodel = urlParams.get('submodel');
+                const productIndex = urlParams.get('product');
+                
+                if (section) {
+                    console.log('Автоматическая навигация к товару:', {section, category, model, submodel, productIndex});
+                    
+                    // Очищаем параметры из URL сразу
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, newUrl);
+                    
+                    // Навигируемся к товару
+                    setTimeout(async () => {
+                        try {
+                            await navigateToProduct(section, category, model, submodel, parseInt(productIndex) || 0);
+                        } catch (error) {
+                            console.error('Ошибка навигации к товару:', error);
+                        }
+                    }, 1000); // Даем время загрузиться приложению
+                }
+            } catch (error) {
+                console.error('Ошибка обработки параметров каталога:', error);
+            }
+        }
+
+        async function navigateToProduct(sectionHash, categoryHash, modelHash, submodelHash, productIndex) {
+            try {
+                // Переключаемся на каталог
+                switchSection('catalog');
+                
+                // Загружаем секции
+                const sections = await loadSections();
+                const section = sections.find(s => s.id === sectionHash);
+                if (!section) {
+                    console.error('Секция не найдена:', sectionHash);
+                    return;
+                }
+                
+                // Открываем секцию
+                await openSection(section.id, section.name);
+                
+                if (categoryHash && categoryHash !== 'null') {
+                    // Открываем категорию
+                    const categories = await loadCategories(sectionHash);
+                    const category = categories.find(c => c.id === categoryHash);
+                    if (category) {
+                        await openCategory(sectionHash, category.id, category.name);
+                        
+                        if (modelHash && modelHash !== 'null') {
+                            // Открываем модель
+                            const models = await loadModels(sectionHash, categoryHash);
+                            const model = models.find(m => m.id === modelHash);
+                            if (model) {
+                                await openModel(sectionHash, categoryHash, model.id, model.name);
+                                
+                                if (submodelHash && submodelHash !== 'null') {
+                                    // Открываем подмодель
+                                    const submodels = await loadSubmodels(sectionHash, categoryHash, modelHash);
+                                    const submodel = submodels.find(sm => sm.id === submodelHash);
+                                    if (submodel) {
+                                        await openSubmodel(sectionHash, categoryHash, modelHash, submodel.id, submodel.name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Прокручиваем к нужному товару
+                if (productIndex > 0) {
+                    setTimeout(() => {
+                        const productElements = document.querySelectorAll('.product-item');
+                        if (productElements[productIndex]) {
+                            productElements[productIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Подсвечиваем товар
+                            productElements[productIndex].style.border = '2px solid #007bff';
+                            setTimeout(() => {
+                                productElements[productIndex].style.border = '';
+                            }, 3000);
+                        }
+                    }, 500);
+                }
+                
+            } catch (error) {
+                console.error('Ошибка навигации к товару:', error);
+            }
         }
 
         function checkUrlParamsForChat() {
