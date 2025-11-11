@@ -1174,6 +1174,31 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
+        
+        /* СТИЛИ ДЛЯ ПРЕВЬЮ ИЗОБРАЖЕНИЙ */
+        .preview-image-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .preview-image {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .preview-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .preview-image-container .text-sm {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -3344,8 +3369,13 @@
             scheduleFeatherReplace();
         }
 
-        function renderCategories(categories, sectionId, sectionName) {
+        function renderCategories(categories, sectionId, sectionName, allLeadToProducts = false) {
             let html = '<div class="space-y-3">';
+            
+            // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ категории ведут к товарам
+            if (allLeadToProducts) {
+                html += `<div id="preview-container" class="mb-4"></div>`;
+            }
             
             categories.forEach(category => {
                 if (!category) return;
@@ -3386,11 +3416,44 @@
             `;
             
             elements.content.innerHTML = html;
+            
+            // Загружаем превью фото асинхронно, если все категории ведут к товарам
+            if (allLeadToProducts) {
+                setTimeout(async () => {
+                    const previewContainer = document.getElementById('preview-container');
+                    if (previewContainer && categories.length > 0) {
+                        const firstCategory = categories[0];
+                        const previewUrl = await getPreviewImageFromProducts(sectionId, firstCategory.id, null, null);
+                        
+                        if (previewUrl) {
+                            previewContainer.innerHTML = `
+                                <div class="preview-image-container mb-4 text-center">
+                                    <div class="inline-block">
+                                        <img src="${escapeHtml(previewUrl)}" 
+                                             alt="Превью товаров" 
+                                             class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
+                                             style="max-height: 200px; width: auto;"
+                                             onerror="this.parentElement.parentElement.remove()"
+                                             loading="lazy">
+                                        <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }, 100);
+            }
+            
             scheduleFeatherReplace();
         }
 
-        function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
+        function renderModels(models, sectionId, sectionName, categoryId, categoryName, allLeadToProducts = false) {
             let html = '<div class="space-y-3">';
+            
+            // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ модели ведут к товарам
+            if (allLeadToProducts) {
+                html += `<div id="preview-container" class="mb-4"></div>`;
+            }
             
             models.forEach(model => {
                 if (!model) return;
@@ -3431,11 +3494,68 @@
             `;
             
             elements.content.innerHTML = html;
+            
+            // Загружаем превью фото асинхронно, если все модели ведут к товарам
+            if (allLeadToProducts) {
+                setTimeout(async () => {
+                    const previewContainer = document.getElementById('preview-container');
+                    if (previewContainer && models.length > 0) {
+                        const firstModel = models[0];
+                        const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, firstModel.id, null);
+                        
+                        if (previewUrl) {
+                            previewContainer.innerHTML = `
+                                <div class="preview-image-container mb-4 text-center">
+                                    <div class="inline-block">
+                                        <img src="${escapeHtml(previewUrl)}" 
+                                             alt="Превью товаров" 
+                                             class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
+                                             style="max-height: 200px; width: auto;"
+                                             onerror="this.parentElement.parentElement.remove()"
+                                             loading="lazy">
+                                        <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }, 100);
+            }
+            
             scheduleFeatherReplace();
+        }
+
+        // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ПЕРВОГО ФОТО ИЗ ТОВАРОВ
+        async function getPreviewImageFromProducts(sectionId, categoryId, modelId, submodelId) {
+            try {
+                const safeSectionId = sectionId || 'null';
+                const safeCategoryId = categoryId || 'null';
+                const safeModelId = modelId || 'null';
+                const safeSubmodelId = submodelId || 'null';
+                
+                const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
+                const data = await apiFetch(endpoint);
+                
+                if (data?.products && data.products.length > 0) {
+                    // Ищем первый товар с фото
+                    for (let product of data.products) {
+                        if (product.photo_url) {
+                            return product.photo_url;
+                        }
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.log('Не удалось получить превью фото:', error);
+                return null;
+            }
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
             let html = '<div class="space-y-3">';
+            
+            // ДОБАВЛЯЕМ ПРЕВЬЮ - здесь ВСЕ кнопки ведут к товарам!
+            html += `<div id="preview-container" class="mb-4"></div>`;
             
             submodels.forEach(submodel => {
                 if (!submodel) return;
@@ -3476,6 +3596,32 @@
             `;
             
             elements.content.innerHTML = html;
+            
+            // Загружаем превью фото асинхронно
+            setTimeout(async () => {
+                const previewContainer = document.getElementById('preview-container');
+                if (previewContainer && submodels.length > 0) {
+                    const firstSubmodel = submodels[0];
+                    const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, firstSubmodel.id);
+                    
+                    if (previewUrl) {
+                        previewContainer.innerHTML = `
+                            <div class="preview-image-container mb-4 text-center">
+                                <div class="inline-block">
+                                    <img src="${escapeHtml(previewUrl)}" 
+                                         alt="Превью товаров" 
+                                         class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
+                                         style="max-height: 200px; width: auto;"
+                                         onerror="this.parentElement.parentElement.remove()"
+                                         loading="lazy">
+                                    <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }, 100);
+            
             scheduleFeatherReplace();
         }
 
