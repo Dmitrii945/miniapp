@@ -2763,24 +2763,33 @@
         function checkUrlParamsForChat() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const shouldOpenChat = urlParams.get('openChat');
-                const sessionId = urlParams.get('sessionId');
-                const brigadeName = urlParams.get('brigadeName');
-                const objectName = urlParams.get('objectName');
+                const openChatSessionId = urlParams.get('openChat');
                 
-                if (shouldOpenChat === 'true' && sessionId && brigadeName) {
-                    console.log('Автоматическое открытие чата из уведомления:', {
-                        sessionId, brigadeName, objectName
-                    });
+                if (openChatSessionId) {
+                    console.log('Автоматическое открытие чата из уведомления, session_id:', openChatSessionId);
                     
-                    // Открываем чат как бригада (так как уведомление приходит бригаде)
-                    setTimeout(() => {
-                        openChatSessionAsBrigade(sessionId, brigadeName, objectName || '');
+                    // Получаем данные чата по session_id
+                    setTimeout(async () => {
+                        try {
+                            const response = await fetch(`${API_BASE}/chat/session_info/${openChatSessionId}`);
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                console.log('Данные чата получены:', data);
+                                
+                                // Открываем чат как бригада (так как уведомление приходит бригаде)
+                                openChatSessionAsBrigade(data.session_id, data.brigade_name, data.object_name || '');
+                            } else {
+                                console.error('Чат не найден:', data.error);
+                            }
+                        } catch (error) {
+                            console.error('Ошибка получения данных чата:', error);
+                        }
+                        
+                        // Очищаем параметры из URL
+                        const newUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, newUrl);
                     }, 1000); // Даем время загрузиться приложению
-                    
-                    // Очищаем параметры из URL
-                    const newUrl = window.location.pathname;
-                    window.history.replaceState({}, document.title, newUrl);
                 }
             } catch (error) {
                 console.error('Ошибка обработки параметров чата:', error);
