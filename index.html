@@ -3750,6 +3750,9 @@
 
                 console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, userId, userName });
 
+                // Сохраняем brigadeRow для возможного восстановления сессии
+                localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
+
                 // Проверяем, есть ли уже сохраненная сессия
                 const sessionKey = getChatSessionKey(brigadeRow, objectName);
                 const savedSession = localStorage.getItem(sessionKey);
@@ -3760,6 +3763,10 @@
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
                     currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
+                    
+                    // Также обновляем сохраненный telegram_id
+                    localStorage.setItem('lastUsedTelegramId', telegramId);
+                    
                     openChatModal(brigadeName, objectName);
                     return;
                 }
@@ -3792,6 +3799,8 @@
 
                     // Сохраняем session_id в localStorage
                     localStorage.setItem(sessionKey, data.session_id);
+                    // Также сохраняем telegram_id для возможного восстановления
+                    localStorage.setItem('lastUsedTelegramId', telegramId);
                     console.log('Session ID сохранен в localStorage');
 
                     // Открываем модальное окно чата и загружаем историю
@@ -3942,8 +3951,40 @@
             }
 
             if (!currentChatSession) {
-                alert('Чат не активен');
-                return;
+                console.error('Чат не активен - currentChatSession не установлен');
+                
+                // Попытаемся восстановить сессию из localStorage
+                if (currentChatBrigade && currentChatObject) {
+                    const tg = window.Telegram?.WebApp;
+                    const userInfo = tg?.initDataUnsafe?.user || {};
+                    const userId = userInfo.id || 'web_user_' + Date.now();
+                    
+                    // Попытаемся найти в localStorage
+                    const brigadeRow = localStorage.getItem('lastUsedBrigadeRow') || 'unknown';
+                    const sessionKey = getChatSessionKey(brigadeRow, currentChatObject);
+                    const savedSession = localStorage.getItem(sessionKey);
+                    
+                    if (savedSession) {
+                        currentChatSession = savedSession;
+                        console.log('Сессия восстановлена из localStorage:', savedSession);
+                    } else {
+                        // Создаем новый ID сессии
+                        currentChatSession = `${userId}_${brigadeRow}_${currentChatObject || 'general'}_${Date.now()}`;
+                        localStorage.setItem(sessionKey, currentChatSession);
+                        console.log('Создана новая сессия:', currentChatSession);
+                    }
+                    
+                    // Если не установлен telegram_id, пытаемся его найти
+                    if (!currentChatTelegramId) {
+                        const savedTelegramId = localStorage.getItem('lastUsedTelegramId');
+                        if (savedTelegramId) {
+                            currentChatTelegramId = savedTelegramId;
+                        }
+                    }
+                } else {
+                    alert('Чат не активен. Пожалуйста, откройте чат заново из карточки объекта.');
+                    return;
+                }
             }
 
             // Очищаем поле ввода сразу
