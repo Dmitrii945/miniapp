@@ -3661,13 +3661,9 @@
                     currentChatSession = data.session_id;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
-                    chatMessages = [];
 
-                    // Открываем модальное окно чата
+                    // Открываем модальное окно чата и загружаем историю
                     openChatModal(brigadeName, objectName);
-
-                    // Добавляем приветственное сообщение
-                    addChatMessage('brigade', 'Система', 'Ваш запрос получен. Бригада свяжется с вами в ближайшее время.', new Date());
                 } else {
                     throw new Error(data.error || 'Не удалось создать чат');
                 }
@@ -3683,7 +3679,7 @@
             }
         }
 
-        function openChatModal(brigadeName, objectName) {
+        async function openChatModal(brigadeName, objectName) {
             const modal = document.getElementById('chatModal');
             const title = document.getElementById('chatModalTitle');
             const subtitle = document.getElementById('chatModalSubtitle');
@@ -3692,12 +3688,37 @@
             subtitle.textContent = objectName || 'Общий чат';
 
             modal.classList.remove('hidden');
-            renderChatMessages();
+            
+            // Загружаем историю сообщений с сервера
+            await loadChatHistory();
             
             // Фокус на input
             setTimeout(() => {
                 document.getElementById('chatModalInput').focus();
             }, 100);
+        }
+
+        async function loadChatHistory() {
+            if (!currentChatSession) {
+                renderChatMessages();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/history/${currentChatSession}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    chatMessages = data.messages || [];
+                    renderChatMessages();
+                } else {
+                    console.error('Ошибка загрузки истории:', data.error);
+                    renderChatMessages();
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки истории чата:', error);
+                renderChatMessages();
+            }
         }
 
         function closeChatModal() {
