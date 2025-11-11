@@ -1051,14 +1051,15 @@
 
         .chat-message-user {
             align-self: flex-end;
-            background: #3B82F6;
-            color: white;
+            background: white;
+            color: #1F2937;
             border-bottom-right-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .chat-message-brigade {
             align-self: flex-start;
-            background: white;
+            background: #F3F4F6;
             color: #1F2937;
             border-bottom-left-radius: 4px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
@@ -3928,31 +3929,32 @@
                 }
 
                 // Определяем, является ли это сообщением текущего пользователя
-                let messageClass = 'chat-message-brigade';  // По умолчанию - сообщение собеседника
-                let isMyMessage = false;
-
+                let messageClass = 'chat-message-brigade';  // По умолчанию - сообщение собеседника (слева, серое)
+                
                 if (msg.type === 'system') {
                     messageClass = 'chat-message-system';
                 } else {
-                    // Определяем по Telegram ID текущего пользователя
-                    if (currentUserId) {
-                        if (msg.type === 'user' && !currentChatTelegramId) {
-                            // Обычный покупатель пишет сообщение
+                    // Получаем текущий Telegram ID пользователя
+                    const currentUserTelegramId = currentUserId ? String(currentUserId) : null;
+                    let isMyMessage = false;
+                    
+                    if (msg.type === 'user') {
+                        // Это сообщение от покупателя
+                        if (!currentChatTelegramId || currentUserTelegramId !== currentChatTelegramId) {
+                            // Текущий пользователь - покупатель, это его сообщение
                             isMyMessage = true;
-                        } else if (msg.type === 'brigade' && currentUserId === currentChatTelegramId) {
-                            // Бригада пишет сообщение (текущий пользователь - бригада)
-                            isMyMessage = true;
-                        } else if (msg.type === 'user' && currentChatTelegramId && currentUserId !== currentChatTelegramId) {
-                            // Покупатель пишет бригаде (когда бригада читает чат)
-                            isMyMessage = false;
-                        } else if (msg.type === 'brigade' && (!currentChatTelegramId || currentUserId !== currentChatTelegramId)) {
-                            // Бригада пишет покупателю (когда покупатель читает чат)
+                        } else {
+                            // Текущий пользователь - бригада, это сообщение от покупателя
                             isMyMessage = false;
                         }
-                    } else {
-                        // Для веб-пользователей без Telegram ID
-                        if (msg.type === 'user') {
+                    } else if (msg.type === 'brigade') {
+                        // Это сообщение от бригады
+                        if (currentUserTelegramId === currentChatTelegramId) {
+                            // Текущий пользователь - бригада, это её сообщение
                             isMyMessage = true;
+                        } else {
+                            // Текущий пользователь - покупатель, это сообщение от бригады
+                            isMyMessage = false;
                         }
                     }
 
