@@ -2284,7 +2284,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -3637,9 +3637,17 @@
         let currentChatSession = null;
         let currentChatBrigade = null;
         let currentChatObject = null;
+        let currentChatTelegramId = null;  // Telegram ID текущей бригады
         let chatMessages = [];
 
-        async function startChatWithBrigade(brigadeName, objectName = null) {
+        // Получить или создать session_id для чата
+        function getChatSessionKey(brigadeName, objectName) {
+            const tg = window.Telegram?.WebApp;
+            const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
+            return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
+        }
+
+        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
@@ -3647,9 +3655,23 @@
                 const userId = userInfo.id || 'web_user_' + Date.now();
                 const userName = userInfo.first_name || 'Пользователь';
 
-                console.log('Начинаем чат с бригадой:', { brigadeName, objectName, userId, userName });
+                console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, userId, userName });
 
-                // Отправляем запрос на создание чата
+                // Проверяем, есть ли уже сохраненная сессия
+                const sessionKey = getChatSessionKey(brigadeRow, objectName);
+                const savedSession = localStorage.getItem(sessionKey);
+
+                if (savedSession) {
+                    console.log('Найдена существующая сессия:', savedSession);
+                    currentChatSession = savedSession;
+                    currentChatBrigade = brigadeName;
+                    currentChatObject = objectName;
+                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
+                    openChatModal(brigadeName, objectName);
+                    return;
+                }
+
+                // Создаем новую сессию через API
                 const response = await fetch(`${API_BASE}/chat/start`, {
                     method: 'POST',
                     headers: {
@@ -3658,6 +3680,8 @@
                     body: JSON.stringify({
                         user_id: userId,
                         user_name: userName,
+                        brigade_row: brigadeRow,
+                        telegram_id: telegramId,
                         brigade_name: brigadeName,
                         object_name: objectName
                     })
@@ -3671,6 +3695,11 @@
                     currentChatSession = data.session_id;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
+                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
+
+                    // Сохраняем session_id в localStorage
+                    localStorage.setItem(sessionKey, data.session_id);
+                    console.log('Session ID сохранен в localStorage');
 
                     // Открываем модальное окно чата и загружаем историю
                     openChatModal(brigadeName, objectName);
@@ -3836,6 +3865,7 @@
                         session_id: currentChatSession,
                         user_id: userId,
                         user_name: userName,
+                        telegram_id: currentChatTelegramId,
                         brigade_name: currentChatBrigade,
                         object_name: currentChatObject,
                         message_text: messageText
