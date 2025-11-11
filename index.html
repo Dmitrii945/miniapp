@@ -1039,6 +1039,16 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
+        .chat-message-system {
+            align-self: center;
+            background: #F3F4F6;
+            color: #6B7280;
+            font-size: 13px;
+            font-style: italic;
+            text-align: center;
+            max-width: 85%;
+        }
+
         .chat-message-time {
             font-size: 11px;
             opacity: 0.7;
@@ -3753,17 +3763,34 @@
 
             let html = '';
             chatMessages.forEach(msg => {
-                const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+                // Определяем время
+                let time;
+                if (msg.timestamp) {
+                    try {
+                        const date = new Date(msg.timestamp);
+                        time = date.toLocaleTimeString('ru-RU', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (e) {
+                        time = '';
+                    }
+                } else {
+                    time = '';
+                }
 
-                const messageClass = msg.type === 'user' ? 'chat-message-user' : 'chat-message-brigade';
+                // Определяем класс сообщения
+                let messageClass = 'chat-message-brigade';
+                if (msg.type === 'user') {
+                    messageClass = 'chat-message-user';
+                } else if (msg.type === 'system') {
+                    messageClass = 'chat-message-system';
+                }
                 
                 html += `
                     <div class="chat-message ${messageClass}">
                         <div>${escapeHtml(msg.text)}</div>
-                        <div class="chat-message-time">${time}</div>
+                        ${time ? `<div class="chat-message-time">${time}</div>` : ''}
                     </div>
                 `;
             });
@@ -3786,16 +3813,15 @@
                 return;
             }
 
-            // Добавляем сообщение в локальный массив
+            // Очищаем поле ввода сразу
+            input.value = '';
+
+            // Отправляем сообщение на сервер
             const tg = window.Telegram?.WebApp;
             const userInfo = tg?.initDataUnsafe?.user || {};
             const userId = userInfo.id || 'web_user_' + Date.now();
             const userName = userInfo.first_name || 'Вы';
 
-            addChatMessage('user', userName, message, new Date());
-            input.value = '';
-
-            // Отправляем сообщение на сервер
             sendMessageToServer(userId, userName, message);
         }
 
@@ -3819,11 +3845,16 @@
                 const data = await response.json();
                 console.log('Сообщение отправлено на сервер:', data);
 
-                if (!data.success) {
+                if (data.success) {
+                    // Перезагружаем историю чата после отправки
+                    await loadChatHistory();
+                } else {
                     console.error('Ошибка отправки сообщения:', data.error);
+                    alert('Не удалось отправить сообщение');
                 }
             } catch (error) {
                 console.error('Ошибка отправки сообщения на сервер:', error);
+                alert('Ошибка связи с сервером');
             }
         }
 
