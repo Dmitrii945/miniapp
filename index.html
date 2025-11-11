@@ -3953,16 +3953,11 @@
                 }
                 
                 console.log('Message debug:', {
-                    text: msg.text.substring(0, 20),
+                    text: (msg.text || '').substring(0, 20),
                     type: msg.type,
                     currentUserId: currentUserId,
                     currentChatTelegramId: currentChatTelegramId,
                     isCurrentUserBrigade: currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId),
-                    isMyMessage: messageClass === 'chat-message-user',
-                    messageClass: messageClass
-                });
-                    currentUserId: currentUserId,
-                    currentChatTelegramId: currentChatTelegramId,
                     isMyMessage: messageClass === 'chat-message-user',
                     messageClass: messageClass
                 });
