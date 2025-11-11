@@ -3592,11 +3592,11 @@
                     <div class="submodel-item">
                         <!-- Превью фото для каждой подмодели -->
                         <div class="preview-image-container mb-2 text-center">
-                            <div class="inline-block">
+                            <div class="inline-block" style="width: 100%;">
                                 <div class="preview-placeholder-${safeId}" 
-                                     style="width: 200px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                     style="width: 100%; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                                             border-radius: 8px; display: flex; align-items: center; justify-content: center; 
-                                            color: white; font-size: 14px; font-weight: bold; margin: 0 auto;">
+                                            color: white; font-size: 14px; font-weight: bold;">
                                     🖼️ Загрузка...
                                 </div>
                             </div>
@@ -3652,24 +3652,44 @@
                             console.log(`Preview URL for ${submodel.name}:`, previewUrl);
                             
                             if (previewUrl && previewUrl.trim() !== '') {
+                                // Добавляем префикс для фото, если нужно
+                                let fullImageUrl = previewUrl;
+                                if (!previewUrl.startsWith('http')) {
+                                    fullImageUrl = `https://dmitrii2613.pythonanywhere.com/static/images/${previewUrl}`;
+                                }
+                                
+                                console.log(`Full image URL for ${submodel.name}:`, fullImageUrl);
+                                
                                 placeholder.innerHTML = `
-                                    <img src="${escapeHtml(previewUrl)}" 
+                                    <img src="${escapeHtml(fullImageUrl)}" 
                                          alt="Превью ${escapeHtml(submodel.name)}" 
-                                         style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;"
-                                         onload="console.log('Preview loaded for ${escapeHtml(submodel.name)}')"
-                                         onerror="this.parentElement.innerHTML = '<div style=\\'color: white; font-size: 12px;\\'>🖼️ Фото недоступно</div>';">
+                                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
+                                         onload="console.log('✅ Preview loaded for ${escapeHtml(submodel.name)}')"
+                                         onerror="console.log('❌ Preview failed for ${escapeHtml(submodel.name)}'); this.parentElement.innerHTML = '<div style=\\'color: white; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;\\'>�<br>Нет фото</div>';">
                                 `;
                             } else {
+                                console.log(`No preview URL for ${submodel.name}, showing placeholder`);
                                 placeholder.innerHTML = `
                                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
-                                        <div style="font-size: 24px; margin-bottom: 5px;">📦</div>
-                                        <div style="font-size: 11px;">Товары</div>
+                                        <div style="font-size: 32px; margin-bottom: 5px;">📦</div>
+                                        <div style="font-size: 12px;">Товары ${escapeHtml(submodel.name)}</div>
                                     </div>
                                 `;
                             }
                         }
                     } catch (error) {
                         console.error(`Error loading preview for ${submodel.name}:`, error);
+                        // При ошибке API показываем иконку
+                        const safeId = escapeHtml(submodel.id);
+                        const placeholder = document.querySelector(`.preview-placeholder-${safeId}`);
+                        if (placeholder) {
+                            placeholder.innerHTML = `
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
+                                    <div style="font-size: 32px; margin-bottom: 5px;">🛍️</div>
+                                    <div style="font-size: 12px;">Товары ${escapeHtml(submodel.name)}</div>
+                                </div>
+                            `;
+                        }
                     }
                 }
             }, 300);
