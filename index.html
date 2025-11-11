@@ -3533,20 +3533,35 @@
                 const safeModelId = modelId || 'null';
                 const safeSubmodelId = submodelId || 'null';
                 
-                const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
-                const data = await apiFetch(endpoint);
+                console.log('Getting preview image for:', { safeSectionId, safeCategoryId, safeModelId, safeSubmodelId });
+                
+                const endpoint = `${API_BASE}/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
+                console.log('Preview API endpoint:', endpoint);
+                
+                const response = await fetch(endpoint);
+                if (!response.ok) {
+                    console.log('Preview API error:', response.status, response.statusText);
+                    return null;
+                }
+                
+                const data = await response.json();
+                console.log('Preview API response:', data);
                 
                 if (data?.products && data.products.length > 0) {
                     // Ищем первый товар с фото
                     for (let product of data.products) {
-                        if (product.photo_url) {
+                        console.log('Checking product for photo:', product);
+                        if (product.photo_url && product.photo_url.trim() !== '') {
+                            console.log('Found preview image:', product.photo_url);
                             return product.photo_url;
                         }
                     }
                 }
+                
+                console.log('No preview image found');
                 return null;
             } catch (error) {
-                console.log('Не удалось получить превью фото:', error);
+                console.error('Не удалось получить превью фото:', error);
                 return null;
             }
         }
@@ -3601,23 +3616,49 @@
             setTimeout(async () => {
                 const previewContainer = document.getElementById('preview-container');
                 if (previewContainer && submodels.length > 0) {
-                    const firstSubmodel = submodels[0];
-                    const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, firstSubmodel.id);
+                    console.log('Attempting to load preview for submodels:', submodels);
                     
-                    if (previewUrl) {
+                    // ТЕСТОВОЕ ПРЕВЬЮ - используем фиксированное изображение
+                    const testPreviewUrl = 'https://via.placeholder.com/300x200/4F46E5/ffffff?text=Preview';
+                    
+                    if (testPreviewUrl) {
                         previewContainer.innerHTML = `
                             <div class="preview-image-container mb-4 text-center">
                                 <div class="inline-block">
-                                    <img src="${escapeHtml(previewUrl)}" 
+                                    <img src="${escapeHtml(testPreviewUrl)}" 
                                          alt="Превью товаров" 
                                          class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
                                          style="max-height: 200px; width: auto;"
-                                         onerror="this.parentElement.parentElement.remove()"
+                                         onerror="console.log('Preview image failed to load'); this.parentElement.parentElement.remove()"
+                                         onload="console.log('Preview image loaded successfully')"
                                          loading="lazy">
                                     <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
                                 </div>
                             </div>
                         `;
+                        console.log('Preview container updated with test image');
+                    } else {
+                        console.log('No preview URL available');
+                    }
+                    
+                    // Попробуем также получить реальное превью
+                    try {
+                        const firstSubmodel = submodels[0];
+                        const realPreviewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, firstSubmodel.id);
+                        console.log('Real preview URL:', realPreviewUrl);
+                        
+                        if (realPreviewUrl) {
+                            // Заменяем тестовое изображение на реальное
+                            setTimeout(() => {
+                                const img = previewContainer.querySelector('.preview-image');
+                                if (img) {
+                                    img.src = realPreviewUrl;
+                                    console.log('Updated to real preview image');
+                                }
+                            }, 1000);
+                        }
+                    } catch (error) {
+                        console.error('Error getting real preview:', error);
                     }
                 }
             }, 100);
