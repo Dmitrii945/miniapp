@@ -3936,16 +3936,19 @@
                 } else {
                     let isMyMessage = false;
                     
-                    // Определяем тип текущего пользователя
-                    // Проверяем, является ли текущий пользователь бригадой (сравниваем с telegram_id в чате)
-                    const isCurrentUserBrigade = currentUserId && currentChatTelegramId && 
-                                                 String(currentUserId) === String(currentChatTelegramId);
+                    // Определяем тип текущего пользователя:
+                    // 1. Если currentChatTelegramId === null → покупатель
+                    // 2. Если currentChatTelegramId === currentUserId → бригада
+                    // 3. Если currentChatTelegramId !== currentUserId → покупатель общается с другой бригадой
                     
-                    if (isCurrentUserBrigade) {
-                        // Текущий пользователь - бригада
+                    if (currentChatTelegramId === null) {
+                        // Покупатель открыл чат через openChatSessionAsCustomer
+                        isMyMessage = (msg.type === 'user');
+                    } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
+                        // Бригада открыла чат через openChatSessionAsBrigade
                         isMyMessage = (msg.type === 'brigade');
                     } else {
-                        // Текущий пользователь - покупатель
+                        // Fallback: покупатель общается с бригадой
                         isMyMessage = (msg.type === 'user');
                     }
 
@@ -4118,7 +4121,7 @@
                         // Для бригады показываем чаты с покупателями
                         content.innerHTML = data.sessions.map(session => `
                             <div class="chat-session-item">
-                                <div class="flex justify-between items-start" onclick="openChatSession('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
+                                <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
                                         <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
@@ -4137,7 +4140,7 @@
                         // Для покупателя показываем чаты с бригадами
                         content.innerHTML = data.sessions.map(session => `
                             <div class="chat-session-item">
-                                <div class="flex justify-between items-start" onclick="openChatSession('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
+                                <div class="flex justify-between items-start" onclick="openChatSessionAsCustomer('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
                                         <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
@@ -4185,28 +4188,58 @@
             document.getElementById('myChatsModal').classList.add('hidden');
         }
 
-        function openChatSession(sessionId, brigadeName, objectName) {
+        function openChatSessionAsBrigade(sessionId, brigadeName, objectName) {
             currentChatSession = sessionId;
             currentChatBrigade = brigadeName;
             currentChatObject = objectName;
             
-            // Определяем, является ли текущий пользователь бригадой
             const tg = window.Telegram?.WebApp;
             const userInfo = tg?.initDataUnsafe?.user || {};
             const userId = userInfo.id;
             
-            // Когда бригада открывает чат из своего списка, currentChatTelegramId должен быть её собственный ID
-            // Это позволит правильно определить, что её сообщения должны быть справа
+            // Бригада открывает чат - currentChatTelegramId = её собственный ID
             currentChatTelegramId = String(userId);
             
             console.log('Opening chat session as brigade:', {
-                sessionId,
-                brigadeName,
-                objectName,
+                sessionId, brigadeName, objectName,
                 currentUserId: userId,
-                currentChatTelegramId: currentChatTelegramId,
-                note: 'Brigade opening own chat'
+                currentChatTelegramId: currentChatTelegramId
             });
+            
+            closeMyChatsModal();
+            openChatModal(brigadeName, objectName);
+        }
+
+        function openChatSessionAsCustomer(sessionId, brigadeName, objectName) {
+            currentChatSession = sessionId;
+            currentChatBrigade = brigadeName;
+            currentChatObject = objectName;
+            
+            // Покупатель открывает чат - currentChatTelegramId НЕ устанавливаем или ставим null
+            // Это позволит определить, что пользователь - покупатель
+            currentChatTelegramId = null;
+            
+            console.log('Opening chat session as customer:', {
+                sessionId, brigadeName, objectName,
+                currentChatTelegramId: currentChatTelegramId
+            });
+            
+            closeMyChatsModal();
+            openChatModal(brigadeName, objectName);
+        }
+
+        function openChatSession(sessionId, brigadeName, objectName) {
+            // Оставляем старую функцию для совместимости
+            currentChatSession = sessionId;
+            currentChatBrigade = brigadeName;
+            currentChatObject = objectName;
+            
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id;
+            
+            // По умолчанию считаем бригадой (для обратной совместимости)
+            currentChatTelegramId = String(userId);
             
             closeMyChatsModal();
             openChatModal(brigadeName, objectName);
@@ -4312,6 +4345,8 @@
         window.showMyChats = showMyChats;
         window.closeMyChatsModal = closeMyChatsModal;
         window.openChatSession = openChatSession;
+        window.openChatSessionAsBrigade = openChatSessionAsBrigade;
+        window.openChatSessionAsCustomer = openChatSessionAsCustomer;
         window.deleteChatSession = deleteChatSession;
     </script>
 </body>
