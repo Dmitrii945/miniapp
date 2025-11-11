@@ -1199,6 +1199,17 @@
             font-weight: 500;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
+        
+        /* СТИЛИ ДЛЯ ОТДЕЛЬНЫХ ПРЕВЬЮ КАЖДОЙ КНОПКИ */
+        .submodel-item {
+            margin-bottom: 16px;
+        }
+        
+        .submodel-item .preview-image-container {
+            background: none;
+            padding: 0;
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -3569,22 +3580,6 @@
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
             let html = '<div class="space-y-3">';
             
-            // ДОБАВЛЯЕМ ПРЕВЬЮ ПРЯМО В HTML - здесь ВСЕ кнопки ведут к товарам!
-            html += `
-                <div class="preview-image-container mb-4 text-center">
-                    <div class="inline-block">
-                        <div class="preview-placeholder" 
-                             style="width: 300px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                    border-radius: 8px; display: flex; align-items: center; justify-content: center; 
-                                    color: white; font-size: 18px; font-weight: bold; margin: 0 auto; flex-direction: column;">
-                            <div style="font-size: 48px; margin-bottom: 10px;">🛍️</div>
-                            <div style="font-size: 16px;">Товары в разделе</div>
-                        </div>
-                        <div class="text-sm text-white mt-2" style="color: rgba(255, 255, 255, 0.9);">Выберите подмодель для просмотра</div>
-                    </div>
-                </div>
-            `;
-            
             submodels.forEach(submodel => {
                 if (!submodel) return;
                 
@@ -3594,14 +3589,29 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                    <div class="submodel-item">
+                        <!-- Превью фото для каждой подмодели -->
+                        <div class="preview-image-container mb-2 text-center">
+                            <div class="inline-block">
+                                <div class="preview-placeholder-${safeId}" 
+                                     style="width: 200px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+                                            color: white; font-size: 14px; font-weight: bold; margin: 0 auto;">
+                                    🖼️ Загрузка...
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- Кнопка подмодели -->
+                        <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                            <div class="p-4">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -3625,31 +3635,44 @@
             
             elements.content.innerHTML = html;
             
-            // Пробуем загрузить реальное превью ПОСЛЕ отрисовки
+            // Загружаем превью для КАЖДОЙ подмодели отдельно
             setTimeout(async () => {
-                try {
-                    const placeholder = document.querySelector('.preview-placeholder');
-                    if (placeholder && submodels.length > 0) {
-                        console.log('Trying to load real preview...');
+                for (let submodel of submodels) {
+                    if (!submodel) continue;
+                    
+                    try {
+                        const safeId = escapeHtml(submodel.id);
+                        const placeholder = document.querySelector(`.preview-placeholder-${safeId}`);
                         
-                        const firstSubmodel = submodels[0];
-                        const realPreviewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, firstSubmodel.id);
-                        console.log('Real preview URL:', realPreviewUrl);
-                        
-                        if (realPreviewUrl && realPreviewUrl.trim() !== '') {
-                            placeholder.innerHTML = `
-                                <img src="${escapeHtml(realPreviewUrl)}" 
-                                     alt="Превью товаров" 
-                                     style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;"
-                                     onload="console.log('Real preview loaded successfully')"
-                                     onerror="console.log('Real preview failed to load');">
-                            `;
+                        if (placeholder) {
+                            console.log(`Loading preview for submodel: ${submodel.name}`);
+                            
+                            // Получаем превью для конкретной подмодели
+                            const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, submodel.id);
+                            console.log(`Preview URL for ${submodel.name}:`, previewUrl);
+                            
+                            if (previewUrl && previewUrl.trim() !== '') {
+                                placeholder.innerHTML = `
+                                    <img src="${escapeHtml(previewUrl)}" 
+                                         alt="Превью ${escapeHtml(submodel.name)}" 
+                                         style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;"
+                                         onload="console.log('Preview loaded for ${escapeHtml(submodel.name)}')"
+                                         onerror="this.parentElement.innerHTML = '<div style=\\'color: white; font-size: 12px;\\'>🖼️ Фото недоступно</div>';">
+                                `;
+                            } else {
+                                placeholder.innerHTML = `
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
+                                        <div style="font-size: 24px; margin-bottom: 5px;">📦</div>
+                                        <div style="font-size: 11px;">Товары</div>
+                                    </div>
+                                `;
+                            }
                         }
+                    } catch (error) {
+                        console.error(`Error loading preview for ${submodel.name}:`, error);
                     }
-                } catch (error) {
-                    console.error('Error loading preview:', error);
                 }
-            }, 500);
+            }, 300);
             
             scheduleFeatherReplace();
         }
