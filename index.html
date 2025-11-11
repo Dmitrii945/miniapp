@@ -3936,19 +3936,16 @@
                 } else {
                     let isMyMessage = false;
                     
-                    // Простая логика: определяем по типу сообщения и текущему пользователю
-                    if (currentUserId && currentChatTelegramId) {
-                        // У нас есть и ID пользователя, и ID бригады в чате
-                        if (String(currentUserId) === String(currentChatTelegramId)) {
-                            // Текущий пользователь - это бригада
-                            isMyMessage = (msg.type === 'brigade');
-                        } else {
-                            // Текущий пользователь - это покупатель
-                            isMyMessage = (msg.type === 'user');
-                        }
+                    // Определяем тип текущего пользователя
+                    // Проверяем, является ли текущий пользователь бригадой (сравниваем с telegram_id в чате)
+                    const isCurrentUserBrigade = currentUserId && currentChatTelegramId && 
+                                                 String(currentUserId) === String(currentChatTelegramId);
+                    
+                    if (isCurrentUserBrigade) {
+                        // Текущий пользователь - бригада
+                        isMyMessage = (msg.type === 'brigade');
                     } else {
-                        // Нет полной информации, используем простое правило:
-                        // Если это сообщение типа 'user', считаем что это от обычного пользователя
+                        // Текущий пользователь - покупатель
                         isMyMessage = (msg.type === 'user');
                     }
 
@@ -3958,6 +3955,12 @@
                 console.log('Message debug:', {
                     text: msg.text.substring(0, 20),
                     type: msg.type,
+                    currentUserId: currentUserId,
+                    currentChatTelegramId: currentChatTelegramId,
+                    isCurrentUserBrigade: currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId),
+                    isMyMessage: messageClass === 'chat-message-user',
+                    messageClass: messageClass
+                });
                     currentUserId: currentUserId,
                     currentChatTelegramId: currentChatTelegramId,
                     isMyMessage: messageClass === 'chat-message-user',
@@ -4191,6 +4194,24 @@
             currentChatSession = sessionId;
             currentChatBrigade = brigadeName;
             currentChatObject = objectName;
+            
+            // Определяем, является ли текущий пользователь бригадой
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id;
+            
+            // Когда бригада открывает чат из своего списка, currentChatTelegramId должен быть её собственный ID
+            // Это позволит правильно определить, что её сообщения должны быть справа
+            currentChatTelegramId = String(userId);
+            
+            console.log('Opening chat session as brigade:', {
+                sessionId,
+                brigadeName,
+                objectName,
+                currentUserId: userId,
+                currentChatTelegramId: currentChatTelegramId,
+                note: 'Brigade opening own chat'
+            });
             
             closeMyChatsModal();
             openChatModal(brigadeName, objectName);
