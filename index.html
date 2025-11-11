@@ -3995,32 +3995,79 @@
             document.getElementById('myChatsModal').classList.remove('hidden');
 
             try {
-                const response = await fetch(`${API_BASE}/chat/user_sessions/${userId}`);
-                const data = await response.json();
+                // Сначала проверяем, является ли пользователь бригадой
+                const brigadeCheckResponse = await fetch(`${API_BASE}/debug/brigades`);
+                const brigadeData = await brigadeCheckResponse.json();
+                
+                let isBrigade = false;
+                if (brigadeData.success) {
+                    // Ищем пользователя среди бригад по telegram_id
+                    isBrigade = brigadeData.brigades.some(brigade => 
+                        brigade.type === 'brigade' && 
+                        brigade.telegram_id === String(userId)
+                    );
+                }
 
+                // Используем соответствующий endpoint
+                let response;
+                if (isBrigade) {
+                    console.log('Пользователь является бригадой, загружаем чаты бригады');
+                    response = await fetch(`${API_BASE}/chat/brigade_sessions/${userId}`);
+                } else {
+                    console.log('Пользователь является покупателем, загружаем чаты пользователя');
+                    response = await fetch(`${API_BASE}/chat/user_sessions/${userId}`);
+                }
+
+                const data = await response.json();
                 const content = document.getElementById('myChatsContent');
 
                 if (data.success && data.sessions.length > 0) {
-                    content.innerHTML = data.sessions.map(session => `
-                        <div class="chat-session-item" onclick="openChatSession('${session.session_id}', '${session.brigade_name}', '${session.object_name}')">
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1">
-                                    <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
-                                    <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
-                                    <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
+                    if (isBrigade) {
+                        // Для бригады показываем чаты с покупателями
+                        content.innerHTML = data.sessions.map(session => `
+                            <div class="chat-session-item" onclick="openChatSession('${session.session_id}', '${data.brigade_name}', '${session.object_name}')">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
+                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
+                                    </div>
+                                    <span class="text-xs text-gray-400">
+                                        ${new Date(session.created_at).toLocaleDateString()}
+                                    </span>
                                 </div>
-                                <span class="text-xs text-gray-400">
-                                    ${new Date(session.created_at).toLocaleDateString()}
-                                </span>
                             </div>
-                        </div>
-                    `).join('');
+                        `).join('');
+                    } else {
+                        // Для покупателя показываем чаты с бригадами
+                        content.innerHTML = data.sessions.map(session => `
+                            <div class="chat-session-item" onclick="openChatSession('${session.session_id}', '${session.brigade_name}', '${session.object_name}')">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
+                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
+                                    </div>
+                                    <span class="text-xs text-gray-400">
+                                        ${new Date(session.created_at).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
                 } else {
+                    const emptyMessage = isBrigade ? 
+                        'Нет сообщений от клиентов' : 
+                        'Нет активных чатов';
+                    const emptyDescription = isBrigade ?
+                        'Когда клиенты напишут вам, их сообщения появятся здесь' :
+                        'Начните диалог с бригадой, написав им сообщение';
+                        
                     content.innerHTML = `
                         <div class="text-center p-8">
                             <i data-feather="message-circle" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
-                            <h3 class="text-lg font-semibold text-gray-700 mb-2">Нет активных чатов</h3>
-                            <p class="text-gray-500">Начните диалог с бригадой, написав им сообщение</p>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">${emptyMessage}</h3>
+                            <p class="text-gray-500">${emptyDescription}</p>
                         </div>
                     `;
                 }
