@@ -2006,7 +2006,15 @@
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
             
+            console.log('shareProduct called:', {
+                productIndex,
+                product,
+                navigation,
+                currentProducts: currentProducts?.length
+            });
+            
             if (!product || !navigation.section) {
+                console.error('shareProduct error: missing product or navigation', {product, navigation});
                 if (tg) {
                     tg.showAlert('Ошибка: не удалось получить данные товара');
                 }
@@ -2020,7 +2028,17 @@
             
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
             
+            console.log('Generated share URL:', shareUrl);
+            console.log('Share parameters:', {
+                sectionHash,
+                categoryHash,
+                modelHash,
+                submodelHash,
+                productIndex
+            });
+            
             if (tg) {
+                console.log('Opening Telegram link...');
                 tg.openTelegramLink(shareUrl);
             } else {
                 const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
