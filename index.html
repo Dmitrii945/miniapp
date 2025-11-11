@@ -3618,47 +3618,65 @@
                 if (previewContainer && submodels.length > 0) {
                     console.log('Attempting to load preview for submodels:', submodels);
                     
-                    // ТЕСТОВОЕ ПРЕВЬЮ - используем фиксированное изображение
-                    const testPreviewUrl = 'https://via.placeholder.com/300x200/4F46E5/ffffff?text=Preview';
-                    
-                    if (testPreviewUrl) {
-                        previewContainer.innerHTML = `
-                            <div class="preview-image-container mb-4 text-center">
-                                <div class="inline-block">
-                                    <img src="${escapeHtml(testPreviewUrl)}" 
-                                         alt="Превью товаров" 
-                                         class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
-                                         style="max-height: 200px; width: auto;"
-                                         onerror="console.log('Preview image failed to load'); this.parentElement.parentElement.remove()"
-                                         onload="console.log('Preview image loaded successfully')"
-                                         loading="lazy">
-                                    <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
+                    // Сначала показываем заглушку
+                    previewContainer.innerHTML = `
+                        <div class="preview-image-container mb-4 text-center">
+                            <div class="inline-block">
+                                <div class="preview-placeholder" 
+                                     style="width: 300px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+                                            color: white; font-size: 18px; font-weight: bold; margin: 0 auto;">
+                                    Загрузка превью...
                                 </div>
+                                <div class="text-sm text-white mt-2">Пример товаров в разделе</div>
                             </div>
-                        `;
-                        console.log('Preview container updated with test image');
-                    } else {
-                        console.log('No preview URL available');
-                    }
+                        </div>
+                    `;
+                    console.log('Preview placeholder created');
                     
-                    // Попробуем также получить реальное превью
+                    // Пробуем получить реальное превью
                     try {
                         const firstSubmodel = submodels[0];
                         const realPreviewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, firstSubmodel.id);
                         console.log('Real preview URL:', realPreviewUrl);
                         
-                        if (realPreviewUrl) {
-                            // Заменяем тестовое изображение на реальное
-                            setTimeout(() => {
-                                const img = previewContainer.querySelector('.preview-image');
-                                if (img) {
-                                    img.src = realPreviewUrl;
-                                    console.log('Updated to real preview image');
-                                }
-                            }, 1000);
+                        if (realPreviewUrl && realPreviewUrl.trim() !== '') {
+                            // Заменяем заглушку на реальное изображение
+                            const placeholder = previewContainer.querySelector('.preview-placeholder');
+                            if (placeholder) {
+                                placeholder.innerHTML = `
+                                    <img src="${escapeHtml(realPreviewUrl)}" 
+                                         alt="Превью товаров" 
+                                         style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;"
+                                         onload="console.log('Real preview loaded')"
+                                         onerror="console.log('Real preview failed'); this.parentElement.innerHTML = 'Фото недоступно';">
+                                `;
+                                console.log('Updated to real preview image');
+                            }
+                        } else {
+                            // Если нет реального превью, показываем стильную заглушку
+                            const placeholder = previewContainer.querySelector('.preview-placeholder');
+                            if (placeholder) {
+                                placeholder.innerHTML = `
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                                        <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                                        <div style="font-size: 16px;">Товары в этом разделе</div>
+                                    </div>
+                                `;
+                            }
                         }
                     } catch (error) {
                         console.error('Error getting real preview:', error);
+                        // При ошибке показываем иконку
+                        const placeholder = previewContainer.querySelector('.preview-placeholder');
+                        if (placeholder) {
+                            placeholder.innerHTML = `
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">🛍️</div>
+                                    <div style="font-size: 16px;">Просмотр товаров</div>
+                                </div>
+                            `;
+                        }
                     }
                 }
             }, 100);
