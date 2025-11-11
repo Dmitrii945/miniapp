@@ -3569,8 +3569,21 @@
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
             let html = '<div class="space-y-3">';
             
-            // ДОБАВЛЯЕМ ПРЕВЬЮ - здесь ВСЕ кнопки ведут к товарам!
-            html += `<div id="preview-container" class="mb-4"></div>`;
+            // ДОБАВЛЯЕМ ПРЕВЬЮ ПРЯМО В HTML - здесь ВСЕ кнопки ведут к товарам!
+            html += `
+                <div class="preview-image-container mb-4 text-center">
+                    <div class="inline-block">
+                        <div class="preview-placeholder" 
+                             style="width: 300px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+                                    color: white; font-size: 18px; font-weight: bold; margin: 0 auto; flex-direction: column;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">🛍️</div>
+                            <div style="font-size: 16px;">Товары в разделе</div>
+                        </div>
+                        <div class="text-sm text-white mt-2" style="color: rgba(255, 255, 255, 0.9);">Выберите подмодель для просмотра</div>
+                    </div>
+                </div>
+            `;
             
             submodels.forEach(submodel => {
                 if (!submodel) return;
@@ -3612,74 +3625,31 @@
             
             elements.content.innerHTML = html;
             
-            // Загружаем превью фото асинхронно
+            // Пробуем загрузить реальное превью ПОСЛЕ отрисовки
             setTimeout(async () => {
-                const previewContainer = document.getElementById('preview-container');
-                if (previewContainer && submodels.length > 0) {
-                    console.log('Attempting to load preview for submodels:', submodels);
-                    
-                    // Сначала показываем заглушку
-                    previewContainer.innerHTML = `
-                        <div class="preview-image-container mb-4 text-center">
-                            <div class="inline-block">
-                                <div class="preview-placeholder" 
-                                     style="width: 300px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
-                                            color: white; font-size: 18px; font-weight: bold; margin: 0 auto;">
-                                    Загрузка превью...
-                                </div>
-                                <div class="text-sm text-white mt-2">Пример товаров в разделе</div>
-                            </div>
-                        </div>
-                    `;
-                    console.log('Preview placeholder created');
-                    
-                    // Пробуем получить реальное превью
-                    try {
+                try {
+                    const placeholder = document.querySelector('.preview-placeholder');
+                    if (placeholder && submodels.length > 0) {
+                        console.log('Trying to load real preview...');
+                        
                         const firstSubmodel = submodels[0];
                         const realPreviewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, firstSubmodel.id);
                         console.log('Real preview URL:', realPreviewUrl);
                         
                         if (realPreviewUrl && realPreviewUrl.trim() !== '') {
-                            // Заменяем заглушку на реальное изображение
-                            const placeholder = previewContainer.querySelector('.preview-placeholder');
-                            if (placeholder) {
-                                placeholder.innerHTML = `
-                                    <img src="${escapeHtml(realPreviewUrl)}" 
-                                         alt="Превью товаров" 
-                                         style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;"
-                                         onload="console.log('Real preview loaded')"
-                                         onerror="console.log('Real preview failed'); this.parentElement.innerHTML = 'Фото недоступно';">
-                                `;
-                                console.log('Updated to real preview image');
-                            }
-                        } else {
-                            // Если нет реального превью, показываем стильную заглушку
-                            const placeholder = previewContainer.querySelector('.preview-placeholder');
-                            if (placeholder) {
-                                placeholder.innerHTML = `
-                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-                                        <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
-                                        <div style="font-size: 16px;">Товары в этом разделе</div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error getting real preview:', error);
-                        // При ошибке показываем иконку
-                        const placeholder = previewContainer.querySelector('.preview-placeholder');
-                        if (placeholder) {
                             placeholder.innerHTML = `
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-                                    <div style="font-size: 48px; margin-bottom: 10px;">🛍️</div>
-                                    <div style="font-size: 16px;">Просмотр товаров</div>
-                                </div>
+                                <img src="${escapeHtml(realPreviewUrl)}" 
+                                     alt="Превью товаров" 
+                                     style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;"
+                                     onload="console.log('Real preview loaded successfully')"
+                                     onerror="console.log('Real preview failed to load');">
                             `;
                         }
                     }
+                } catch (error) {
+                    console.error('Error loading preview:', error);
                 }
-            }, 100);
+            }, 500);
             
             scheduleFeatherReplace();
         }
