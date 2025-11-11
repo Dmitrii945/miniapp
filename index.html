@@ -504,6 +504,27 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
+        .chat-object-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .chat-object-btn:hover {
+            background-color: #2563EB;
+        }
+
         .brigade-image-container {
             position: relative;
             width: 100%;
@@ -2099,6 +2120,12 @@
                                         Информация по объекту
                                     </button>
                                 ` : ''}
+                                
+                                <button onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                        class="chat-object-btn">
+                                    <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                                    Написать бригаде
+                                </button>
                             </div>
                         </div>
                     `;
@@ -3443,6 +3470,63 @@
             }
         });
 
+        // Функция для начала чата с бригадой
+        async function startChatWithBrigade(brigadeName, objectName = null) {
+            try {
+                // Получаем информацию о пользователе из Telegram
+                const tg = window.Telegram?.WebApp;
+                const userInfo = tg?.initDataUnsafe?.user || {};
+                const userId = userInfo.id || 'web_user_' + Date.now();
+                const userName = userInfo.first_name || 'Пользователь';
+
+                console.log('Начинаем чат с бригадой:', { brigadeName, objectName, userId, userName });
+
+                // Отправляем запрос на создание чата
+                const response = await fetch(`${API_BASE}/chat/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        user_name: userName,
+                        brigade_name: brigadeName,
+                        object_name: objectName
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Ответ сервера:', data);
+
+                if (data.success) {
+                    // Формируем сообщение для пользователя
+                    let message = `Ваш запрос на общение с бригадой "${brigadeName}"`;
+                    if (objectName) {
+                        message += ` по объекту "${objectName}"`;
+                    }
+                    message += ' отправлен. Бригада получит уведомление и свяжется с вами.';
+
+                    // Показываем уведомление
+                    if (tg?.showAlert) {
+                        tg.showAlert(message);
+                    } else {
+                        alert(message);
+                    }
+                } else {
+                    throw new Error(data.error || 'Не удалось создать чат');
+                }
+            } catch (error) {
+                console.error('Ошибка при создании чата:', error);
+                const tg = window.Telegram?.WebApp;
+                const errorMessage = 'Не удалось связаться с бригадой. Попробуйте позже или позвоните по телефону.';
+                if (tg?.showAlert) {
+                    tg.showAlert(errorMessage);
+                } else {
+                    alert(errorMessage);
+                }
+            }
+        }
+
         // Глобальные функции
         // Глобальные функции
         window.loadSections = loadSections;
@@ -3486,6 +3570,7 @@
         window.handleUniversalImageLoad = handleUniversalImageLoad;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
+        window.startChatWithBrigade = startChatWithBrigade;
     </script>
 </body>
 </html>
