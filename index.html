@@ -2755,6 +2755,36 @@
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
             }
+            
+            // Проверяем URL параметры для автоматического открытия чата
+            checkUrlParamsForChat();
+        }
+
+        function checkUrlParamsForChat() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const shouldOpenChat = urlParams.get('openChat');
+                const sessionId = urlParams.get('sessionId');
+                const brigadeName = urlParams.get('brigadeName');
+                const objectName = urlParams.get('objectName');
+                
+                if (shouldOpenChat === 'true' && sessionId && brigadeName) {
+                    console.log('Автоматическое открытие чата из уведомления:', {
+                        sessionId, brigadeName, objectName
+                    });
+                    
+                    // Открываем чат как бригада (так как уведомление приходит бригаде)
+                    setTimeout(() => {
+                        openChatSessionAsBrigade(sessionId, brigadeName, objectName || '');
+                    }, 1000); // Даем время загрузиться приложению
+                    
+                    // Очищаем параметры из URL
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, newUrl);
+                }
+            } catch (error) {
+                console.error('Ошибка обработки параметров чата:', error);
+            }
         }
 
         // ========== API ФУНКЦИИ ==========
