@@ -3936,20 +3936,28 @@
                 } else {
                     let isMyMessage = false;
                     
-                    // Определяем тип текущего пользователя:
-                    // 1. Если currentChatTelegramId === null → покупатель
-                    // 2. Если currentChatTelegramId === currentUserId → бригада
-                    // 3. Если currentChatTelegramId !== currentUserId → покупатель общается с другой бригадой
+                    // Получаем имя текущего пользователя
+                    const currentUserNameFromTelegram = userInfo.first_name || 'Пользователь';
                     
-                    if (currentChatTelegramId === null) {
-                        // Покупатель открыл чат через openChatSessionAsCustomer
-                        isMyMessage = (msg.type === 'user');
-                    } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
-                        // Бригада открыла чат через openChatSessionAsBrigade
-                        isMyMessage = (msg.type === 'brigade');
+                    // Определяем по имени отправителя - самый надежный способ
+                    if (msg.sender_name === currentUserNameFromTelegram || msg.sender_name === 'Вы') {
+                        // Это сообщение от текущего пользователя
+                        isMyMessage = true;
                     } else {
-                        // Fallback: покупатель общается с бригадой
-                        isMyMessage = (msg.type === 'user');
+                        // Это сообщение от собеседника
+                        isMyMessage = false;
+                        
+                        // Дополнительная проверка по типам для случаев, когда имена могут совпадать
+                        if (currentChatTelegramId === null) {
+                            // Покупатель: его сообщения типа 'user'
+                            isMyMessage = (msg.type === 'user');
+                        } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
+                            // Бригада: её сообщения типа 'brigade'
+                            isMyMessage = (msg.type === 'brigade');
+                        } else {
+                            // Fallback: покупатель
+                            isMyMessage = (msg.type === 'user');
+                        }
                     }
 
                     messageClass = isMyMessage ? 'chat-message-user' : 'chat-message-brigade';
