@@ -1091,8 +1091,10 @@
         .chat-session-item {
             padding: 12px 16px;
             border-bottom: 1px solid #f3f4f6;
-            cursor: pointer;
             transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         
         .chat-session-item:hover {
@@ -1101,6 +1103,22 @@
         
         .chat-session-item:last-child {
             border-bottom: none;
+        }
+        
+        .delete-chat-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-left: 8px;
+        }
+        
+        .delete-chat-btn:hover {
+            background-color: #dc2626;
         }
 
         .chat-input {
@@ -4025,8 +4043,8 @@
                     if (isBrigade) {
                         // Для бригады показываем чаты с покупателями
                         content.innerHTML = data.sessions.map(session => `
-                            <div class="chat-session-item" onclick="openChatSession('${session.session_id}', '${data.brigade_name}', '${session.object_name}')">
-                                <div class="flex justify-between items-start">
+                            <div class="chat-session-item">
+                                <div class="flex justify-between items-start" onclick="openChatSession('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
                                         <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
@@ -4036,13 +4054,16 @@
                                         ${new Date(session.created_at).toLocaleDateString()}
                                     </span>
                                 </div>
+                                <button class="delete-chat-btn" onclick="deleteChatSession('${session.session_id}', event)" title="Удалить чат">
+                                    <i data-feather="trash-2" class="w-3 h-3"></i>
+                                </button>
                             </div>
                         `).join('');
                     } else {
                         // Для покупателя показываем чаты с бригадами
                         content.innerHTML = data.sessions.map(session => `
-                            <div class="chat-session-item" onclick="openChatSession('${session.session_id}', '${session.brigade_name}', '${session.object_name}')">
-                                <div class="flex justify-between items-start">
+                            <div class="chat-session-item">
+                                <div class="flex justify-between items-start" onclick="openChatSession('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
                                         <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
@@ -4052,6 +4073,9 @@
                                         ${new Date(session.created_at).toLocaleDateString()}
                                     </span>
                                 </div>
+                                <button class="delete-chat-btn" onclick="deleteChatSession('${session.session_id}', event)" title="Удалить чат">
+                                    <i data-feather="trash-2" class="w-3 h-3"></i>
+                                </button>
                             </div>
                         `).join('');
                     }
@@ -4094,6 +4118,57 @@
             
             closeMyChatsModal();
             openChatModal(brigadeName, objectName);
+        }
+
+        async function deleteChatSession(sessionId, event) {
+            // Предотвращаем срабатывание клика по элементу чата
+            event.stopPropagation();
+            
+            const confirmDelete = confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.');
+            
+            if (!confirmDelete) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/delete/${sessionId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Удаляем чат из localStorage если он там есть
+                    const keys = Object.keys(localStorage);
+                    for (const key of keys) {
+                        if (key.startsWith('chat_session_') && localStorage.getItem(key) === sessionId) {
+                            localStorage.removeItem(key);
+                            console.log(`Удален session_id из localStorage: ${key}`);
+                            break;
+                        }
+                    }
+
+                    // Закрываем чат если он открыт
+                    if (currentChatSession === sessionId) {
+                        closeChatModal();
+                        currentChatSession = null;
+                        currentChatBrigade = null;
+                        currentChatObject = null;
+                        currentChatTelegramId = null;
+                    }
+
+                    // Обновляем список чатов
+                    showMyChats();
+                    
+                    alert('Чат удален');
+                } else {
+                    console.error('Ошибка удаления чата:', data.error);
+                    alert('Не удалось удалить чат');
+                }
+            } catch (error) {
+                console.error('Ошибка при удалении чата:', error);
+                alert('Ошибка при удалении чата');
+            }
         }
 
         // Глобальные функции
@@ -4145,6 +4220,7 @@
         window.showMyChats = showMyChats;
         window.closeMyChatsModal = closeMyChatsModal;
         window.openChatSession = openChatSession;
+        window.deleteChatSession = deleteChatSession;
     </script>
 </body>
 </html>
