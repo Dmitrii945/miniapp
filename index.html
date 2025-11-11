@@ -2062,7 +2062,15 @@
             const product = favorite.product;
             const navigation = favorite.navigation;
             
+            console.log('shareProductFromFavorites called:', {
+                favoriteIndex,
+                product,
+                navigation,
+                favorite
+            });
+            
             if (!product || !navigation.section) {
+                console.error('shareProductFromFavorites error: missing product or navigation', {product, navigation});
                 if (tg) {
                     tg.showAlert('Ошибка: не удалось получить данные товара');
                 }
@@ -2074,12 +2082,25 @@
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
-            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
+            // Для избранного используем индекс 0, так как мы всегда делимся первым вхождением этого товара
+            const productIndex = 0;
+            
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
+            
+            console.log('Generated share URL from favorites:', shareUrl);
+            console.log('Share parameters from favorites:', {
+                sectionHash,
+                categoryHash,
+                modelHash,
+                submodelHash,
+                productIndex
+            });
             
             if (tg) {
+                console.log('Opening Telegram link from favorites...');
                 tg.openTelegramLink(shareUrl);
             } else {
-                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} 0`;
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
                 alert(message);
             }
         }
