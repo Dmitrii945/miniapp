@@ -3903,6 +3903,12 @@
                 return;
             }
 
+            // Получаем информацию о текущем пользователе
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const currentUserId = userInfo.id ? String(userInfo.id) : null;
+            const currentUserName = userInfo.first_name || 'Вы';
+
             let html = '';
             chatMessages.forEach(msg => {
                 // Определяем время
@@ -3921,12 +3927,36 @@
                     time = '';
                 }
 
-                // Определяем класс сообщения
-                let messageClass = 'chat-message-brigade';
-                if (msg.type === 'user') {
-                    messageClass = 'chat-message-user';
-                } else if (msg.type === 'system') {
+                // Определяем, является ли это сообщением текущего пользователя
+                let messageClass = 'chat-message-brigade';  // По умолчанию - сообщение собеседника
+                let isMyMessage = false;
+
+                if (msg.type === 'system') {
                     messageClass = 'chat-message-system';
+                } else {
+                    // Определяем по Telegram ID текущего пользователя
+                    if (currentUserId) {
+                        if (msg.type === 'user' && !currentChatTelegramId) {
+                            // Обычный покупатель пишет сообщение
+                            isMyMessage = true;
+                        } else if (msg.type === 'brigade' && currentUserId === currentChatTelegramId) {
+                            // Бригада пишет сообщение (текущий пользователь - бригада)
+                            isMyMessage = true;
+                        } else if (msg.type === 'user' && currentChatTelegramId && currentUserId !== currentChatTelegramId) {
+                            // Покупатель пишет бригаде (когда бригада читает чат)
+                            isMyMessage = false;
+                        } else if (msg.type === 'brigade' && (!currentChatTelegramId || currentUserId !== currentChatTelegramId)) {
+                            // Бригада пишет покупателю (когда покупатель читает чат)
+                            isMyMessage = false;
+                        }
+                    } else {
+                        // Для веб-пользователей без Telegram ID
+                        if (msg.type === 'user') {
+                            isMyMessage = true;
+                        }
+                    }
+
+                    messageClass = isMyMessage ? 'chat-message-user' : 'chat-message-brigade';
                 }
                 
                 html += `
