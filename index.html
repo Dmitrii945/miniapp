@@ -3652,13 +3652,20 @@
                             console.log(`Preview URL for ${submodel.name}:`, previewUrl);
                             
                             if (previewUrl && previewUrl.trim() !== '') {
-                                // Добавляем префикс для фото, если нужно
+                                // Конвертируем Google Drive ссылки в прямые ссылки
                                 let fullImageUrl = previewUrl;
-                                if (!previewUrl.startsWith('http')) {
+                                
+                                if (previewUrl.includes('drive.google.com/uc?export=view&id=')) {
+                                    // Извлекаем ID из Google Drive ссылки
+                                    const match = previewUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                                    if (match && match[1]) {
+                                        fullImageUrl = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400-h300`;
+                                    }
+                                } else if (!previewUrl.startsWith('http')) {
                                     fullImageUrl = `https://dmitrii2613.pythonanywhere.com/static/images/${previewUrl}`;
                                 }
                                 
-                                console.log(`Full image URL for ${submodel.name}:`, fullImageUrl);
+                                console.log(`Converted image URL for ${submodel.name}:`, fullImageUrl);
                                 
                                 placeholder.innerHTML = `
                                     <img src="${escapeHtml(fullImageUrl)}" 
