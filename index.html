@@ -29,6 +29,27 @@
             color: #1f2937;
         }
         
+        /* Базовый стиль для всех стеклянных кнопок */
+        .glass-btn, button:not(.no-glass) {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border-radius: 16px !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            cursor: pointer !important;
+        }
+        
+        .glass-btn:hover, button:not(.no-glass):hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+        }
+        
         .tg-theme-button {
             background-color: var(--tg-theme-button-color, #3B82F6);
             color: var(--tg-theme-button-text-color, #ffffff);
@@ -89,21 +110,24 @@
         }
         
         .breadcrumb-item {
-            cursor: pointer;
+            cursor: pointer !important;
             color: white !important;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            padding: 6px 14px !important;
+            border-radius: 12px !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
         }
         
         .breadcrumb-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
         }
         
         .breadcrumb-separator {
@@ -153,23 +177,25 @@
         }
         
         .retry-button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            backdrop-filter: blur(15px);
-            transition: all 0.3s ease;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            padding: 12px 24px !important;
+            border-radius: 16px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .retry-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
         }
 
         .action-buttons {
@@ -182,7 +208,7 @@
             flex: 1;
             padding: 14px 16px;
             border-radius: 16px;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             font-weight: 600;
             font-size: 0.9rem;
             cursor: pointer;
@@ -192,59 +218,64 @@
             justify-content: center;
             gap: 8px;
             color: white !important;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .action-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
-            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
         }
         
         .phone-button, .gis-button, .taxi-button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 16px;
-            backdrop-filter: blur(15px);
-            transition: all 0.3s ease;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border-radius: 16px !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .phone-button:hover, .gis-button:hover, .taxi-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
         }
 
         .back-button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 16px;
-            backdrop-filter: blur(15px);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            padding: 12px 20px !important;
+            border-radius: 16px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            width: 100% !important;
+            margin-top: 16px !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .back-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
         }
 
         .clickable-card {
@@ -289,73 +320,79 @@
         }
 
         .menu-button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 16px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border-radius: 16px !important;
+            padding: 12px 16px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            font-weight: 600 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            cursor: pointer !important;
         }
 
         .menu-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
         }
 
         .install-button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 16px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border-radius: 16px !important;
+            padding: 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            font-weight: 600 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            cursor: pointer !important;
         }
 
         .install-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
         }
         
         .chat-button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 16px;
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border-radius: 16px !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
         }
         
         .chat-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
         }
         
         .chat-button i {
@@ -364,24 +401,28 @@
         }
 
         .menu-item {
-            padding: 16px 20px;
-            border-radius: 16px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 8px;
+            padding: 16px 20px !important;
+            border-radius: 16px !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            color: white !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin-bottom: 8px !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
 
         .menu-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(-4px);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateX(-4px) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
         }
 
         .menu-item i {
@@ -405,7 +446,7 @@
             flex: 1;
             padding: 12px 16px;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             font-weight: 600;
             font-size: 0.875rem;
             cursor: pointer;
@@ -415,27 +456,30 @@
             justify-content: center;
             gap: 8px;
             color: white !important;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .taxi-service-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
         }
         
         .yandex-taxi, .uber-taxi {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
         
         .yandex-taxi:hover, .uber-taxi:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
         }
         
         /* Стили для квадратных кнопок в стартовом меню */
@@ -454,32 +498,33 @@
         
         .square-action-button {
             height: 100px;
-            border: none;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 20px !important;
+            font-weight: 600 !important;
+            font-size: 12px !important;
+            cursor: pointer !important;
+            transition: all 0.4s ease !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
             color: white !important;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            text-align: center !important;
+            position: relative !important;
+            overflow: hidden !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .square-action-button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.2);
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-4px) !important;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.2) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
         }
         
         .square-action-button:active {
