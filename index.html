@@ -811,19 +811,28 @@
         }
 
         .object-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             cursor: pointer;
             margin-bottom: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
         }
 
         .object-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .object-card * {
+            color: #ffffff !important;
         }
 
         .object-title {
@@ -841,18 +850,25 @@
 
         /* НОВЫЕ СТИЛИ ДЛЯ ГАЛЕРЕИ ОБЪЕКТОВ */
         .object-gallery-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
             margin-bottom: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
+        }
+
+        .object-gallery-container * {
+            color: #ffffff !important;
         }
 
         .object-gallery-header {
             padding: 16px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
         }
 
         .object-gallery-title {
@@ -2459,8 +2475,8 @@
             let html = `
                 <div class="space-y-6">
                     <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
-                        <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
+                        <h2 class="text-2xl font-bold mb-2" style="color: #000000 !important;">${escapeHtml(brigade.brigade_name)}</h2>
+                        <p class="text-gray-600" style="color: #6B7280 !important;">${escapeHtml(groupName)}</p>
                     </div>
             `;
         
@@ -2557,10 +2573,9 @@
         function renderObjectGalleryPage(groupName, brigade, object) {
             let html = `
                 <div class="space-y-6">
-                    <div class="object-gallery-container">
-                        <div class="object-gallery-header">
-                            <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
-                            <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm mb-4">
+                        <h2 class="text-2xl font-bold mb-2" style="color: #000000 !important;">${escapeHtml(object.object_name)}</h2>
+                        <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
             `;
         
             // Экранируем описание для использования в атрибуте data
@@ -2578,7 +2593,8 @@
             }
         
             html += `
-                        </div>
+                    </div>
+                    <div class="object-gallery-container">
             `;
         
             if (!object.all_photos || object.all_photos.length === 0) {
@@ -2641,20 +2657,20 @@
             }
         
             html += `
-                        </div>
-                        
-                        <div class="space-y-3">
-                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                ${CONTACT_INFO.phone}
-                            </button>
-                            
-                            <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
-                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                                Назад к объектам
-                            </button>
-                        </div>
                     </div>
+                        
+                    <div class="space-y-3">
+                        <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                            <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        
+                        <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад к объектам
+                        </button>
+                    </div>
+                </div>
             `;
             
             elements.content.innerHTML = html;
