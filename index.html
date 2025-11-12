@@ -2400,7 +2400,7 @@
                     
                 } catch (error) {
                     console.error(`❌ Ошибка индексации секции ${section.name}:`, error);
-                    continue;
+                    return; // Fixed: replaced continue with return
                 }
             }
             
@@ -2416,7 +2416,7 @@
             return Promise.resolve();
         }
 
-        // Индексация товаров для поиска  
+        // Индексация товаров для поиска - BROKEN DUPLICATE REMOVED
         function indexProducts(data) {
             console.log('🗂️ indexProducts вызвана с data:', data);
             allProducts = [];
@@ -2427,6 +2427,13 @@
             }
             
             console.log('🗂️ indexProducts: обрабатываем', data.length, 'секций');
+            
+            // STOP HERE - rest of this function was broken duplicate code
+            console.log('⚠️ Using working indexProducts function below instead');
+            return;
+        }
+        
+        /* BROKEN DUPLICATE CODE COMMENTED OUT TO FIX SYNTAX ERRORS
                 console.log(`� Индексируем секцию: ${section.name}`);
                 
                 try {
@@ -2435,7 +2442,7 @@
                     
                     if (!categoriesData?.categories) {
                         console.log(`  ⚠️ Нет категорий для секции: ${section.name}`);
-                        continue;
+                        return; // Fixed: replaced continue with return
                     }
                     
                     console.log(`  📁 Найдено ${categoriesData.categories.length} категорий в секции ${section.name}`);
@@ -2542,6 +2549,7 @@
             isIndexing = false;
             return Promise.resolve();
         }
+        END OF BROKEN DUPLICATE CODE COMMENT BLOCK */
 
         // Индексация товаров для поиска
         function indexProducts(data) {
