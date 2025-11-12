@@ -201,6 +201,7 @@
         /* Search Styles */
         .search-container {
             transition: all 0.3s ease;
+            z-index: 20 !important;
         }
         
         .search-input-wrapper {
@@ -284,7 +285,7 @@
             box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
             max-height: 400px;
             overflow: hidden;
-            z-index: 100;
+            z-index: 1000;
             animation: slideDown 0.3s ease;
         }
         
@@ -1626,7 +1627,7 @@
         </header>
 
         <!-- Search Section -->
-        <div class="search-container p-4 sticky top-[88px] z-9" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+        <div class="search-container p-4 sticky top-[88px] z-20" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
             <div class="relative max-w-lg mx-auto">
                 <div class="search-input-wrapper">
                     <i data-feather="search" class="search-icon"></i>
