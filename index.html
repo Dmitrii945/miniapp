@@ -2161,6 +2161,112 @@
             elements.categoryFilter.innerHTML = html;
         }
         
+        // Полная индексация товаров для поиска
+        async function indexAllProducts(sections) {
+            console.log('🚀 indexAllProducts: загружаем все товары для поиска...');
+            allProducts = [];
+            
+            if (!sections || !Array.isArray(sections)) {
+                console.log('❌ indexAllProducts: sections некорректны');
+                return;
+            }
+            
+            for (const section of sections) {
+                console.log(`📂 Обрабатываем секцию: ${section.name}`);
+                
+                try {
+                    // Загружаем категории для этой секции
+                    const categoriesData = await apiFetch(`/categories/${section.id}`);
+                    
+                    if (!categoriesData?.categories) {
+                        console.log(`⚠️ Нет категорий для секции: ${section.name}`);
+                        continue;
+                    }
+                    
+                    console.log(`📁 Найдено ${categoriesData.categories.length} категорий в секции ${section.name}`);
+                    
+                    for (const category of categoriesData.categories) {
+                        console.log(`  📁 Обрабатываем категорию: ${category.name}`);
+                        
+                        try {
+                            // Загружаем модели для этой категории
+                            const modelsData = await apiFetch(`/models/${section.id}/${category.id}`);
+                            
+                            if (!modelsData?.models) {
+                                console.log(`    ⚠️ Нет моделей для категории: ${category.name}`);
+                                continue;
+                            }
+                            
+                            console.log(`    📱 Найдено ${modelsData.models.length} моделей в категории ${category.name}`);
+                            
+                            for (const model of modelsData.models) {
+                                console.log(`    📱 Обрабатываем модель: ${model.name}`);
+                                
+                                try {
+                                    // Загружаем субмодели для этой модели
+                                    const submodelsData = await apiFetch(`/submodels/${section.id}/${category.id}/${model.id}`);
+                                    
+                                    if (!submodelsData?.submodels) {
+                                        console.log(`      ⚠️ Нет субмоделей для модели: ${model.name}`);
+                                        continue;
+                                    }
+                                    
+                                    console.log(`      🔧 Найдено ${submodelsData.submodels.length} субмоделей в модели ${model.name}`);
+                                    
+                                    for (const submodel of submodelsData.submodels) {
+                                        console.log(`      🔧 Обрабатываем субмодель: ${submodel.name}`);
+                                        
+                                        try {
+                                            // Загружаем товары для этой субмодели
+                                            const productsData = await apiFetch(`/products/${section.id}/${category.id}/${model.id}/${submodel.id}`);
+                                            
+                                            if (!productsData?.products) {
+                                                console.log(`        ⚠️ Нет товаров для субмодели: ${submodel.name}`);
+                                                continue;
+                                            }
+                                            
+                                            console.log(`        💎 Найдено ${productsData.products.length} товаров в субмодели ${submodel.name}`);
+                                            
+                                            // Добавляем товары в индекс
+                                            productsData.products.forEach(product => {
+                                                allProducts.push({
+                                                    id: `${section.id}_${category.id}_${model.id}_${submodel.id}_${product.id}`,
+                                                    title: product.title,
+                                                    description: product.description,
+                                                    price: product.price,
+                                                    category: `${section.name} → ${category.name} → ${model.name}`,
+                                                    brand: model.name,
+                                                    section: section.name,
+                                                    categoryName: category.name,
+                                                    modelName: model.name,
+                                                    submodelName: submodel.name,
+                                                    sectionId: section.id,
+                                                    categoryId: category.id,
+                                                    modelId: model.id,
+                                                    submodelId: submodel.id,
+                                                    productId: product.id
+                                                });
+                                            });
+                                        } catch (error) {
+                                            console.log(`        ❌ Ошибка загрузки товаров для ${submodel.name}:`, error);
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.log(`      ❌ Ошибка загрузки субмоделей для ${model.name}:`, error);
+                                }
+                            }
+                        } catch (error) {
+                            console.log(`    ❌ Ошибка загрузки моделей для ${category.name}:`, error);
+                        }
+                    }
+                } catch (error) {
+                    console.log(`  ❌ Ошибка загрузки категорий для ${section.name}:`, error);
+                }
+            }
+            
+            console.log(`🎉 Полная индексация завершена! Проиндексировано ${allProducts.length} товаров для поиска`);
+        }
+
         // Индексация товаров для поиска
         function indexProducts(data) {
             console.log('🗂️ indexProducts вызвана с data:', data);
@@ -3598,7 +3704,7 @@
 
                 // Индексируем товары для поиска
                 console.log('🗂️ Загружены данные, вызываем indexProducts с data.sections:', data.sections);
-                indexProducts(data.sections);
+                await indexAllProducts(data.sections);
 
                 renderSections(data.sections);
                 updateBackButton();
