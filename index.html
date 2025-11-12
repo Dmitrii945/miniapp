@@ -115,18 +115,20 @@
         }
         
         .category-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(233, 30, 99, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.4s ease;
             cursor: pointer;
+            backdrop-filter: blur(20px);
         }
 
         .category-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 16px 40px rgba(233, 30, 99, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
         }
         
         .retry-button {
@@ -267,58 +269,66 @@
         }
 
         .menu-button {
-            background-color: #10B981;
+            background: rgba(255, 255, 255, 0.25);
             color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 10px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: 600;
+            backdrop-filter: blur(20px);
         }
 
         .menu-button:hover {
-            background-color: #059669;
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: scale(1.05);
         }
 
         .install-button {
-            background-color: #3B82F6;
+            background: rgba(255, 255, 255, 0.25);
             color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 10px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: 600;
+            backdrop-filter: blur(20px);
         }
 
         .install-button:hover {
-            background-color: #2563EB;
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: scale(1.05);
         }
         
         .chat-button {
-            background-color: #10B981;
+            background: rgba(255, 255, 255, 0.25);
             color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 8px 12px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            backdrop-filter: blur(20px);
         }
         
         .chat-button:hover {
-            background-color: #059669;
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: scale(1.05);
         }
         
@@ -437,36 +447,30 @@
         }
         
         .brigades-button {
-            background: linear-gradient(135deg, #10B981, #059669);
+            background: linear-gradient(45deg, #E91E63, #9C27B0);
+            color: white;
+            box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+            border: none;
         }
         
         .brigades-button:hover {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: linear-gradient(45deg, #D81B60, #8E24AA);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(233, 30, 99, 0.5);
         }
         
         .taxi-square-button {
-            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            background: linear-gradient(45deg, #FF9800, #F44336);
+            color: white;
             position: relative;
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+            border: none;
         }
         
         .taxi-square-button:hover {
-            background: linear-gradient(135deg, #7C3AED, #6D28D9);
-        }
-        
-        .taxi-checker-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
-                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
-            background-size: 12px 12px;
-            background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
-            opacity: 0.3;
+            background: linear-gradient(45deg, #FB8C00, #E53935);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 152, 0, 0.5);
         }
         
         .square-button-icon {
@@ -483,17 +487,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
+            margin: 0 16px;
         }
 
         .main-title {
-            font-size: 1.125rem;
-            font-weight: 600;
+            font-size: 1.25rem;
+            font-weight: 700;
             line-height: 1.2;
+            color: white;
         }
 
         .sub-title {
-            font-size: 1.125rem;
-            color: #6B7280;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.8);
             font-weight: 400;
             line-height: 1;
             margin-top: 2px;
@@ -1285,22 +1292,29 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen" style="background: linear-gradient(45deg, #FFEAA7, #FDCB6E, #FD79A8, #A29BFE);">
     <div id="app" class="max-w-md mx-auto">
         <!-- Header -->
-        <header class="bg-white shadow-sm p-4 sticky top-0 z-10">
-            <div class="flex justify-between items-center">
-                <button id="toggleMenu" class="menu-button">
-                    <i data-feather="menu"></i>
-                </button>
-                <div class="header-title">
-                    <h1 class="main-title tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
+        <header class="shadow-lg p-4 sticky top-0 z-10" style="background: linear-gradient(45deg, #E91E63, #9C27B0, #673AB7);">
+            <div class="flex items-center justify-between">
+                <!-- Левая группа: Меню -->
+                <div class="flex items-center">
+                    <button id="toggleMenu" class="menu-button">
+                        <i data-feather="menu"></i>
+                    </button>
+                </div>
+                
+                <!-- Центральная группа: Название -->
+                <div class="header-title flex-1">
+                    <h1 class="main-title" id="pageTitle">Каталог товаров</h1>
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
+                
+                <!-- Правая группа: Чаты и Установка -->
                 <div class="flex items-center gap-2">
                     <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
                         <i data-feather="message-circle"></i>
-                        <span>Чаты</span>
+                        <span class="hidden sm:inline">Чаты</span>
                     </button>
                     <button id="installButton" class="install-button" title="Добавить на главный экран">
                         <i data-feather="plus-square"></i>
