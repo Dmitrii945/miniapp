@@ -699,21 +699,30 @@
         }
 
         .brigade-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             cursor: pointer;
             height: 140px;
             display: flex;
             flex-direction: column;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
         }
 
         .brigade-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .brigade-card * {
+            color: #ffffff !important;
         }
 
         .chat-object-btn {
@@ -2383,7 +2392,7 @@
                 
                 html += `
                     <div class="brigade-group">
-                        <h2 class="brigade-group-title">${escapeHtml(group.group_name)}</h2>
+                        <h2 class="brigade-group-title" style="color: #000000 !important;">${escapeHtml(group.group_name)}</h2>
                         <div class="brigade-grid">
                 `;
                 
