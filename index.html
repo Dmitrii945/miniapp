@@ -4027,8 +4027,8 @@
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.innerHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-                    <h3 class="text-lg font-semibold mb-4 text-center" style="color: #000000 !important;">Выберите сервис такси</h3>
+                <div class="p-6 rounded-lg shadow-lg max-w-sm w-full mx-4" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.25);">
+                    <h3 class="text-lg font-semibold mb-4 text-center" style="color: #ffffff !important;">Выберите сервис такси</h3>
                     <div class="space-y-3">
                         <button onclick="openYandexTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #FFCC00; color: #000000 !important;">
                             🚕 Яндекс Такси
@@ -4036,7 +4036,7 @@
                         <button onclick="openUberTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #000000; color: #ffffff !important;">
                             🚗 Uber
                         </button>
-                        <button onclick="closeModal(this.closest('.fixed'))" class="w-full p-3 rounded-lg font-medium bg-gray-100 hover:bg-gray-200" style="color: #000000 !important;">
+                        <button onclick="closeModal(this.closest('.fixed'))" class="w-full p-3 rounded-lg font-medium" style="background: rgba(255, 255, 255, 0.15); color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3);">
                             Отмена
                         </button>
                     </div>
