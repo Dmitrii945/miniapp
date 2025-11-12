@@ -2254,51 +2254,29 @@
         
         // Выбор результата поиска
         function selectSearchResult(productId) {
-            console.log('🎯 selectSearchResult вызвана с ID:', productId);
-            console.log('🎯 Тип productId:', typeof productId);
-            console.log('🎯 Значение productId:', JSON.stringify(productId));
-            console.log('🛍️ Всего товаров в индексе:', allProducts.length);
+            console.log('🎯 Выбран товар с простым ID:', productId);
             
             hideSearchResults();
             elements.searchInput.blur();
             
-            // Найти товар в индексе
+            // Находим товар по простому ID
             const product = allProducts.find(p => p.id === productId);
             console.log('🛍️ Найденный товар:', product);
             
             if (!product) {
-                console.error('❌ Товар не найден в индексе:', productId);
-                console.log('🔍 Первые 10 доступных ID товаров:', allProducts.slice(0, 10).map(p => ({id: p.id, title: p.title})));
-                console.log('🔍 Проверяем точное совпадение для первых товаров:');
-                allProducts.slice(0, 5).forEach(p => {
-                    console.log(`  ${p.id} === ${productId} ? ${p.id === productId}`);
-                    console.log(`  "${p.id}" === "${productId}" ? ${"" + p.id === "" + productId}`);
-                });
-                
-                // Показываем сообщение пользователю
+                console.error('❌ Товар не найден. ID:', productId);
+                console.log('🔍 Доступные ID:', allProducts.slice(0, 10).map(p => p.id));
                 showError('Товар не найден. Попробуйте обновить страницу.');
                 return;
             }
             
-            console.log('✅ Переходим к товару:', {
-                id: product.id,
-                title: product.title,
-                sectionId: product.sectionId,
-                section: product.section,
-                categoryId: product.categoryId,
-                categoryName: product.categoryName,
-                modelId: product.modelId,
-                modelName: product.modelName,
-                submodelId: product.submodelId,
-                submodelName: product.submodelName
-            });
+            console.log('✅ Переходим к товару:', product.title);
             
-            // Переход к товару
+            // Переход к товару через навигационные данные
             try {
-                console.log('🚀 Вызываем loadProducts...');
                 loadProducts(
                     product.sectionId,
-                    product.section,
+                    product.sectionName,
                     product.categoryId,
                     product.categoryName,
                     product.modelId,
@@ -2306,7 +2284,6 @@
                     product.submodelId,
                     product.submodelName
                 );
-                console.log('✅ loadProducts выполнена успешно');
             } catch (error) {
                 console.error('❌ Ошибка перехода к товару:', error);
                 showError('Ошибка перехода к товару');
@@ -2357,16 +2334,87 @@
             });
         }
 
-        // Простая индексация товаров для поиска
+        // НОВАЯ упрощенная индексация товаров с ID из колонки J
         async function indexAllProducts(sections) {
-            console.log('🚀 indexAllProducts: загружаем товары для поиска...');
+            console.log('🚀 Начинаем простую индексацию товаров с ID...');
             allProducts = [];
             
             if (!sections || !Array.isArray(sections)) {
-                console.log('❌ indexAllProducts: sections некорректны');
+                console.log('❌ Некорректные данные секций');
                 isIndexing = false;
                 throw new Error('Некорректные данные секций');
             }
+            
+            let totalProducts = 0;
+            
+            for (const section of sections) {
+                console.log(`📁 Индексируем секцию: ${section.name}`);
+                
+                try {
+                    // Загружаем ВСЕ товары секции одним запросом
+                    const sectionProductsData = await apiFetch(`/products_by_section/${section.id}`);
+                    
+                    if (!sectionProductsData?.products) {
+                        console.log(`  ⚠️ Нет товаров в секции: ${section.name}`);
+                        continue;
+                    }
+                    
+                    console.log(`  ✅ Найдено ${sectionProductsData.products.length} товаров в секции ${section.name}`);
+                    
+                    // Добавляем каждый товар в индекс
+                    for (const product of sectionProductsData.products) {
+                        if (!product) continue;
+                        
+                        // Создаем поисковый объект товара
+                        const productId = product.id || `fallback_${section.id}_${totalProducts}`;
+                        const title = product.color || product.description || 'Товар';
+                        const description = product.photo_description || product.description || '';
+                        const category = `${section.name} → ${product.category_name || 'Категория'}`;
+                        
+                        allProducts.push({
+                            id: productId,
+                            title: title,
+                            description: description,
+                            price: product.price || 'Цена по запросу',
+                            image: product.photo_url || '',
+                            category: category,
+                            color: product.color || '',
+                            brand: product.model_name || section.name,
+                            
+                            // Данные для навигации
+                            sectionId: section.id,
+                            sectionName: section.name,
+                            categoryId: product.category_id,
+                            categoryName: product.category_name,
+                            modelId: product.model_id,
+                            modelName: product.model_name,
+                            submodelId: product.submodel_id,
+                            submodelName: product.submodel_name,
+                            
+                            // Оригинальные данные товара
+                            product: product
+                        });
+                        
+                        totalProducts++;
+                    }
+                    
+                } catch (error) {
+                    console.error(`❌ Ошибка индексации секции ${section.name}:`, error);
+                    continue;
+                }
+            }
+            
+            console.log(`🎉 Индексация завершена! Всего товаров: ${totalProducts}`);
+            isIndexingComplete = true;
+            
+            // Обновляем placeholder поиска
+            if (elements.searchInput) {
+                elements.searchInput.placeholder = totalProducts > 0 ? 'Поиск товаров...' : 'Товары не найдены';
+            }
+            
+            isIndexing = false;
+            return Promise.resolve();
+        }
             
             let totalProducts = 0;
             
@@ -4076,6 +4124,7 @@
             }
         }
 
+        // Простая загрузка товаров с улучшенной диагностикой
         async function loadProductsDirect(sectionId, categoryId, modelId, submodelId, currentName) {
             const safeSectionId = sectionId || 'null';
             const safeCategoryId = categoryId || 'null';
@@ -4083,26 +4132,61 @@
             const safeSubmodelId = submodelId || 'null';
             
             const endpoint = `/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
+            console.log('🔍 Загружаем товары из endpoint:', endpoint);
             elements.pageTitle.textContent = currentName;
             
-            const data = await apiFetch(endpoint);
-            
-            if (data?.error) {
-                showEmptyState(`Ошибка загрузки товаров для: ${currentName}`);
-                return;
+            try {
+                const data = await apiFetch(endpoint);
+                console.log('📦 Получены данные товаров:', data);
+                
+                if (data?.error) {
+                    console.error('❌ Ошибка в данных:', data.error);
+                    showEmptyState(`Ошибка загрузки: ${data.error}`);
+                    return;
+                }
+                
+                if (!data) {
+                    console.error('❌ Нет данных от API');
+                    showEmptyState(`Товары не найдены для: ${currentName}`);
+                    return;
+                }
+                
+                if (!Array.isArray(data.products)) {
+                    console.error('❌ data.products не массив:', data.products);
+                    showEmptyState(`Ошибка структуры данных для: ${currentName}`);
+                    return;
+                }
+                
+                if (data.products.length === 0) {
+                    console.log('⚠️ Пустой массив товаров');
+                    showEmptyState(`Товары не найдены для: ${currentName}`);
+                    return;
+                }
+                
+                console.log(`✅ Найдено ${data.products.length} товаров`);
+                
+                // Фильтруем null товары и добавляем ID если его нет
+                currentProducts = data.products
+                    .filter(product => product != null)
+                    .map((product, index) => ({
+                        ...product,
+                        id: product.id || `product_${index}_${Date.now()}`  // Fallback ID
+                    }));
+                
+                if (currentProducts.length === 0) {
+                    console.error('❌ Все товары null после фильтрации');
+                    showEmptyState(`Товары не найдены для: ${currentName}`);
+                    return;
+                }
+                
+                console.log(`🎯 Обработано товаров: ${currentProducts.length}`);
+                displayProducts(currentProducts);
+                
+            } catch (error) {
+                console.error('❌ Ошибка при загрузке товаров:', error);
+                showEmptyState(`Ошибка загрузки товаров: ${error.message}`);
             }
-            
-            if (!data || !Array.isArray(data.products) || data.products.length === 0) {
-                showEmptyState(`Товары не найдены для: ${currentName}`);
-                return;
-            }
-
-            currentProducts = data.products.filter(product => product != null);
-            
-            if (currentProducts.length === 0) {
-                showEmptyState(`Товары не найдены для: ${currentName}`);
-                return;
-            }
+        }
 
             renderAllProducts();
             updateBackButton();
