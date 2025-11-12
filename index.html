@@ -1953,7 +1953,17 @@
         
         // Инициализация поиска
         function initializeSearch() {
-            if (!elements.searchInput) return;
+            console.log('🔍 Инициализация поиска...');
+            console.log('🔍 searchInput element:', elements.searchInput);
+            console.log('🔍 searchClear element:', elements.searchClear);
+            console.log('🔍 searchResults element:', elements.searchResults);
+            
+            if (!elements.searchInput) {
+                console.error('❌ searchInput не найден!');
+                return;
+            }
+            
+            console.log('✅ searchInput найден, добавляем обработчики...');
             
             // Обработчик ввода с debounce
             elements.searchInput.addEventListener('input', (e) => {
@@ -2000,7 +2010,11 @@
         
         // Выполнить поиск
         function performSearch(query) {
+            console.log('🔍 performSearch вызвана с query:', query);
+            console.log('🔍 allProducts длина:', allProducts.length);
+            
             if (!query || query.length < 2) {
+                console.log('🔍 Query слишком короткий, скрываем результаты');
                 hideSearchResults();
                 return;
             }
@@ -2008,6 +2022,7 @@
             console.log('🔍 Поиск:', query);
             
             const results = searchProducts(query);
+            console.log('🔍 Найдено результатов:', results.length);
             displaySearchResults(results, query);
             
             // Обновить фильтр категорий
@@ -2033,6 +2048,17 @@
         
         // Отобразить результаты поиска
         function displaySearchResults(results, query) {
+            console.log('🔍 displaySearchResults вызвана');
+            console.log('🔍 results:', results);
+            console.log('🔍 query:', query);
+            console.log('🔍 searchResults element:', elements.searchResults);
+            
+            if (!elements.searchResults) {
+                console.error('❌ searchResults элемент не найден!');
+                return;
+            }
+            
+            console.log('✅ Показываем результаты поиска');
             elements.searchResults.classList.remove('hidden');
             
             // Обновить счетчик
@@ -2137,9 +2163,15 @@
         
         // Индексация товаров для поиска
         function indexProducts(data) {
+            console.log('🗂️ indexProducts вызвана с data:', data);
             allProducts = [];
             
-            if (!data || !Array.isArray(data)) return;
+            if (!data || !Array.isArray(data)) {
+                console.log('❌ indexProducts: data некорректна или не массив');
+                return;
+            }
+            
+            console.log('🗂️ indexProducts: обрабатываем', data.length, 'секций');
             
             data.forEach(section => {
                 if (!section.categories) return;
@@ -3553,6 +3585,7 @@
                 }
 
                 // Индексируем товары для поиска
+                console.log('🗂️ Загружены данные, вызываем indexProducts с data.sections:', data.sections);
                 indexProducts(data.sections);
 
                 renderSections(data.sections);
