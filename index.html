@@ -835,10 +835,14 @@
             color: #ffffff !important;
         }
 
-        /* Исключение для кнопки информации */
+        /* Исключение для кнопки информации - более высокая специфичность */
+        .object-card .object-card .info-button,
         .object-card .info-button,
-        .object-card .info-button * {
+        .object-card .info-button *,
+        button.info-button,
+        button.info-button * {
             color: #000000 !important;
+            background: #ffffff !important;
         }
 
         .object-title {
@@ -871,10 +875,14 @@
             color: #ffffff !important;
         }
 
-        /* Исключение для кнопки информации */
+        /* Исключение для кнопки информации - более высокая специфичность */
+        .object-gallery-container .object-gallery-container .info-button,
         .object-gallery-container .info-button,
-        .object-gallery-container .info-button * {
+        .object-gallery-container .info-button *,
+        .object-gallery-container button.info-button,
+        .object-gallery-container button.info-button * {
             color: #000000 !important;
+            background: #ffffff !important;
         }
 
         .object-gallery-header {
