@@ -2173,19 +2173,24 @@
             
             console.log('🗂️ indexProducts: обрабатываем', data.length, 'секций');
             
-            data.forEach(section => {
+            data.forEach((section, sectionIndex) => {
+                console.log(`🗂️ Секция ${sectionIndex}:`, section.name, 'categories:', section.categories ? section.categories.length : 'отсутствуют');
                 if (!section.categories) return;
                 
-                section.categories.forEach(category => {
+                section.categories.forEach((category, categoryIndex) => {
+                    console.log(`  📂 Категория ${categoryIndex}:`, category.name, 'models:', category.models ? category.models.length : 'отсутствуют');
                     if (!category.models) return;
                     
-                    category.models.forEach(model => {
+                    category.models.forEach((model, modelIndex) => {
+                        console.log(`    📱 Модель ${modelIndex}:`, model.name, 'submodels:', model.submodels ? model.submodels.length : 'отсутствуют');
                         if (!model.submodels) return;
                         
-                        model.submodels.forEach(submodel => {
+                        model.submodels.forEach((submodel, submodelIndex) => {
+                            console.log(`      🔧 Субмодель ${submodelIndex}:`, submodel.name, 'products:', submodel.products ? submodel.products.length : 'отсутствуют');
                             if (!submodel.products) return;
                             
-                            submodel.products.forEach(product => {
+                            submodel.products.forEach((product, productIndex) => {
+                                console.log(`        💎 Товар ${productIndex}:`, product.title || 'без названия');
                                 allProducts.push({
                                     id: `${section.id}_${category.id}_${model.id}_${submodel.id}_${product.id}`,
                                     title: product.title,
