@@ -2438,11 +2438,11 @@
                                                 }
                                                 
                                                 allProducts.push({
-                                                    id: `${section.id}_${category.id}_${model.id}_${submodel.id}_${product.id}`,
-                                                    title: product.title || product.name || 'Товар',
+                                                    id: product.id || `${section.id}_${category.id}_${model.id}_${submodel.id}_${allProducts.length}`, // Используем ID из колонки J или создаем fallback
+                                                    title: product.title || product.name || product.color || 'Товар',
                                                     description: description,
                                                     price: product.price || 'Цена по запросу',
-                                                    image: product.image || product.photos?.[0] || '',
+                                                    image: product.image || product.photos?.[0] || product.photo_url || '',
                                                     category: categoryText,
                                                     color: product.color,
                                                     brand: model.name && model.name !== 'Без модели' ? model.name : section.name,
