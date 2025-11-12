@@ -2415,15 +2415,23 @@
             isIndexing = false;
             return Promise.resolve();
         }
+
+        // Индексация товаров для поиска  
+        function indexProducts(data) {
+            console.log('🗂️ indexProducts вызвана с data:', data);
+            allProducts = [];
             
-            let totalProducts = 0;
+            if (!data || !Array.isArray(data)) {
+                console.log('❌ indexProducts: data некорректна или не массив');
+                return;
+            }
             
-            for (const section of sections) {
+            console.log('🗂️ indexProducts: обрабатываем', data.length, 'секций');
                 console.log(`� Индексируем секцию: ${section.name}`);
                 
                 try {
                     // Загружаем категории для этой секции
-                    const categoriesData = await apiFetch(`/categories/${section.id}`);
+                    // ВРЕМЕННО ОТКЛЮЧЕНО - const categoriesData = await apiFetch(`/categories/${section.id}`);
                     
                     if (!categoriesData?.categories) {
                         console.log(`  ⚠️ Нет категорий для секции: ${section.name}`);
@@ -2435,7 +2443,7 @@
                     for (const category of categoriesData.categories) {
                         try {
                             // Загружаем модели для этой категории
-                            const modelsData = await apiFetch(`/models/${section.id}/${category.id}`);
+                            // ВРЕМЕННО ОТКЛЮЧЕНО - const modelsData = await apiFetch(`/models/${section.id}/${category.id}`);
                             
                             if (!modelsData?.models) {
                                 console.log(`    ⚠️ Нет моделей для категории: ${category.name}`);
@@ -2447,7 +2455,7 @@
                             for (const model of modelsData.models) {
                                 try {
                                     // Загружаем субмодели для этой модели
-                                    const submodelsData = await apiFetch(`/submodels/${section.id}/${category.id}/${model.id}`);
+                                    // ВРЕМЕННО ОТКЛЮЧЕНО - const submodelsData = await apiFetch(`/submodels/${section.id}/${category.id}/${model.id}`);
                                     
                                     if (!submodelsData?.submodels) {
                                         console.log(`      ⚠️ Нет субмоделей для модели: ${model.name}`);
@@ -2459,7 +2467,7 @@
                                     for (const submodel of submodelsData.submodels) {
                                         try {
                                             // Загружаем товары для этой субмодели
-                                            const productsData = await apiFetch(`/products/${section.id}/${category.id}/${model.id}/${submodel.id}`);
+                                            // ВРЕМЕННО ОТКЛЮЧЕНО - const productsData = await apiFetch(`/products/${section.id}/${category.id}/${model.id}/${submodel.id}`);
                                             
                                             if (!productsData?.products) {
                                                 console.log(`        ⚠️ Нет товаров для субмодели: ${submodel.name}`);
