@@ -366,19 +366,24 @@
         }
 
         .menu-item {
-            padding: 12px 16px;
-            border-radius: 8px;
-            transition: all 0.2s;
+            padding: 16px 20px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #1F2937;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 8px;
         }
 
         .menu-item:hover {
-            background-color: #F3F4F6;
-            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-4px);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .menu-item i {
@@ -388,8 +393,8 @@
 
         .menu-divider {
             height: 1px;
-            background-color: #E5E7EB;
-            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 12px 0;
         }
 
         .taxi-buttons {
@@ -441,70 +446,48 @@
         .bottom-action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
-            margin-bottom: 16px;
+            gap: 16px;
+            margin: 24px 16px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
         .square-action-button {
-            height: 80px;
+            height: 100px;
             border: none;
-            border-radius: 12px;
+            border-radius: 20px;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 6px;
             color: white !important;
             text-align: center;
             position: relative;
             overflow: hidden;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
         
         .square-action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
         }
         
         .square-action-button:active {
-            transform: translateY(-1px);
-        }
-        
-        .brigades-button {
-            background: #FFFFFF;
-            color: #1DB954;
-            border: 2px solid #1DB954;
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.8);
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-        }
-        
-        .brigades-button:hover {
-            background: #1DB954;
-            color: white;
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 12px 30px rgba(29, 185, 84, 0.4);
-        }
-        
-        .taxi-square-button {
-            background: #FFFFFF;
-            color: #1DB954;
-            border: 2px solid #1DB954;
-            position: relative;
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.8);
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-        }
-        
-        .taxi-square-button:hover {
-            background: #1DB954;
-            color: white;
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 12px 30px rgba(29, 185, 84, 0.4);
+            transform: translateY(-2px);
         }
         
         .square-button-icon {
@@ -1331,7 +1314,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+<body class="min-h-screen" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #40E0D0 100%);">
     <div id="app" class="max-w-md mx-auto">
         <!-- Header -->
         <header class="shadow-lg p-4 sticky top-0 z-10" style="background: linear-gradient(45deg, #E91E63, #9C27B0, #673AB7, #4FC3F7, #40E0D0);">
@@ -1490,12 +1473,12 @@
         </div>
 
         <!-- Side Menu -->
-        <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
-            <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
-                <div class="p-4">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-lg font-semibold text-contrast">Меню</h2>
-                        <button id="closeMenu" class="p-2 rounded-lg hover:bg-gray-100">
+        <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-30">
+            <div class="absolute right-0 top-0 h-full w-80 transform translate-x-full transition-transform duration-300" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border-left: 1px solid rgba(255, 255, 255, 0.2);">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-lg font-semibold text-white">Меню</h2>
+                        <button id="closeMenu" class="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-all duration-200" style="color: white;">
                             <i data-feather="x"></i>
                         </button>
                     </div>
@@ -1505,8 +1488,8 @@
                         <div class="menu-item" onclick="loadFavorites(); closeSideMenu();">
                             <i data-feather="heart"></i>
                             <div>
-                                <div class="font-medium">Избранное</div>
-                                <div class="text-sm text-gray-600">Сохраненные товары</div>
+                                <div class="font-medium text-white">Избранное</div>
+                                <div class="text-sm opacity-80">Сохраненные товары</div>
                             </div>
                         </div>
 
@@ -1516,8 +1499,8 @@
                         <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
                             <i data-feather="users"></i>
                             <div>
-                                <div class="font-medium">Бригады</div>
-                                <div class="text-sm text-gray-600">Наши строительные бригады</div>
+                                <div class="font-medium text-white">Бригады</div>
+                                <div class="text-sm opacity-80">Наши строительные бригады</div>
                             </div>
                         </div>
 
@@ -1527,16 +1510,16 @@
                         <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
                             <i data-feather="phone"></i>
                             <div>
-                                <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="font-medium text-white">Телефон</div>
+                                <div class="text-sm opacity-80">60-01-60</div>
                             </div>
                         </div>
                         
                         <div class="menu-item" onclick="open2GIS(); closeSideMenu();">
                             <i data-feather="map-pin"></i>
                             <div>
-                                <div class="font-medium">2GIS</div>
-                                <div class="text-sm text-gray-600">Наш адрес на карте</div>
+                                <div class="font-medium text-white">2GIS</div>
+                                <div class="text-sm opacity-80">Наш адрес на карте</div>
                             </div>
                         </div>
 
