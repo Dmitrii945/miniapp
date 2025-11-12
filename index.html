@@ -2173,6 +2173,11 @@
             
             console.log('🗂️ indexProducts: обрабатываем', data.length, 'секций');
             
+            // Проверим первую секцию детально
+            if (data[0]) {
+                console.log('🔍 Первая секция:', JSON.stringify(data[0], null, 2));
+            }
+            
             data.forEach((section, sectionIndex) => {
                 console.log(`🗂️ Секция ${sectionIndex}:`, section.name, 'categories:', section.categories ? section.categories.length : 'отсутствуют');
                 if (!section.categories) return;
@@ -3578,6 +3583,8 @@
                 elements.pageTitle.textContent = 'Каталог товаров';
                 
                 const data = await apiFetch('/sections');
+                
+                console.log('🌐 API ответ /sections:', JSON.stringify(data, null, 2));
                 
                 if (data?.error) {
                     showEmptyState('Ошибка загрузки разделов');
