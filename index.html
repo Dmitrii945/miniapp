@@ -128,7 +128,7 @@
         
         .breadcrumb-item {
             cursor: pointer !important;
-            color: white !important;
+            color: #000000 !important;
             padding: 6px 14px !important;
             border-radius: 12px !important;
             background: rgba(255, 255, 255, 0.08) !important;
@@ -136,7 +136,7 @@
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            text-shadow: none !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
         }
         
@@ -145,6 +145,7 @@
             border-color: rgba(255, 255, 255, 0.4) !important;
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+            color: #000000 !important;
         }
         
         .breadcrumb-separator {
@@ -3877,7 +3878,17 @@
         function updateBreadcrumbs(items) {
             elements.breadcrumbs.innerHTML = '';
             
-            items.forEach((item, index) => {
+            // Всегда добавляем "СКИДКА СЕРВИС" в начало
+            const allItems = [{ name: 'СКИДКА СЕРВИС', action: 'loadSections' }];
+            
+            // Добавляем остальные элементы, исключая дублирование "СКИДКА СЕРВИС"
+            items.forEach(item => {
+                if (item && item.name && item.name !== 'СКИДКА СЕРВИС' && item.name !== 'МЕНЮ') {
+                    allItems.push(item);
+                }
+            });
+            
+            allItems.forEach((item, index) => {
                 if (!item || !item.name) return;
                 
                 const crumb = document.createElement('span');
@@ -3891,7 +3902,7 @@
                 }
                 
                 const link = document.createElement('span');
-                link.className = 'tg-theme-text text-sm truncate max-w-[120px] text-contrast';
+                link.className = 'breadcrumb-item';
                 link.textContent = item.name;
                 link.title = item.name;
                 
