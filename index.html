@@ -2187,35 +2187,91 @@
                 console.log(`� Индексируем секцию: ${section.name}`);
                 
                 try {
-                    // Попробуем сразу получить все товары из секции
-                    const allSectionProducts = await apiFetch(`/search/products/${section.id}`);
+                    // Загружаем категории для этой секции
+                    const categoriesData = await apiFetch(`/categories/${section.id}`);
                     
-                    if (allSectionProducts?.products && Array.isArray(allSectionProducts.products)) {
-                        console.log(`  ✅ Найдено ${allSectionProducts.products.length} товаров в секции ${section.name}`);
-                        
-                        allSectionProducts.products.forEach(product => {
-                            allProducts.push({
-                                id: product.id || `${section.id}_${totalProducts}`,
-                                title: product.title || product.name,
-                                description: product.description || '',
-                                price: product.price,
-                                category: `${section.name}`,
-                                brand: product.brand || section.name,
-                                section: section.name,
-                                sectionId: section.id,
-                                productId: product.id
-                            });
-                            totalProducts++;
-                        });
-                    } else {
-                        console.log(`  ⚠️ Секция ${section.name} не поддерживает прямой поиск товаров`);
+                    if (!categoriesData?.categories) {
+                        console.log(`  ⚠️ Нет категорий для секции: ${section.name}`);
+                        continue;
+                    }
+                    
+                    console.log(`  📁 Найдено ${categoriesData.categories.length} категорий в секции ${section.name}`);
+                    
+                    for (const category of categoriesData.categories) {
+                        try {
+                            // Загружаем модели для этой категории
+                            const modelsData = await apiFetch(`/models/${section.id}/${category.id}`);
+                            
+                            if (!modelsData?.models) {
+                                console.log(`    ⚠️ Нет моделей для категории: ${category.name}`);
+                                continue;
+                            }
+                            
+                            console.log(`    📱 Найдено ${modelsData.models.length} моделей в категории ${category.name}`);
+                            
+                            for (const model of modelsData.models) {
+                                try {
+                                    // Загружаем субмодели для этой модели
+                                    const submodelsData = await apiFetch(`/submodels/${section.id}/${category.id}/${model.id}`);
+                                    
+                                    if (!submodelsData?.submodels) {
+                                        console.log(`      ⚠️ Нет субмоделей для модели: ${model.name}`);
+                                        continue;
+                                    }
+                                    
+                                    console.log(`      🔧 Найдено ${submodelsData.submodels.length} субмоделей в модели ${model.name}`);
+                                    
+                                    for (const submodel of submodelsData.submodels) {
+                                        try {
+                                            // Загружаем товары для этой субмодели
+                                            const productsData = await apiFetch(`/products/${section.id}/${category.id}/${model.id}/${submodel.id}`);
+                                            
+                                            if (!productsData?.products) {
+                                                console.log(`        ⚠️ Нет товаров для субмодели: ${submodel.name}`);
+                                                continue;
+                                            }
+                                            
+                                            console.log(`        💎 Найдено ${productsData.products.length} товаров в субмодели ${submodel.name}`);
+                                            
+                                            // Добавляем товары в индекс
+                                            productsData.products.forEach(product => {
+                                                allProducts.push({
+                                                    id: `${section.id}_${category.id}_${model.id}_${submodel.id}_${product.id}`,
+                                                    title: product.title,
+                                                    description: product.description,
+                                                    price: product.price,
+                                                    category: `${section.name} → ${category.name} → ${model.name}`,
+                                                    brand: model.name,
+                                                    section: section.name,
+                                                    categoryName: category.name,
+                                                    modelName: model.name,
+                                                    submodelName: submodel.name,
+                                                    sectionId: section.id,
+                                                    categoryId: category.id,
+                                                    modelId: model.id,
+                                                    submodelId: submodel.id,
+                                                    productId: product.id
+                                                });
+                                                totalProducts++;
+                                            });
+                                        } catch (error) {
+                                            console.log(`        ❌ Ошибка загрузки товаров для ${submodel.name}:`, error.message);
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.log(`      ❌ Ошибка загрузки субмоделей для ${model.name}:`, error.message);
+                                }
+                            }
+                        } catch (error) {
+                            console.log(`    ❌ Ошибка загрузки моделей для ${category.name}:`, error.message);
+                        }
                     }
                 } catch (error) {
-                    console.log(`  ❌ Ошибка загрузки товаров для секции ${section.name}:`, error.message);
+                    console.log(`  ❌ Ошибка загрузки категорий для ${section.name}:`, error.message);
                 }
             }
             
-            console.log(`🎉 Быстрая индексация завершена! Проиндексировано ${allProducts.length} товаров для поиска`);
+            console.log(`🎉 Полная индексация завершена! Проиндексировано ${allProducts.length} товаров для поиска`);
             
             // Включаем поиск обратно
             if (elements.searchInput) {
