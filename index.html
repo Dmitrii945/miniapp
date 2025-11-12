@@ -2009,6 +2009,8 @@
         
         // Переменные для поиска
         let allProducts = []; // Индекс всех товаров для поиска
+        let isIndexing = false; // Флаг процесса индексации
+        let sectionsData = null; // Кэш данных секций
         let searchTimeout = null;
         let isSearchActive = false;
         
@@ -2023,6 +2025,9 @@
                 console.error('❌ searchInput не найден!');
                 return;
             }
+            
+            // Обновляем placeholder
+            elements.searchInput.placeholder = 'Поиск товаров... (нажмите для загрузки)';
             
             console.log('✅ searchInput найден, добавляем обработчики...');
             
@@ -2058,8 +2063,18 @@
                 }
             });
             
-            // Фокус на поле - показать результаты если есть текст
+            // Фокус на поле - показать результаты если есть текст + ленивая индексация
             elements.searchInput.addEventListener('focus', () => {
+                // Запускаем индексацию при первом использовании поиска
+                if (!isIndexing && allProducts.length === 0 && sectionsData) {
+                    console.log('🚀 Запуск индексации при первом использовании поиска...');
+                    isIndexing = true;
+                    indexAllProducts(sectionsData).catch(error => {
+                        console.error('❌ Ошибка индексации товаров:', error);
+                        isIndexing = false;
+                    });
+                }
+                
                 const query = elements.searchInput.value.trim();
                 if (query) {
                     performSearch(query);
@@ -2260,6 +2275,7 @@
                     elements.searchInput.placeholder = 'Поиск недоступен';
                     elements.searchInput.disabled = false;
                 }
+                isIndexing = false;
                 return;
             }
             
@@ -2317,14 +2333,30 @@
                                             
                                             // Добавляем товары в индекс
                                             productsData.products.forEach(product => {
+                                                // Формируем красивое название категории без "Без модели"
+                                                let categoryText = section.name;
+                                                if (category.name && category.name !== 'Без категории') {
+                                                    categoryText += ` → ${category.name}`;
+                                                }
+                                                if (model.name && model.name !== 'Без модели') {
+                                                    categoryText += ` → ${model.name}`;
+                                                }
+                                                
+                                                // Добавляем цвет в описание если есть
+                                                let description = product.description || '';
+                                                if (product.color && product.color !== 'Без цвета') {
+                                                    description = product.color + (description ? ` • ${description}` : '');
+                                                }
+                                                
                                                 allProducts.push({
                                                     id: `${section.id}_${category.id}_${model.id}_${submodel.id}_${product.id}`,
                                                     title: product.title || product.name || 'Товар',
-                                                    description: product.description || '',
+                                                    description: description,
                                                     price: product.price || 'Цена по запросу',
                                                     image: product.image || product.photos?.[0] || '',
-                                                    category: `${section.name} → ${category.name} → ${model.name}`,
-                                                    brand: model.name,
+                                                    category: categoryText,
+                                                    color: product.color,
+                                                    brand: model.name && model.name !== 'Без модели' ? model.name : section.name,
                                                     section: section.name,
                                                     categoryName: category.name,
                                                     modelName: model.name,
@@ -2362,6 +2394,8 @@
                 elements.searchInput.placeholder = allProducts.length > 0 ? 'Поиск товаров...' : 'Поиск недоступен';
                 elements.searchInput.disabled = allProducts.length === 0;
             }
+            
+            isIndexing = false;
         }
 
         // Индексация товаров для поиска
@@ -3802,10 +3836,13 @@
                 // Индексируем товары для поиска
                 console.log('🗂️ Загружены данные, вызываем indexProducts с data.sections:', data.sections);
                 
-                // Запускаем индексацию в фоне, не блокируя отображение
-                indexAllProducts(data.sections).catch(error => {
-                    console.error('❌ Ошибка индексации товаров:', error);
-                });
+                // Сохраняем данные для ленивой индексации
+                sectionsData = data.sections;
+                
+                // Запускаем индексацию в фоне только если нужна
+                // indexAllProducts(data.sections).catch(error => {
+                //     console.error('❌ Ошибка индексации товаров:', error);
+                // });
 
                 renderSections(data.sections);
                 updateBackButton();
