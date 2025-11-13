@@ -1497,13 +1497,14 @@
         .products-carousel {
             display: flex;
             overflow-x: auto;
-            gap: 16px;
-            padding: 0 16px 24px;
+            gap: 20px;
+            padding: 0 calc(50vw - 140px) 24px;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
             cursor: grab;
+            scroll-snap-type: x mandatory;
         }
         
         .products-carousel:active {
@@ -1535,18 +1536,31 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.12);
             border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             cursor: pointer;
             position: relative;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+            scroll-snap-align: center;
+            transform: scale(0.9);
+            opacity: 0.6;
+        }
+        
+        .carousel-card.center {
+            transform: scale(1);
+            opacity: 1;
+            z-index: 2;
         }
         
         .carousel-card:hover {
-            transform: translateY(-4px);
+            transform: scale(0.95) translateY(-4px);
             box-shadow: 0 16px 48px rgba(0,0,0,0.2);
             border-color: rgba(255,255,255,0.4);
             background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .carousel-card.center:hover {
+            transform: scale(1.02) translateY(-4px);
         }
         
         .carousel-card * {
@@ -3263,9 +3277,9 @@
             container.classList.add('visible');
             
             carousel.innerHTML = products.map(product => {
-                const imageUrl = product.images && product.images.length > 0 
-                    ? product.images[0] 
-                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999" font-size="16"%3EНет фото%3C/text%3E%3C/svg%3E';
+                const imageUrl = product.photo_url || 
+                    (product.images && product.images.length > 0 ? product.images[0] : null) ||
+                    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999" font-size="16"%3EНет фото%3C/text%3E%3C/svg%3E';
                 
                 const productId = product.id || product.row_index || 0;
                 const isFavorite = favorites.some(fav => fav.id === productId);
@@ -3334,9 +3348,32 @@
             renderProductCarousel(products);
             startCarouselAutoRefresh();
             
-            // Добавляем поддержку свайпов
+            // Добавляем поддержку свайпов и обновление центральной карточки
             const carousel = document.getElementById('productsCarousel');
             if (carousel) {
+                // Функция для обновления центральной карточки
+                const updateCenterCard = () => {
+                    const cards = carousel.querySelectorAll('.carousel-card');
+                    const carouselCenter = carousel.offsetWidth / 2 + carousel.scrollLeft;
+                    
+                    cards.forEach(card => {
+                        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+                        const distance = Math.abs(carouselCenter - cardCenter);
+                        
+                        if (distance < card.offsetWidth / 2) {
+                            card.classList.add('center');
+                        } else {
+                            card.classList.remove('center');
+                        }
+                    });
+                };
+                
+                // Обновляем при прокрутке
+                carousel.addEventListener('scroll', updateCenterCard);
+                
+                // Начальное обновление
+                setTimeout(updateCenterCard, 100);
+                
                 let startX = 0;
                 let scrollLeft = 0;
                 let isDown = false;
