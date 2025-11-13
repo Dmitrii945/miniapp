@@ -1504,8 +1504,6 @@
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
             cursor: grab;
-            scroll-snap-type: x mandatory;
-            scroll-padding: 0 calc(50vw - 140px);
         }
         
         .products-carousel:active {
@@ -1542,7 +1540,6 @@
             position: relative;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            scroll-snap-align: center;
             transform: scale(0.9);
             opacity: 0.6;
         }
@@ -3349,27 +3346,98 @@
             renderProductCarousel(products);
             startCarouselAutoRefresh();
             
-            // Добавляем только обновление центральной карточки при прокрутке
+            // Добавляем обработку свайпов для переключения по одной карточке
             const carousel = document.getElementById('productsCarousel');
             if (carousel) {
+                let currentIndex = 0;
+                const cards = () => carousel.querySelectorAll('.carousel-card');
+                
+                // Функция для прокрутки к конкретной карточке
+                const scrollToCard = (index) => {
+                    const allCards = cards();
+                    if (index >= 0 && index < allCards.length) {
+                        currentIndex = index;
+                        const card = allCards[index];
+                        const cardLeft = card.offsetLeft;
+                        const cardWidth = card.offsetWidth;
+                        const carouselWidth = carousel.offsetWidth;
+                        const scrollPosition = cardLeft - (carouselWidth / 2) + (cardWidth / 2);
+                        
+                        carousel.scrollTo({
+                            left: scrollPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                };
+                
                 // Функция для обновления центральной карточки
                 const updateCenterCard = () => {
-                    const cards = carousel.querySelectorAll('.carousel-card');
+                    const allCards = cards();
                     const carouselCenter = carousel.offsetWidth / 2 + carousel.scrollLeft;
                     
-                    cards.forEach(card => {
+                    allCards.forEach((card, index) => {
                         const cardCenter = card.offsetLeft + card.offsetWidth / 2;
                         const distance = Math.abs(carouselCenter - cardCenter);
                         
                         if (distance < card.offsetWidth / 2) {
                             card.classList.add('center');
+                            currentIndex = index;
                         } else {
                             card.classList.remove('center');
                         }
                     });
                 };
                 
-                // Используем requestAnimationFrame для плавности
+                // Обработка свайпов
+                let touchStartX = 0;
+                let touchStartTime = 0;
+                let scrollStartLeft = 0;
+                
+                carousel.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].pageX;
+                    touchStartTime = Date.now();
+                    scrollStartLeft = carousel.scrollLeft;
+                }, { passive: true });
+                
+                carousel.addEventListener('touchend', (e) => {
+                    const touchEndX = e.changedTouches[0].pageX;
+                    const touchDuration = Date.now() - touchStartTime;
+                    const touchDistance = touchStartX - touchEndX;
+                    const scrollDistance = carousel.scrollLeft - scrollStartLeft;
+                    
+                    // Определяем свайп (быстрое движение или достаточное смещение)
+                    const isSwipe = Math.abs(touchDistance) > 50 || 
+                                   (touchDuration < 300 && Math.abs(touchDistance) > 20);
+                    
+                    if (isSwipe) {
+                        e.preventDefault();
+                        
+                        if (touchDistance > 0) {
+                            // Свайп влево - следующая карточка
+                            scrollToCard(currentIndex + 1);
+                        } else {
+                            // Свайп вправо - предыдущая карточка
+                            scrollToCard(currentIndex - 1);
+                        }
+                    } else {
+                        // Если не свайп, возвращаемся к текущей карточке
+                        scrollToCard(currentIndex);
+                    }
+                });
+                
+                // Обработка колесика мыши
+                carousel.addEventListener('wheel', (e) => {
+                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                        e.preventDefault();
+                        if (e.deltaX > 0) {
+                            scrollToCard(currentIndex + 1);
+                        } else {
+                            scrollToCard(currentIndex - 1);
+                        }
+                    }
+                }, { passive: false });
+                
+                // Обновление при скролле (для других способов прокрутки)
                 let scrollTimeout;
                 carousel.addEventListener('scroll', () => {
                     clearTimeout(scrollTimeout);
@@ -3379,7 +3447,10 @@
                 }, { passive: true });
                 
                 // Начальное обновление
-                setTimeout(updateCenterCard, 100);
+                setTimeout(() => {
+                    updateCenterCard();
+                    scrollToCard(0);
+                }, 100);
             }
         }
 
