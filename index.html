@@ -3343,7 +3343,12 @@
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 
                 return `
-                    <div class="carousel-card" onclick="openProductFromCarousel(${JSON.stringify(product).replace(/"/g, '&quot;')})" style="cursor: pointer;">
+                    <div class="carousel-card" 
+                         onclick="openProductFromCarousel(${productId})" 
+                         style="cursor: pointer;"
+                         data-product-id="${productId}"
+                         data-category="${escapeHtml(product.category || '')}"
+                         data-color="${escapeHtml(product.color || '')}">
                         <div class="carousel-image-container">
                             ${imageUrl ? `
                                 <img src="${escapeHtml(imageUrl)}" 
@@ -3412,7 +3417,9 @@
         }
         
         // Открытие товара из карусели - находим его в каталоге и открываем модальное окно
-        function openProductFromCarousel(product) {
+        function openProductFromCarousel(productId) {
+            console.log('Opening product from carousel, ID:', productId);
+            
             // Закрываем текущее модальное окно если открыто
             closeModal();
             
@@ -3421,13 +3428,12 @@
                 showPage('catalog');
             }
             
-            // Ищем товар в currentProducts по id или другим параметрам
+            // Ищем товар в currentProducts по id
             const productIndex = currentProducts.findIndex(p => {
-                return p.id === product.id || 
-                       (p.row_index === product.row_index && 
-                        p.category === product.category && 
-                        p.color === product.color);
+                return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
             });
+            
+            console.log('Found product at index:', productIndex);
             
             if (productIndex !== -1) {
                 // Нашли товар - открываем его модальное окно
@@ -3435,7 +3441,8 @@
                     openModal(currentProducts[productIndex], productIndex);
                 }, 100);
             } else {
-                console.log('Товар не найден в текущем каталоге:', product);
+                console.log('Товар не найден в текущем каталоге. ID:', productId);
+                console.log('currentProducts:', currentProducts);
             }
         }
         
