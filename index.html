@@ -3313,12 +3313,29 @@
                 return;
             }
             
+            console.log('🎠 Rendering carousel with products:', products);
+            
             container.classList.add('visible');
             
-            carousel.innerHTML = products.map(product => {
-                const imageUrl = product.photo_url || 
-                    (product.images && product.images.length > 0 ? product.images[0] : null) ||
-                    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999" font-size="16"%3EНет фото%3C/text%3E%3C/svg%3E';
+            carousel.innerHTML = products.map((product, index) => {
+                // Пробуем разные варианты получения URL фото
+                let imageUrl = null;
+                
+                if (product.photo_url) {
+                    imageUrl = product.photo_url;
+                } else if (product.images && product.images.length > 0) {
+                    imageUrl = product.images[0];
+                }
+                
+                console.log(`📸 Product ${index}: ${product.name || product.color}`, {
+                    photo_url: product.photo_url,
+                    images: product.images,
+                    finalUrl: imageUrl
+                });
+                
+                if (!imageUrl) {
+                    imageUrl = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999" font-size="16"%3EНет фото%3C/text%3E%3C/svg%3E';
+                }
                 
                 const productId = product.id || product.row_index || 0;
                 const isFavorite = favorites.some(fav => fav.id === productId);
@@ -3329,8 +3346,9 @@
                             <img src="${imageUrl}" 
                                  alt="${product.name || product.color || 'Товар'}" 
                                  class="carousel-image"
-                                 loading="lazy"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'%3E%3Crect fill=\\'%23ddd\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'16\\'%3EНет фото%3C/text%3E%3C/svg%3E'">
+                                 crossorigin="anonymous"
+                                 onerror="console.error('Failed to load image:', this.src); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'%3E%3Crect fill=\\'%23ddd\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'16\\'%3EНет фото%3C/text%3E%3C/svg%3E';"
+                                 onload="console.log('Image loaded:', this.src.substring(0, 100))">
                             <button 
                                 onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, -1)" 
                                 class="favorite-button ${isFavorite ? 'active' : ''}"
