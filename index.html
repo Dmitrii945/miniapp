@@ -3320,19 +3320,19 @@
             carousel.innerHTML = products.map((product, index) => {
                 // Используем ту же логику что и в каталоге
                 const photoUrl = product.photo_url || '';
+                console.log(`📸 Product ${index}: photoUrl =`, photoUrl);
+                
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                console.log(`   imageUrl after extract =`, imageUrl);
+                
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
+                console.log(`   alternativeUrls =`, alternativeUrls);
                 
                 // Если нет imageUrl, берем первый альтернативный
                 if (!imageUrl && alternativeUrls.length > 0) {
                     imageUrl = alternativeUrls[0];
+                    console.log(`   using first alternative:`, imageUrl);
                 }
-                
-                console.log(`📸 Product ${index}: ${product.name || product.color}`, {
-                    photoUrl: photoUrl,
-                    imageUrl: imageUrl,
-                    alternativeUrls: alternativeUrls
-                });
                 
                 const productId = product.id || product.row_index || 0;
                 const isFavorite = favorites.some(fav => fav.id === productId);
