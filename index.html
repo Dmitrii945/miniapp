@@ -2014,12 +2014,8 @@
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
-            const phoneNumber = CONTACT_INFO.phone;
-            if (tg) {
-                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
-            } else {
-                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
-            }
+            const phoneNumber = CONTACT_INFO.phone.replace(/-/g, '');
+            window.location.href = `tel:${phoneNumber}`;
         }
 
         function open2GIS() {
