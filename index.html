@@ -3339,6 +3339,9 @@
                     .replace(/\s*-\s*$/, '') // убираем висящие дефисы в конце
                     .trim();
                 
+                // Обновляем photo_url в объекте product для правильного сохранения в избранное
+                product.photo_url = photoUrl;
+                
                 const productId = product.id || product.row_index || 0;
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 
@@ -3417,7 +3420,7 @@
         }
         
         // Открытие товара из карусели - находим его в каталоге и открываем модальное окно
-        function openProductFromCarousel(productId) {
+        async function openProductFromCarousel(productId) {
             console.log('Opening product from carousel, ID:', productId);
             
             // Закрываем текущее модальное окно если открыто
@@ -3429,11 +3432,35 @@
             }
             
             // Ищем товар в currentProducts по id
-            const productIndex = currentProducts.findIndex(p => {
+            let productIndex = currentProducts.findIndex(p => {
                 return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
             });
             
-            console.log('Found product at index:', productIndex);
+            // Если товар не найден в текущих продуктах, загружаем его категорию
+            if (productIndex === -1) {
+                try {
+                    // Получаем информацию о товаре через API
+                    const response = await apiFetch(`/product/${productId}`);
+                    if (response && response.product) {
+                        const product = response.product;
+                        
+                        // Сбрасываем фильтры и загружаем категорию товара
+                        navigation.section = null;
+                        navigation.category = { id: product.category_id, name: product.category };
+                        navigation.model = null;
+                        navigation.submodel = null;
+                        
+                        await loadProducts();
+                        
+                        // Ищем товар снова после загрузки
+                        productIndex = currentProducts.findIndex(p => {
+                            return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки товара:', error);
+                }
+            }
             
             if (productIndex !== -1) {
                 // Нашли товар - открываем его модальное окно
@@ -3441,8 +3468,10 @@
                     openModal(currentProducts[productIndex], productIndex);
                 }, 100);
             } else {
-                console.log('Товар не найден в текущем каталоге. ID:', productId);
-                console.log('currentProducts:', currentProducts);
+                console.log('Товар не найден в каталоге. ID:', productId);
+                if (tg) {
+                    tg.showAlert('Товар не найден в каталоге');
+                }
             }
         }
         
