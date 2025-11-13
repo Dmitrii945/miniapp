@@ -330,8 +330,14 @@
         }
 
         header {
-            background: linear-gradient(45deg, #1e3a8a, #1e40af, #3b82f6, #06b6d4, #0891b2) !important;
+            background: linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #ffffff 50%, #e8e8e8 75%, #b8b8b8 100%) !important;
             color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2);
+        }
+
+        header h1, header span, header .page-title {
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         h1, h2, h3, h4, h5, h6, p, span, div {
@@ -606,19 +612,20 @@
         .sub-title {
             font-family: 'Inter', sans-serif;
             font-size: 0.875rem;
-            color: #1DB954;
+            color: #ffffff !important;
             font-weight: 500;
             line-height: 1;
             margin-top: 4px;
             letter-spacing: 0.05em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .favorite-button {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: #000000;
+            border: 1px solid #333333;
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -630,8 +637,12 @@
             z-index: 10;
         }
 
+        .favorite-button i {
+            color: white;
+        }
+
         .favorite-button:hover {
-            background-color: #f9fafb;
+            background-color: #1a1a1a;
             transform: scale(1.1);
         }
 
@@ -1472,9 +1483,6 @@
                     <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
                         <i data-feather="message-circle"></i>
                         <span class="hidden sm:inline">Чаты</span>
-                    </button>
-                    <button id="installButton" class="install-button" title="Добавить на главный экран">
-                        <i data-feather="plus-square"></i>
                     </button>
                 </div>
             </div>
