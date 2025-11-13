@@ -3322,9 +3322,18 @@
                 let imageUrl = null;
                 
                 if (product.photo_url) {
-                    imageUrl = product.photo_url;
+                    // Если это относительный путь прокси - добавляем API_BASE
+                    if (product.photo_url.startsWith('/api/image_proxy/')) {
+                        imageUrl = API_BASE + product.photo_url;
+                    } else {
+                        imageUrl = product.photo_url;
+                    }
                 } else if (product.images && product.images.length > 0) {
-                    imageUrl = product.images[0];
+                    if (product.images[0].startsWith('/api/image_proxy/')) {
+                        imageUrl = API_BASE + product.images[0];
+                    } else {
+                        imageUrl = product.images[0];
+                    }
                 }
                 
                 console.log(`📸 Product ${index}: ${product.name || product.color}`, {
