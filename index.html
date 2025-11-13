@@ -3267,18 +3267,19 @@
                     ? product.images[0] 
                     : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999" font-size="16"%3EНет фото%3C/text%3E%3C/svg%3E';
                 
-                const isFavorite = favoriteProducts.has(product.id);
+                const productId = product.id || product.row_index || 0;
+                const isFavorite = favorites.some(fav => fav.id === productId);
                 
                 return `
-                    <div class="carousel-card" onclick="showProductDetails(${product.id})">
+                    <div class="carousel-card">
                         <div style="position: relative;">
                             <img src="${imageUrl}" 
-                                 alt="${product.name || 'Товар'}" 
+                                 alt="${product.name || product.color || 'Товар'}" 
                                  style="width: 100%; height: 200px; object-fit: cover;"
                                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'%3E%3Crect fill=\\'%23ddd\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'16\\'%3EНет фото%3C/text%3E%3C/svg%3E'">
                             <button 
-                                onclick="event.stopPropagation(); toggleFavorite(${product.id})" 
-                                class="absolute top-2 right-2 p-2 rounded-full"
+                                onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, -1)" 
+                                class="absolute top-2 right-2 p-2 rounded-full ${isFavorite ? 'active' : ''}"
                                 style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);"
                                 title="${isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}">
                                 <i data-feather="heart" 
