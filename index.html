@@ -3222,34 +3222,29 @@
         
         let carouselRefreshInterval = null;
         
-        // Хранилище всех товаров для карусели
-        let allProductsCache = [];
-        
-        // Обновление кэша товаров
-        function updateProductsCache(products) {
-            if (products && Array.isArray(products)) {
-                products.forEach(product => {
-                    if (product && product.id && !allProductsCache.find(p => p.id === product.id)) {
-                        allProductsCache.push(product);
-                    }
-                });
-            }
-        }
-        
-        // Загрузка случайных товаров для карусели
+        // Загрузка случайных товаров для карусели через API
         async function loadRandomProducts() {
             try {
-                // Берем случайные товары из кэша
-                if (allProductsCache.length === 0) {
-                    return [];
+                // Пробуем загрузить через API
+                const data = await apiFetch('/random_products?count=10');
+                
+                if (data && Array.isArray(data.products) && data.products.length > 0) {
+                    return data.products;
                 }
                 
-                // Выбираем 10 случайных товаров из кэша
-                const shuffled = [...allProductsCache].sort(() => 0.5 - Math.random());
-                return shuffled.slice(0, Math.min(10, shuffled.length));
+                // Если API не вернул товары, берем из текущих на странице
+                if (currentProducts && currentProducts.length > 0) {
+                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
+                    return shuffled.slice(0, Math.min(10, shuffled.length));
+                }
                 
+                return [];
             } catch (error) {
-                console.error('Ошибка загрузки карусели:', error);
+                // При ошибке API пробуем взять из currentProducts
+                if (currentProducts && currentProducts.length > 0) {
+                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
+                    return shuffled.slice(0, Math.min(10, shuffled.length));
+                }
                 return [];
             }
         }
@@ -3574,16 +3569,6 @@
             }
 
             currentProducts = data.products.filter(product => product != null);
-            
-            // Обновляем кэш товаров для карусели
-            updateProductsCache(currentProducts);
-            
-            // Инициализируем карусель если еще не была инициализирована
-            if (allProductsCache.length >= 10 && !carouselRefreshInterval) {
-                setTimeout(() => {
-                    initProductCarousel();
-                }, 500);
-            }
             
             if (currentProducts.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
@@ -4149,7 +4134,7 @@
             scheduleFeatherReplace();
             
             // Обновляем карусель если она уже инициализирована
-            if (allProductsCache.length >= 10) {
+            if (carouselRefreshInterval) {
                 setTimeout(async () => {
                     const products = await loadRandomProducts();
                     renderProductCarousel(products);
@@ -4520,7 +4505,10 @@
                 
                 setTimeout(() => {
                     loadSections();
-                    // Карусель инициализируется автоматически при просмотре товаров
+                    // Инициализация карусели через 1 секунду
+                    setTimeout(() => {
+                        initProductCarousel();
+                    }, 1000);
                 }, 100);
                 
             } catch (error) {
