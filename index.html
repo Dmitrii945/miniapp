@@ -3348,7 +3348,7 @@
             renderProductCarousel(products);
             startCarouselAutoRefresh();
             
-            // Добавляем поддержку свайпов и обновление центральной карточки
+            // Добавляем только обновление центральной карточки при прокрутке
             const carousel = document.getElementById('productsCarousel');
             if (carousel) {
                 // Функция для обновления центральной карточки
@@ -3368,55 +3368,17 @@
                     });
                 };
                 
-                // Обновляем при прокрутке
-                carousel.addEventListener('scroll', updateCenterCard);
+                // Используем requestAnimationFrame для плавности
+                let scrollTimeout;
+                carousel.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        requestAnimationFrame(updateCenterCard);
+                    }, 50);
+                }, { passive: true });
                 
                 // Начальное обновление
                 setTimeout(updateCenterCard, 100);
-                
-                let startX = 0;
-                let scrollLeft = 0;
-                let isDown = false;
-                
-                carousel.addEventListener('mousedown', (e) => {
-                    isDown = true;
-                    carousel.style.cursor = 'grabbing';
-                    startX = e.pageX - carousel.offsetLeft;
-                    scrollLeft = carousel.scrollLeft;
-                });
-                
-                carousel.addEventListener('mouseleave', () => {
-                    isDown = false;
-                    carousel.style.cursor = 'grab';
-                });
-                
-                carousel.addEventListener('mouseup', () => {
-                    isDown = false;
-                    carousel.style.cursor = 'grab';
-                });
-                
-                carousel.addEventListener('mousemove', (e) => {
-                    if (!isDown) return;
-                    e.preventDefault();
-                    const x = e.pageX - carousel.offsetLeft;
-                    const walk = (x - startX) * 2;
-                    carousel.scrollLeft = scrollLeft - walk;
-                });
-                
-                // Touch events для мобильных устройств
-                let touchStartX = 0;
-                let touchScrollLeft = 0;
-                
-                carousel.addEventListener('touchstart', (e) => {
-                    touchStartX = e.touches[0].pageX;
-                    touchScrollLeft = carousel.scrollLeft;
-                }, { passive: true });
-                
-                carousel.addEventListener('touchmove', (e) => {
-                    const touchX = e.touches[0].pageX;
-                    const walk = (touchStartX - touchX) * 1.5;
-                    carousel.scrollLeft = touchScrollLeft + walk;
-                }, { passive: true });
             }
         }
 
