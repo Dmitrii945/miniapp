@@ -3239,20 +3239,8 @@
         // Загрузка случайных товаров для карусели
         async function loadRandomProducts() {
             try {
-                // Сначала пробуем загрузить через API
-                try {
-                    const data = await apiFetch('/random_products?count=10');
-                    
-                    if (data && !data.error && Array.isArray(data.products) && data.products.length > 0) {
-                        return data.products;
-                    }
-                } catch (apiError) {
-                    console.log('API random_products недоступен, используем кэш товаров');
-                }
-                
-                // Если API не работает, берем случайные товары из кэша
+                // Берем случайные товары из кэша
                 if (allProductsCache.length === 0) {
-                    console.log('Кэш товаров пуст, карусель будет скрыта');
                     return [];
                 }
                 
@@ -3589,6 +3577,13 @@
             
             // Обновляем кэш товаров для карусели
             updateProductsCache(currentProducts);
+            
+            // Инициализируем карусель если еще не была инициализирована
+            if (allProductsCache.length >= 10 && !carouselRefreshInterval) {
+                setTimeout(() => {
+                    initProductCarousel();
+                }, 500);
+            }
             
             if (currentProducts.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
@@ -4525,10 +4520,7 @@
                 
                 setTimeout(() => {
                     loadSections();
-                    // Инициализация карусели после загрузки данных
-                    setTimeout(() => {
-                        initProductCarousel();
-                    }, 2000); // Задержка 2 секунды для заполнения кэша
+                    // Карусель инициализируется автоматически при просмотре товаров
                 }, 100);
                 
             } catch (error) {
