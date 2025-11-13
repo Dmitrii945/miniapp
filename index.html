@@ -2177,6 +2177,8 @@
 
         // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
         function toggleFavorite(product, productIndex) {
+            console.log('toggleFavorite called with product:', product);
+            
             const productId = generateProductId(product);
             const isFavorite = favorites.some(fav => fav.id === productId);
             
@@ -2187,12 +2189,16 @@
                 }
             } else {
                 const navigation = getCurrentNavigation();
-                favorites.push({
+                const favoriteItem = {
                     id: productId,
                     product: product,
                     navigation: navigation,
                     timestamp: Date.now()
-                });
+                };
+                console.log('Adding to favorites:', favoriteItem);
+                console.log('Product photo_url:', product.photo_url);
+                
+                favorites.push(favoriteItem);
                 if (tg) {
                     tg.showAlert('Товар добавлен в избранное');
                 }
@@ -3342,8 +3348,9 @@
                 // Обновляем photo_url в объекте product для правильного сохранения в избранное
                 product.photo_url = photoUrl;
                 
+                console.log(`Product ${index} photo_url updated to:`, product.photo_url);
+                
                 const productId = product.id || product.row_index || 0;
-                const isFavorite = favorites.some(fav => fav.id === productId);
                 
                 return `
                     <div class="carousel-card" 
@@ -3368,15 +3375,6 @@
                                     </div>
                                 </div>
                             `}
-                            <button 
-                                onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, -1)" 
-                                class="favorite-button ${isFavorite ? 'active' : ''}"
-                                style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);"
-                                title="${isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}">
-                                <i data-feather="heart" 
-                                   class="w-5 h-5 ${isFavorite ? 'fill-current text-red-500' : ''}" 
-                                   style="stroke: ${isFavorite ? '#ef4444' : '#ffffff'}; fill: ${isFavorite ? '#ef4444' : 'none'};"></i>
-                            </button>
                         </div>
                         <div class="carousel-card-content">
                             <h3 class="carousel-card-title">
