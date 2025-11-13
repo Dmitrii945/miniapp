@@ -3318,33 +3318,21 @@
             container.classList.add('visible');
             
             carousel.innerHTML = products.map((product, index) => {
-                // Пробуем разные варианты получения URL фото
-                let imageUrl = null;
+                // Используем ту же логику что и в каталоге
+                const photoUrl = product.photo_url || '';
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
                 
-                if (product.photo_url) {
-                    // Если это относительный путь прокси - добавляем API_BASE
-                    if (product.photo_url.startsWith('/api/image_proxy/')) {
-                        imageUrl = API_BASE + product.photo_url;
-                    } else {
-                        imageUrl = product.photo_url;
-                    }
-                } else if (product.images && product.images.length > 0) {
-                    if (product.images[0].startsWith('/api/image_proxy/')) {
-                        imageUrl = API_BASE + product.images[0];
-                    } else {
-                        imageUrl = product.images[0];
-                    }
+                // Если нет imageUrl, берем первый альтернативный
+                if (!imageUrl && alternativeUrls.length > 0) {
+                    imageUrl = alternativeUrls[0];
                 }
                 
                 console.log(`📸 Product ${index}: ${product.name || product.color}`, {
-                    photo_url: product.photo_url,
-                    images: product.images,
-                    finalUrl: imageUrl
+                    photoUrl: photoUrl,
+                    imageUrl: imageUrl,
+                    alternativeUrls: alternativeUrls
                 });
-                
-                if (!imageUrl) {
-                    imageUrl = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999" font-size="16"%3EНет фото%3C/text%3E%3C/svg%3E';
-                }
                 
                 const productId = product.id || product.row_index || 0;
                 const isFavorite = favorites.some(fav => fav.id === productId);
@@ -3352,12 +3340,22 @@
                 return `
                     <div class="carousel-card">
                         <div class="carousel-image-container">
-                            <img src="${imageUrl}" 
-                                 alt="${product.name || product.color || 'Товар'}" 
-                                 class="carousel-image"
-                                 crossorigin="anonymous"
-                                 onerror="console.error('Failed to load image:', this.src); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'%3E%3Crect fill=\\'%23ddd\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'16\\'%3EНет фото%3C/text%3E%3C/svg%3E';"
-                                 onload="console.log('Image loaded:', this.src.substring(0, 100))">
+                            ${imageUrl ? `
+                                <img src="${escapeHtml(imageUrl)}" 
+                                     alt="${escapeHtml(product.name || product.color || 'Товар')}" 
+                                     class="carousel-image"
+                                     crossorigin="anonymous"
+                                     onerror="handleUniversalImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                     onload="console.log('✅ Carousel image loaded:', this.src.substring(0, 80))"
+                                     data-tried-alternative="0">
+                            ` : `
+                                <div class="carousel-image" style="display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1);">
+                                    <div style="text-align: center; color: rgba(255,255,255,0.5);">
+                                        <i data-feather="image" style="width: 48px; height: 48px;"></i>
+                                        <div style="font-size: 12px; margin-top: 8px;">Нет фото</div>
+                                    </div>
+                                </div>
+                            `}
                             <button 
                                 onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, -1)" 
                                 class="favorite-button ${isFavorite ? 'active' : ''}"
