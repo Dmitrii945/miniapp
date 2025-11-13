@@ -1729,6 +1729,13 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        
+        // Состояние для бесконечной прокрутки
+        let infiniteScrollEnabled = false;
+        let isLoadingMore = false;
+        let displayedItemsCount = 0;
+        const ITEMS_PER_PAGE = 10;
+        let allItemsToDisplay = [];
 
         // Состояние для галереи бригад
         let currentGalleryData = null;
@@ -1769,6 +1776,93 @@
             infoModal: document.getElementById('infoModal'),
             infoModalContent: document.getElementById('infoModalContent')
         };
+
+        // ========== БЕСКОНЕЧНАЯ ПРОКРУТКА ==========
+        
+        function initInfiniteScroll() {
+            window.addEventListener('scroll', handleInfiniteScroll);
+        }
+        
+        function handleInfiniteScroll() {
+            if (!infiniteScrollEnabled || isLoadingMore) return;
+            
+            // Проверяем, достиг ли пользователь конца страницы
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const pageHeight = document.documentElement.scrollHeight;
+            
+            // Загружаем больше, когда пользователь приближается к концу (80% от высоты)
+            if (scrollPosition >= pageHeight * 0.8) {
+                loadMoreItems();
+            }
+        }
+        
+        function loadMoreItems() {
+            if (isLoadingMore || displayedItemsCount >= allItemsToDisplay.length) return;
+            
+            isLoadingMore = true;
+            
+            // Показываем индикатор загрузки
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'infinite-scroll-loader';
+            loadingIndicator.className = 'text-center py-4';
+            loadingIndicator.innerHTML = `
+                <div class="inline-block">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                </div>
+            `;
+            elements.content.appendChild(loadingIndicator);
+            
+            setTimeout(() => {
+                const nextBatch = allItemsToDisplay.slice(displayedItemsCount, displayedItemsCount + ITEMS_PER_PAGE);
+                displayedItemsCount += nextBatch.length;
+                
+                // Удаляем индикатор загрузки
+                const loader = document.getElementById('infinite-scroll-loader');
+                if (loader) loader.remove();
+                
+                // Рендерим новые элементы
+                appendItemsToContent(nextBatch);
+                
+                isLoadingMore = false;
+            }, 500);
+        }
+        
+        function appendItemsToContent(items) {
+            const backButton = elements.content.querySelector('.back-button');
+            const productList = elements.content.querySelector('.product-list') || elements.content.querySelector('.space-y-3');
+            
+            if (!productList) return;
+            
+            items.forEach(item => {
+                const itemElement = createItemElement(item);
+                if (backButton) {
+                    productList.insertBefore(itemElement, backButton);
+                } else {
+                    productList.appendChild(itemElement);
+                }
+            });
+            
+            scheduleFeatherReplace();
+        }
+        
+        function createItemElement(item) {
+            const div = document.createElement('div');
+            div.innerHTML = item.html;
+            return div.firstElementChild;
+        }
+        
+        function disableInfiniteScroll() {
+            infiniteScrollEnabled = false;
+            isLoadingMore = false;
+            displayedItemsCount = 0;
+            allItemsToDisplay = [];
+        }
+        
+        function enableInfiniteScroll(items) {
+            allItemsToDisplay = items;
+            displayedItemsCount = 0;
+            infiniteScrollEnabled = true;
+        }
 
         // ========== УТИЛИТЫ ==========
 
@@ -2074,6 +2168,8 @@
         }
 
         function loadFavorites() {
+            disableInfiniteScroll(); // Отключаем бесконечную прокрутку для избранного
+            
             lastAction = { type: 'loadFavorites' };
             
             navigationStack = [];
@@ -2404,6 +2500,8 @@
         // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
 
         async function loadBrigades() {
+            disableInfiniteScroll(); // Отключаем бесконечную прокрутку для бригад
+            
             lastAction = { type: 'loadBrigades' };
             
             navigationStack = [];
@@ -2493,6 +2591,8 @@
         }
 
         function openBrigade(groupName, brigade) {
+            disableInfiniteScroll(); // Отключаем бесконечную прокрутку для страницы бригады
+            
             currentBrigadeData = { groupName, brigade };
             
             navigationStack.push({ 
@@ -3320,7 +3420,9 @@
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
 
         function renderSections(sections) {
-            let html = '<div class="space-y-3">';
+            disableInfiniteScroll();
+            
+            const items = [];
             
             sections.forEach(section => {
                 if (!section) return;
@@ -3330,7 +3432,8 @@
                 const minPrice = safeNumber(section.min_price);
                 const priceText = formatPriceText(minPrice);
                 
-                html += `
+                items.push({
+                    html: `
                     <div class="category-card fade-in" onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
@@ -3343,10 +3446,13 @@
                             </div>
                         </div>
                     </div>
-                `;
+                `
+                });
             });
 
-            html += `
+            // Избранное
+            items.push({
+                html: `
                 <div class="category-card fade-in" onclick="loadFavorites()">
                     <div class="p-4">
                         <div class="flex justify-between items-center">
@@ -3360,9 +3466,17 @@
                         </div>
                     </div>
                 </div>
-            `;
+            `
+            });
 
-
+            // Начинаем HTML
+            let html = '<div class="space-y-3">';
+            
+            // Показываем первую порцию
+            const initialItems = items.slice(0, ITEMS_PER_PAGE);
+            initialItems.forEach(item => {
+                html += item.html;
+            });
             
             html += '</div>';
 
@@ -3396,15 +3510,25 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            
+            // Включаем бесконечную прокрутку если есть еще элементы
+            if (items.length > ITEMS_PER_PAGE) {
+                displayedItemsCount = initialItems.length;
+                enableInfiniteScroll(items);
+            }
         }
 
         function renderCategories(categories, sectionId, sectionName, allLeadToProducts = false) {
+            disableInfiniteScroll();
+            
             let html = '<div class="space-y-3">';
             
             // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ категории ведут к товарам
             if (allLeadToProducts) {
                 html += `<div id="preview-container" class="mb-4"></div>`;
             }
+            
+            const items = [];
             
             categories.forEach(category => {
                 if (!category) return;
@@ -3414,7 +3538,8 @@
                 const minPrice = safeNumber(category.min_price);
                 const priceText = formatPriceText(minPrice);
                 
-                html += `
+                items.push({
+                    html: `
                     <div class="category-card fade-in" onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
@@ -3427,7 +3552,14 @@
                             </div>
                         </div>
                     </div>
-                `;
+                `
+                });
+            });
+            
+            // Показываем первую порцию
+            const initialItems = items.slice(0, ITEMS_PER_PAGE);
+            initialItems.forEach(item => {
+                html += item.html;
             });
             
             html += '</div>';
@@ -3445,6 +3577,12 @@
             `;
             
             elements.content.innerHTML = html;
+            
+            // Включаем бесконечную прокрутку если есть еще элементы
+            if (items.length > ITEMS_PER_PAGE) {
+                displayedItemsCount = initialItems.length;
+                enableInfiniteScroll(items);
+            }
             
             // Загружаем превью фото асинхронно, если все категории ведут к товарам
             if (allLeadToProducts) {
@@ -3781,6 +3919,8 @@
                 return;
             }
 
+            disableInfiniteScroll();
+            
             const navigation = getCurrentNavigation();
             let html = '<div class="product-list">';
             
@@ -3791,6 +3931,8 @@
             `;
             
             html += renderProductBreadcrumbs(navigation);
+
+            const items = [];
 
             currentProducts.forEach((product, index) => {
                 if (!product) return;
@@ -3806,16 +3948,16 @@
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
-                html += `
+                let productHtml = `
                     <div class="product-card fade-in" data-product-index="${index}">
                         <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
                             <i data-feather="heart"></i>
                         </div>
                 `;
 
-                html += renderUniversalImage(imageUrl, alternativeUrls, color, photoUrl);
+                productHtml += renderUniversalImage(imageUrl, alternativeUrls, color, photoUrl);
                 
-                html += `
+                productHtml += `
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
@@ -3828,16 +3970,16 @@
                 `;
 
                 if (photoDescription) {
-                    html += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
+                    productHtml += `<p class="text-gray-700 text-contrast">${escapeHtml(photoDescription)}</p>`;
                 }
 
                 if (description) {
-                    html += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
+                    productHtml += `<p class="text-gray-500 text-sm text-contrast">${escapeHtml(description)}</p>`;
                 }
 
-                html += `</div>`;
+                productHtml += `</div>`;
 
-                html += `
+                productHtml += `
                     <div class="mt-3">
                         <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="phone" class="w-4 h-4 mr-2"></i>
@@ -3846,7 +3988,7 @@
                     </div>
                 `;
 
-                html += `
+                productHtml += `
                     <div class="mt-3">
                         <button onclick="contactAboutSpecificProduct(${index})" 
                                 class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
@@ -3856,7 +3998,15 @@
                     </div>
                 `;
 
-                html += `</div></div>`;
+                productHtml += `</div></div>`;
+                
+                items.push({ html: productHtml });
+            });
+
+            // Показываем первую порцию товаров
+            const initialItems = items.slice(0, ITEMS_PER_PAGE);
+            initialItems.forEach(item => {
+                html += item.html;
             });
 
             html += `
@@ -3870,6 +4020,12 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            
+            // Включаем бесконечную прокрутку если есть еще товары
+            if (items.length > ITEMS_PER_PAGE) {
+                displayedItemsCount = initialItems.length;
+                enableInfiniteScroll(items);
+            }
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -4195,6 +4351,7 @@
                 initTelegramApp();
                 fixMobileColors();
                 scheduleFeatherReplace();
+                initInfiniteScroll();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
