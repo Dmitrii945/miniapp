@@ -3318,21 +3318,22 @@
             container.classList.add('visible');
             
             carousel.innerHTML = products.map((product, index) => {
-                // Используем ту же логику что и в каталоге
-                const photoUrl = product.photo_url || '';
-                console.log(`📸 Product ${index}: photoUrl =`, photoUrl);
+                // Получаем URL фото
+                let photoUrl = product.photo_url || '';
                 
-                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
-                console.log(`   imageUrl after extract =`, imageUrl);
-                
-                const alternativeUrls = getAlternativeImageUrls(photoUrl);
-                console.log(`   alternativeUrls =`, alternativeUrls);
-                
-                // Если нет imageUrl, берем первый альтернативный
-                if (!imageUrl && alternativeUrls.length > 0) {
-                    imageUrl = alternativeUrls[0];
-                    console.log(`   using first alternative:`, imageUrl);
+                // Если это относительный путь прокси - добавляем API_BASE
+                if (photoUrl.startsWith('/api/image_proxy/')) {
+                    photoUrl = API_BASE + photoUrl;
                 }
+                
+                console.log(`📸 Product ${index}: ${product.name || product.color}`, {
+                    original: product.photo_url,
+                    final: photoUrl
+                });
+                
+                // Для прокси URL не нужны альтернативы - он сам обрабатывает ошибки
+                const imageUrl = photoUrl;
+                const alternativeUrls = [];
                 
                 const productId = product.id || product.row_index || 0;
                 const isFavorite = favorites.some(fav => fav.id === productId);
