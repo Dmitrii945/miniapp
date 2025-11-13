@@ -1461,6 +1461,92 @@
             padding: 0;
             margin-bottom: 8px;
         }
+        
+        /* Стили для карусели товаров */
+        .products-carousel-container {
+            margin-top: 32px;
+            padding-top: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .carousel-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 20%, rgba(255, 255, 255, 0.3) 80%, transparent);
+            margin: 0 16px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .carousel-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 0 16px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+        }
+        
+        .products-carousel {
+            display: flex;
+            overflow-x: auto;
+            gap: 16px;
+            padding: 0 16px 24px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+            cursor: grab;
+        }
+        
+        .products-carousel:active {
+            cursor: grabbing;
+        }
+        
+        .products-carousel::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .products-carousel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        
+        .products-carousel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        .products-carousel::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .carousel-card {
+            flex: 0 0 280px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .carousel-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .carousel-card * {
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body class="min-h-screen" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);">
@@ -1710,6 +1796,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Карусель товаров -->
+        <div class="carousel-divider"></div>
+        <div class="products-carousel-container">
+            <h2 class="carousel-title">Популярные материалы</h2>
+            <div class="products-carousel" id="productsCarousel"></div>
         </div>
     </div>
 
@@ -3120,6 +3213,162 @@
             }
         }
 
+        // ========== КАРУСЕЛЬ ТОВАРОВ ==========
+        
+        let carouselRefreshInterval = null;
+        
+        // Загрузка случайных товаров для карусели
+        async function loadRandomProducts() {
+            try {
+                const data = await apiFetch('/random_products?count=10');
+                
+                if (data?.error) {
+                    console.error('Ошибка загрузки случайных товаров:', data.error);
+                    return [];
+                }
+                
+                if (!data || !Array.isArray(data.products)) {
+                    console.error('Неверный формат данных:', data);
+                    return [];
+                }
+                
+                return data.products;
+            } catch (error) {
+                console.error('Ошибка загрузки карусели:', error);
+                return [];
+            }
+        }
+        
+        // Рендер карусели товаров
+        function renderProductCarousel(products) {
+            const carousel = document.getElementById('productsCarousel');
+            if (!carousel) return;
+            
+            if (!products || products.length === 0) {
+                carousel.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); padding: 20px;">Нет товаров для отображения</p>';
+                return;
+            }
+            
+            carousel.innerHTML = products.map(product => {
+                const imageUrl = product.images && product.images.length > 0 
+                    ? product.images[0] 
+                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23999" font-size="16"%3EНет фото%3C/text%3E%3C/svg%3E';
+                
+                const isFavorite = favoriteProducts.has(product.id);
+                
+                return `
+                    <div class="carousel-card" onclick="showProductDetails(${product.id})">
+                        <div style="position: relative;">
+                            <img src="${imageUrl}" 
+                                 alt="${product.name || 'Товар'}" 
+                                 style="width: 100%; height: 200px; object-fit: cover;"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'%3E%3Crect fill=\\'%23ddd\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'16\\'%3EНет фото%3C/text%3E%3C/svg%3E'">
+                            <button 
+                                onclick="event.stopPropagation(); toggleFavorite(${product.id})" 
+                                class="absolute top-2 right-2 p-2 rounded-full"
+                                style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);"
+                                title="${isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}">
+                                <i data-feather="heart" 
+                                   class="w-5 h-5 ${isFavorite ? 'fill-current text-red-500' : ''}" 
+                                   style="stroke: ${isFavorite ? '#ef4444' : '#ffffff'};"></i>
+                            </button>
+                        </div>
+                        <div style="padding: 16px;">
+                            <h3 style="font-weight: 700; font-size: 1rem; margin-bottom: 8px; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                ${product.name || 'Товар'}
+                            </h3>
+                            ${product.price ? `
+                                <p style="font-size: 1.125rem; font-weight: 800; color: #ffffff; margin-bottom: 12px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                    ${product.price} ₽/${product.unit || 'ед'}
+                                </p>
+                            ` : ''}
+                            <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button 
+                                    onclick="event.stopPropagation(); window.location.href='tel:${product.phone || ''}';" 
+                                    class="glass-btn phone-button"
+                                    style="flex: 1; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <i data-feather="phone" class="w-4 h-4"></i>
+                                    <span style="font-size: 0.875rem;">Позвонить</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Перерисовываем иконки
+            feather.replace();
+        }
+        
+        // Автообновление карусели каждые 5 минут
+        function startCarouselAutoRefresh() {
+            // Очищаем предыдущий интервал если есть
+            if (carouselRefreshInterval) {
+                clearInterval(carouselRefreshInterval);
+            }
+            
+            // Устанавливаем новый интервал на 5 минут (300000 мс)
+            carouselRefreshInterval = setInterval(async () => {
+                const products = await loadRandomProducts();
+                renderProductCarousel(products);
+            }, 300000); // 5 минут
+        }
+        
+        // Инициализация карусели
+        async function initProductCarousel() {
+            const products = await loadRandomProducts();
+            renderProductCarousel(products);
+            startCarouselAutoRefresh();
+            
+            // Добавляем поддержку свайпов
+            const carousel = document.getElementById('productsCarousel');
+            if (carousel) {
+                let startX = 0;
+                let scrollLeft = 0;
+                let isDown = false;
+                
+                carousel.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    carousel.style.cursor = 'grabbing';
+                    startX = e.pageX - carousel.offsetLeft;
+                    scrollLeft = carousel.scrollLeft;
+                });
+                
+                carousel.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    carousel.style.cursor = 'grab';
+                });
+                
+                carousel.addEventListener('mouseup', () => {
+                    isDown = false;
+                    carousel.style.cursor = 'grab';
+                });
+                
+                carousel.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - carousel.offsetLeft;
+                    const walk = (x - startX) * 2;
+                    carousel.scrollLeft = scrollLeft - walk;
+                });
+                
+                // Touch events для мобильных устройств
+                let touchStartX = 0;
+                let touchScrollLeft = 0;
+                
+                carousel.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].pageX;
+                    touchScrollLeft = carousel.scrollLeft;
+                }, { passive: true });
+                
+                carousel.addEventListener('touchmove', (e) => {
+                    const touchX = e.touches[0].pageX;
+                    const walk = (touchStartX - touchX) * 1.5;
+                    carousel.scrollLeft = touchScrollLeft + walk;
+                }, { passive: true });
+            }
+        }
+
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
         async function loadSections() {
@@ -4235,6 +4484,7 @@
                 
                 setTimeout(() => {
                     loadSections();
+                    initProductCarousel(); // Инициализация карусели товаров
                 }, 100);
                 
             } catch (error) {
