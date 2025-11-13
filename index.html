@@ -1469,6 +1469,11 @@
             background: rgba(255, 255, 255, 0.02);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+            display: none;
+        }
+        
+        .products-carousel-container.visible {
+            display: block;
         }
         
         .carousel-divider {
@@ -3217,22 +3222,44 @@
         
         let carouselRefreshInterval = null;
         
+        // Хранилище всех товаров для карусели
+        let allProductsCache = [];
+        
+        // Обновление кэша товаров
+        function updateProductsCache(products) {
+            if (products && Array.isArray(products)) {
+                products.forEach(product => {
+                    if (product && product.id && !allProductsCache.find(p => p.id === product.id)) {
+                        allProductsCache.push(product);
+                    }
+                });
+            }
+        }
+        
         // Загрузка случайных товаров для карусели
         async function loadRandomProducts() {
             try {
-                const data = await apiFetch('/random_products?count=10');
+                // Сначала пробуем загрузить через API
+                try {
+                    const data = await apiFetch('/random_products?count=10');
+                    
+                    if (data && !data.error && Array.isArray(data.products) && data.products.length > 0) {
+                        return data.products;
+                    }
+                } catch (apiError) {
+                    console.log('API random_products недоступен, используем кэш товаров');
+                }
                 
-                if (data?.error) {
-                    console.error('Ошибка загрузки случайных товаров:', data.error);
+                // Если API не работает, берем случайные товары из кэша
+                if (allProductsCache.length === 0) {
+                    console.log('Кэш товаров пуст, карусель будет скрыта');
                     return [];
                 }
                 
-                if (!data || !Array.isArray(data.products)) {
-                    console.error('Неверный формат данных:', data);
-                    return [];
-                }
+                // Выбираем 10 случайных товаров из кэша
+                const shuffled = [...allProductsCache].sort(() => 0.5 - Math.random());
+                return shuffled.slice(0, Math.min(10, shuffled.length));
                 
-                return data.products;
             } catch (error) {
                 console.error('Ошибка загрузки карусели:', error);
                 return [];
@@ -3242,12 +3269,15 @@
         // Рендер карусели товаров
         function renderProductCarousel(products) {
             const carousel = document.getElementById('productsCarousel');
-            if (!carousel) return;
+            const container = document.querySelector('.products-carousel-container');
+            if (!carousel || !container) return;
             
             if (!products || products.length === 0) {
-                carousel.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); padding: 20px;">Нет товаров для отображения</p>';
+                container.classList.remove('visible');
                 return;
             }
+            
+            container.classList.add('visible');
             
             carousel.innerHTML = products.map(product => {
                 const imageUrl = product.images && product.images.length > 0 
@@ -3556,6 +3586,9 @@
             }
 
             currentProducts = data.products.filter(product => product != null);
+            
+            // Обновляем кэш товаров для карусели
+            updateProductsCache(currentProducts);
             
             if (currentProducts.length === 0) {
                 showEmptyState(`Товары не найдены для: ${currentName}`);
@@ -4120,6 +4153,14 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
+            // Обновляем карусель если она уже инициализирована
+            if (allProductsCache.length >= 10) {
+                setTimeout(async () => {
+                    const products = await loadRandomProducts();
+                    renderProductCarousel(products);
+                }, 500);
+            }
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -4484,7 +4525,10 @@
                 
                 setTimeout(() => {
                     loadSections();
-                    initProductCarousel(); // Инициализация карусели товаров
+                    // Инициализация карусели после загрузки данных
+                    setTimeout(() => {
+                        initProductCarousel();
+                    }, 2000); // Задержка 2 секунды для заполнения кэша
                 }, 100);
                 
             } catch (error) {
