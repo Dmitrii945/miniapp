@@ -3405,24 +3405,25 @@
                     const touchDistance = touchStartX - touchEndX;
                     const scrollDistance = carousel.scrollLeft - scrollStartLeft;
                     
-                    // Определяем свайп (быстрое движение или достаточное смещение)
-                    const isSwipe = Math.abs(touchDistance) > 50 || 
-                                   (touchDuration < 300 && Math.abs(touchDistance) > 20);
-                    
-                    if (isSwipe) {
-                        e.preventDefault();
+                    // Всегда центрируем карточку после окончания касания
+                    setTimeout(() => {
+                        // Определяем свайп (быстрое движение или достаточное смещение)
+                        const isSwipe = Math.abs(touchDistance) > 50 || 
+                                       (touchDuration < 300 && Math.abs(touchDistance) > 20);
                         
-                        if (touchDistance > 0) {
-                            // Свайп влево - следующая карточка
-                            scrollToCard(currentIndex + 1);
+                        if (isSwipe) {
+                            if (touchDistance > 0) {
+                                // Свайп влево - следующая карточка
+                                scrollToCard(currentIndex + 1);
+                            } else {
+                                // Свайп вправо - предыдущая карточка
+                                scrollToCard(currentIndex - 1);
+                            }
                         } else {
-                            // Свайп вправо - предыдущая карточка
-                            scrollToCard(currentIndex - 1);
+                            // Если не свайп, центрируем текущую карточку
+                            scrollToCard(currentIndex);
                         }
-                    } else {
-                        // Если не свайп, возвращаемся к текущей карточке
-                        scrollToCard(currentIndex);
-                    }
+                    }, 50);
                 });
                 
                 // Обработка колесика мыши
@@ -3444,6 +3445,22 @@
                     scrollTimeout = setTimeout(() => {
                         requestAnimationFrame(updateCenterCard);
                     }, 50);
+                }, { passive: true });
+                
+                // Центрируем карточку когда прокрутка заканчивается
+                carousel.addEventListener('scrollend', () => {
+                    updateCenterCard();
+                    scrollToCard(currentIndex);
+                });
+                
+                // Fallback для браузеров без scrollend
+                let isScrolling;
+                carousel.addEventListener('scroll', () => {
+                    clearTimeout(isScrolling);
+                    isScrolling = setTimeout(() => {
+                        updateCenterCard();
+                        scrollToCard(currentIndex);
+                    }, 150);
                 }, { passive: true });
                 
                 // Начальное обновление
