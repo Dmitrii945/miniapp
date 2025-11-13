@@ -3387,7 +3387,7 @@
                             ` : ''}
                             <div style="display: flex; gap: 8px; margin-top: 12px;">
                                 <button 
-                                    onclick="event.stopPropagation(); window.location.href='tel:${product.phone || ''}';" 
+                                    onclick="event.stopPropagation(); window.location.href='tel:${CONTACT_INFO.phone.replace(/-/g, '')}';" 
                                     class="glass-btn phone-button"
                                     style="flex: 1; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                                     <i data-feather="phone" class="w-4 h-4"></i>
