@@ -5219,8 +5219,8 @@
                             <div class="chat-session-item">
                                 <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
-                                        <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
-                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <h3 class="font-semibold text-white">Чат с ${session.user_name}</h3>
+                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
                                         <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
                                     </div>
                                     <span class="text-xs text-gray-400">
@@ -5238,8 +5238,8 @@
                             <div class="chat-session-item">
                                 <div class="flex justify-between items-start" onclick="openChatSessionAsCustomer('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
-                                        <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
-                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <h3 class="font-semibold text-white">${session.brigade_name}</h3>
+                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
                                         <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
                                     </div>
                                     <span class="text-xs text-gray-400">
