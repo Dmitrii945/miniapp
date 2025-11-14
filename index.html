@@ -1659,8 +1659,11 @@
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
                 
-                <!-- Правая группа: Чаты и Установка -->
-                <div class="flex items-center gap-2">
+                <!-- Правая группа: Имя пользователя и Чаты -->
+                <div class="flex items-center gap-3">
+                    <div id="userNameDisplay" class="text-white text-sm font-medium" style="display: none;">
+                        <!-- Имя пользователя будет вставлено через JS -->
+                    </div>
                     <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
                         <i data-feather="message-circle"></i>
                         <span class="hidden sm:inline">Чаты</span>
@@ -1951,6 +1954,21 @@
         };
 
         // ========== УТИЛИТЫ ==========
+
+        function displayUserName() {
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userNameElement = document.getElementById('userNameDisplay');
+            
+            if (userNameElement && userInfo.first_name) {
+                const displayName = userInfo.username 
+                    ? `@${userInfo.username}` 
+                    : `${userInfo.first_name}${userInfo.last_name ? ' ' + userInfo.last_name : ''}`;
+                
+                userNameElement.textContent = displayName;
+                userNameElement.style.display = 'block';
+            }
+        }
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -4748,6 +4766,9 @@
                 initTelegramApp();
                 fixMobileColors();
                 scheduleFeatherReplace();
+                
+                // Отображаем имя пользователя
+                displayUserName();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
