@@ -1760,7 +1760,7 @@
         </div>
 
         <!-- Side Menu -->
-        <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-30">
+        <div id="sideMenu" class="hidden fixed inset-0 bg-black bg-opacity-30" style="z-index: 1000;">
             <div class="absolute right-0 top-0 h-full w-80 transform translate-x-full transition-transform duration-300" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border-left: 1px solid rgba(255, 255, 255, 0.2);">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-8">
@@ -2235,7 +2235,7 @@
             let html = '<div class="product-list">';
             
             html += `
-                <div class="favorites-header" style="position: sticky; top: 64px; z-index: 90; background: var(--bg-color); padding-top: 12px; padding-bottom: 12px;">
+                <div class="favorites-header" style="position: sticky; top: 64px; z-index: 10; background: var(--bg-color); padding-top: 12px; padding-bottom: 12px;">
                     ${favorites.length > 0 ? `
                         <button onclick="requestAllFavorites()" class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-blue-600 transition">
                             <i data-feather="send" class="w-5 h-5 mr-2"></i>
