@@ -4298,12 +4298,6 @@
             const navigation = getCurrentNavigation();
             let html = '<div class="product-list">';
             
-            html += `
-                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
-                    <h2 class="text-lg font-semibold" style="color: #000000 !important;">Найдено товаров: ${currentProducts.length}</h2>
-                </div>
-            `;
-            
             html += renderProductBreadcrumbs(navigation);
 
             currentProducts.forEach((product, index) => {
