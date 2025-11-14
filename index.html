@@ -1395,10 +1395,17 @@
             justify-content: center;
             cursor: pointer;
             transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
 
         .chat-send-btn:hover {
             background: #2563EB;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .chat-send-btn svg {
+            stroke: white !important;
+            fill: none !important;
         }
         
         .info-button {
@@ -4774,6 +4781,7 @@
         let currentChatObject = null;
         let currentChatTelegramId = null;  // Telegram ID текущей бригады
         let chatMessages = [];
+        let chatRefreshInterval = null;
 
         // Получить или создать session_id для чата
         function getChatSessionKey(brigadeName, objectName) {
@@ -4886,6 +4894,14 @@
             // Загружаем историю сообщений с сервера
             await loadChatHistory();
             
+            // Запускаем автообновление чата каждые 2 секунды
+            if (chatRefreshInterval) {
+                clearInterval(chatRefreshInterval);
+            }
+            chatRefreshInterval = setInterval(async () => {
+                await loadChatHistory();
+            }, 2000);
+            
             // Фокус на input
             setTimeout(() => {
                 document.getElementById('chatModalInput').focus();
@@ -4919,6 +4935,12 @@
             const modal = document.getElementById('chatModal');
             modal.classList.add('hidden');
             document.getElementById('chatModalInput').value = '';
+            
+            // Останавливаем автообновление чата
+            if (chatRefreshInterval) {
+                clearInterval(chatRefreshInterval);
+                chatRefreshInterval = null;
+            }
         }
 
         function addChatMessage(type, senderName, text, timestamp) {
