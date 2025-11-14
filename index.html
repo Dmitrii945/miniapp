@@ -1,3 +1,12 @@
+        /* Sticky favorites header below main header */
+        .sticky-favorites-header {
+            position: sticky;
+            top: 64px; /* height of main header */
+            z-index: 9;
+            background: var(--bg-color);
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -2321,7 +2330,7 @@
             let html = '<div class="product-list">';
             
             html += `
-                <div class="favorites-header" style="background: var(--bg-color); padding-top: 12px; padding-bottom: 12px;">
+                <div class="sticky-favorites-header">
                     ${favorites.length > 0 ? `
                         <button onclick="requestAllFavorites()" class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-blue-600 transition">
                             <i data-feather="send" class="w-5 h-5 mr-2"></i>
