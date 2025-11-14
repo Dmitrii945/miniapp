@@ -2235,8 +2235,16 @@
             let html = '<div class="product-list">';
             
             html += `
-                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
-                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
+                <div class="favorites-header" style="position: sticky; top: 60px; z-index: 100; background: var(--bg-color); padding-bottom: 12px;">
+                    <div class="mb-3 p-3 bg-white rounded-xl shadow-sm" style="height: auto; padding-top: 12px; padding-bottom: 12px;">
+                        <h2 class="text-lg font-semibold text-contrast" style="line-height: 1.2;">Избранные товары: ${favorites.length}</h2>
+                    </div>
+                    ${favorites.length > 0 ? `
+                        <button onclick="requestAllFavorites()" class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-blue-600 transition">
+                            <i data-feather="send" class="w-5 h-5 mr-2"></i>
+                            Запросить все товары
+                        </button>
+                    ` : ''}
                 </div>
             `;
 
@@ -2378,6 +2386,43 @@
             ].filter(Boolean).join(' → ');
 
             const message = `Здравствуйте! Интересует товар из избранного: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        function requestAllFavorites() {
+            if (favorites.length === 0) {
+                if (tg) {
+                    tg.showAlert('В избранном нет товаров');
+                } else {
+                    alert('В избранном нет товаров');
+                }
+                return;
+            }
+
+            let message = `Здравствуйте! Интересуют следующие товары из избранного:\n\n`;
+            
+            favorites.forEach((fav, index) => {
+                const product = fav.product;
+                const navigation = fav.navigation;
+                
+                const productInfo = [
+                    navigation.section?.name,
+                    navigation.category?.name,
+                    navigation.model?.name,
+                    navigation.submodel?.name,
+                    product?.color,
+                    product?.price && product.price !== 'Цена не указана' ? product.price : ''
+                ].filter(Boolean).join(' → ');
+                
+                message += `${index + 1}. ${productInfo}\n`;
+            });
+            
+            message += `\nПодскажите подробности по этим товарам.`;
             
             if (tg) {
                 tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
