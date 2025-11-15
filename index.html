@@ -4389,7 +4389,11 @@
                 const productId = generateProductId(product);
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 const color = safeString(product.color, 'Не указан');
-                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                    // Убираем "ШТ" из цены
+                    let price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                    if (typeof price === 'string') {
+                        price = price.replace(/\s*ШТ\.?/gi, '').replace(/шт\.?/gi, '').replace(/ШТ\.?/gi, '');
+                    }
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
@@ -4410,9 +4414,9 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                ${price && price !== 'Цена не указана' ? `
-                                    <span class="price-badge">${escapeHtml(price)}</span>
-                                ` : ''}
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -4450,12 +4454,15 @@
                 html += `</div></div>`;
             });
 
-            html += `
-                <button onclick="goBack()" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Назад
-                </button>
-            `;
+                // Закрепляем кнопку "Назад" внизу экрана
+                html += `
+                    <div style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 100; background: rgba(30,41,59,0.95); padding: 12px 0; box-shadow: 0 -2px 12px rgba(0,0,0,0.15);">
+                        <button onclick="goBack()" class="back-button" style="margin: 0; width: 90%; max-width: 400px; display: block; margin-left: auto; margin-right: auto;">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад
+                        </button>
+                    </div>
+                `;
 
             html += '</div>';
             
