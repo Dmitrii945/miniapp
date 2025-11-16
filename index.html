@@ -4393,6 +4393,7 @@
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
+                const photoDescription = safeString(product.photo_description);
                 console.log('DEBUG photo_url:', photoUrl);
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
