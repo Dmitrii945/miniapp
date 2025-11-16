@@ -2760,7 +2760,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row || 'null'}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', ${object.object_row || 'null'}, '${escapeHtml(object.telegram_id || '')}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -4457,14 +4457,13 @@
         let chatRefreshInterval = null;
 
         // Получить или создать session_id для чата
-        function getChatSessionKey(brigadeRow, objectRow) {
+        function getChatSessionKey(brigadeName, objectName) {
             const tg = window.Telegram?.WebApp;
             const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
-            // Используем brigadeRow и objectRow для уникальности
-            return `chat_session_${userId}_${brigadeRow}_${objectRow || 'general'}`;
+            return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
 
-        async function startChatWithBrigade(brigadeRow, brigadeTelegramId, brigadeName, objectName = null, objectRow = null, objectTelegramId = null) {
+        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
@@ -4472,58 +4471,13 @@
                 const userId = userInfo.id || 'web_user_' + Date.now();
                 const userName = userInfo.first_name || 'Пользователь';
 
-                console.log('=== НАЧАЛО СОЗДАНИЯ ЧАТА ===');
-                console.log('Параметры функции:', { 
-                    brigadeRow, 
-                    brigadeTelegramId, 
-                    brigadeName, 
-                    objectName, 
-                    objectRow,
-                    objectTelegramId,
-                    userId, 
-                    userName 
-                });
-                
-                // Проверяем обязательные параметры
-                if (!brigadeTelegramId || brigadeTelegramId === '' || brigadeTelegramId === 'null') {
-                    console.error('❌ Отсутствует brigade_telegram_id');
-                    const errorMessage = 'Не указан Telegram ID бригады. Обратитесь к администратору.';
-                    if (tg?.showAlert) {
-                        tg.showAlert(errorMessage);
-                    } else {
-                        alert(errorMessage);
-                    }
-                    return;
-                }
-                
-                if (!objectTelegramId || objectTelegramId === '' || objectTelegramId === 'null') {
-                    console.error('❌ Отсутствует object_telegram_id');
-                    const errorMessage = 'Не указан владелец объекта. Обратитесь к администратору.';
-                    if (tg?.showAlert) {
-                        tg.showAlert(errorMessage);
-                    } else {
-                        alert(errorMessage);
-                    }
-                    return;
-                }
-                
-                // Проверяем, не пытается ли пользователь написать самому себе
-                if (String(objectTelegramId) === String(userId)) {
-                    console.warn('⚠️ Пользователь пытается написать по своему объекту');
-                    const errorMessage = 'Это ваш объект, вы не можете начать чат сами с собой';
-                    if (tg?.showAlert) {
-                        tg.showAlert(errorMessage);
-                    } else {
-                        alert(errorMessage);
-                    }
-                    return;
-                }
+                console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, userId, userName });
 
                 // Сохраняем brigadeRow для возможного восстановления сессии
                 localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
 
                 // Проверяем, есть ли уже сохраненная сессия
-                const sessionKey = getChatSessionKey(brigadeRow, objectRow);
+                const sessionKey = getChatSessionKey(brigadeRow, objectName);
                 const savedSession = localStorage.getItem(sessionKey);
                 console.log('Session key:', sessionKey, 'Saved session:', savedSession);
 
@@ -4532,10 +4486,10 @@
                     currentChatSession = savedSession;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
-                    currentChatTelegramId = brigadeTelegramId;  // Telegram ID бригады
+                    currentChatTelegramId = telegramId;  // Telegram ID бригады
                     
                     // Также обновляем сохраненный telegram_id
-                    localStorage.setItem('lastUsedTelegramId', brigadeTelegramId);
+                    localStorage.setItem('lastUsedTelegramId', telegramId);
                     
                     openChatModal(brigadeName, objectName);
                     return;
@@ -4547,11 +4501,9 @@
                     user_id: userId,
                     user_name: userName,
                     brigade_row: brigadeRow,
-                    brigade_telegram_id: brigadeTelegramId,
+                    telegram_id: telegramId,
                     brigade_name: brigadeName,
-                    object_name: objectName,
-                    object_row: objectRow,
-                    object_telegram_id: objectTelegramId
+                    object_name: objectName
                 };
                 console.log('Request body:', JSON.stringify(requestBody, null, 2));
                 
@@ -4572,12 +4524,12 @@
                     currentChatSession = data.session_id;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
-                    currentChatTelegramId = brigadeTelegramId;  // Telegram ID бригады
+                    currentChatTelegramId = telegramId;  // Telegram ID бригады
 
                     // Сохраняем session_id в localStorage
                     localStorage.setItem(sessionKey, data.session_id);
                     // Также сохраняем telegram_id для возможного восстановления
-                    localStorage.setItem('lastUsedTelegramId', brigadeTelegramId);
+                    localStorage.setItem('lastUsedTelegramId', telegramId);
                     console.log('Session ID сохранен в localStorage');
 
                     // Открываем модальное окно чата и загружаем историю
