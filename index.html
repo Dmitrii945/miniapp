@@ -2760,7 +2760,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', ${object.object_row || 'null'}, '${escapeHtml(object.telegram_id || '')}')" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -4457,13 +4457,14 @@
         let chatRefreshInterval = null;
 
         // Получить или создать session_id для чата
-        function getChatSessionKey(brigadeName, objectName) {
+        function getChatSessionKey(brigadeRow, objectRow) {
             const tg = window.Telegram?.WebApp;
             const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
-            return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
+            // Используем brigadeRow и objectRow для уникальности
+            return `chat_session_${userId}_${brigadeRow}_${objectRow || 'general'}`;
         }
 
-        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null) {
+        async function startChatWithBrigade(brigadeRow, brigadeTelegramId, brigadeName, objectName = null, objectRow = null, objectTelegramId = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
@@ -4471,13 +4472,33 @@
                 const userId = userInfo.id || 'web_user_' + Date.now();
                 const userName = userInfo.first_name || 'Пользователь';
 
-                console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, userId, userName });
+                console.log('Начинаем чат с бригадой:', { 
+                    brigadeRow, 
+                    brigadeTelegramId, 
+                    brigadeName, 
+                    objectName, 
+                    objectRow,
+                    objectTelegramId,
+                    userId, 
+                    userName 
+                });
+                
+                // Проверяем, не пытается ли пользователь написать самому себе
+                if (objectTelegramId && userId && String(objectTelegramId) === String(userId)) {
+                    const errorMessage = 'Это ваш объект, вы не можете начать чат сами с собой';
+                    if (tg?.showAlert) {
+                        tg.showAlert(errorMessage);
+                    } else {
+                        alert(errorMessage);
+                    }
+                    return;
+                }
 
                 // Сохраняем brigadeRow для возможного восстановления сессии
                 localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
 
                 // Проверяем, есть ли уже сохраненная сессия
-                const sessionKey = getChatSessionKey(brigadeRow, objectName);
+                const sessionKey = getChatSessionKey(brigadeRow, objectRow);
                 const savedSession = localStorage.getItem(sessionKey);
 
                 if (savedSession) {
@@ -4485,10 +4506,10 @@
                     currentChatSession = savedSession;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
-                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
+                    currentChatTelegramId = brigadeTelegramId;  // Telegram ID бригады
                     
                     // Также обновляем сохраненный telegram_id
-                    localStorage.setItem('lastUsedTelegramId', telegramId);
+                    localStorage.setItem('lastUsedTelegramId', brigadeTelegramId);
                     
                     openChatModal(brigadeName, objectName);
                     return;
@@ -4504,9 +4525,11 @@
                         user_id: userId,
                         user_name: userName,
                         brigade_row: brigadeRow,
-                        telegram_id: telegramId,
+                        brigade_telegram_id: brigadeTelegramId,
                         brigade_name: brigadeName,
-                        object_name: objectName
+                        object_name: objectName,
+                        object_row: objectRow,
+                        object_telegram_id: objectTelegramId
                     })
                 });
 
@@ -4518,12 +4541,12 @@
                     currentChatSession = data.session_id;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
-                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
+                    currentChatTelegramId = brigadeTelegramId;  // Telegram ID бригады
 
                     // Сохраняем session_id в localStorage
                     localStorage.setItem(sessionKey, data.session_id);
                     // Также сохраняем telegram_id для возможного восстановления
-                    localStorage.setItem('lastUsedTelegramId', telegramId);
+                    localStorage.setItem('lastUsedTelegramId', brigadeTelegramId);
                     console.log('Session ID сохранен в localStorage');
 
                     // Открываем модальное окно чата и загружаем историю
@@ -4792,7 +4815,7 @@
                     
                     // Попытаемся найти в localStorage
                     const brigadeRow = localStorage.getItem('lastUsedBrigadeRow') || 'unknown';
-                    const sessionKey = getChatSessionKey(brigadeRow, currentChatObject);
+                    const sessionKey = getChatSessionKey(brigadeRow, 'general');
                     const savedSession = localStorage.getItem(sessionKey);
                     
                     if (savedSession) {
