@@ -4546,14 +4546,9 @@
             
             try {
                 if (navigationStack.length > 0) {
-                    if (tg.BackButton) {
-                        tg.BackButton.show();
-                        tg.BackButton.onClick(goBack);
-                    }
+                    // Отключено: закреплённая кнопка назад не поддерживается в Telegram WebApp 6.0
                 } else {
-                    if (tg.BackButton) {
-                        tg.BackButton.hide();
-                    }
+                    // Отключено: закреплённая кнопка назад не поддерживается в Telegram WebApp 6.0
                 }
             } catch (error) {
                 console.log('Ошибка обновления кнопки назад:', error);
