@@ -1862,7 +1862,7 @@
                         <div class="menu-item" onclick="openTaxiMenu(); closeSideMenu();">
                             <i data-feather="car"></i>
                             <div>
-                                <div class="font-medium">Вызвать такси</div>
+                                                               <div class="font-medium">Вызвать такси</div>
                                 <div class="text-sm text-gray-600">До нашего магазина</div>
                             </div>
                         </div>
@@ -2341,8 +2341,7 @@
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
-                const photoDescription = safeString(product.photo_description);
-                
+                console.log('DEBUG photo_url:', photoUrl);
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
@@ -3185,8 +3184,10 @@
             
             if (Math.abs(diff) > swipeThreshold) {
                 if (diff > 0) {
+                    // Свайп влево - следующая карточка
                     nextGalleryImage();
                 } else {
+                    // Свайп вправо - предыдущая карточка
                     prevGalleryImage();
                 }
             }
@@ -3264,8 +3265,8 @@
                         
                         if (modelHash && modelHash !== 'null') {
                             // Открываем модель
-                            const models = await loadModels(sectionHash, categoryHash);
-                            const model = models.find(m => m.id === modelHash);
+                            const modelsData = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
+                            const model = modelsData.models.find(m => m.id === modelHash);
                             if (model) {
                                 await openModel(sectionHash, categoryHash, model.id, model.name);
                                 
@@ -3503,7 +3504,7 @@
                                     onclick="event.stopPropagation(); window.location.href='tel:${CONTACT_INFO.phone.replace(/-/g, '')}';" 
                                     class="glass-btn phone-button"
                                     style="flex: 1; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                    <i data-feather="phone" class="w-4 h-4"></i>
+                                    <i data-feather="phone" class="w-4 h-4 mr-2"></i>
                                     <span style="font-size: 0.875rem;">Позвонить</span>
                                 </button>
                             </div>
@@ -4392,8 +4393,7 @@
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
-                const photoDescription = safeString(product.photo_description);
-                
+                console.log('DEBUG photo_url:', photoUrl);
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
@@ -4860,7 +4860,8 @@
         // Получить или создать session_id для чата
         function getChatSessionKey(brigadeName, objectName) {
             const tg = window.Telegram?.WebApp;
-            const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id || 'web_user';
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
 
