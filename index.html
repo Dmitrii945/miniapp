@@ -1174,6 +1174,42 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
+        
+        /* СТИЛИ ДЛЯ ПРЕВЬЮ ИЗОБРАЖЕНИЙ */
+        .preview-image-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .preview-image {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .preview-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .preview-image-container .text-sm {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* СТИЛИ ДЛЯ ОТДЕЛЬНЫХ ПРЕВЬЮ КАЖДОЙ КНОПКИ */
+        .submodel-item {
+            margin-bottom: 16px;
+        }
+        
+        .submodel-item .preview-image-container {
+            background: none;
+            padding: 0;
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -2006,7 +2042,15 @@
             const product = currentProducts[productIndex];
             const navigation = getCurrentNavigation();
             
+            console.log('shareProduct called:', {
+                productIndex,
+                product,
+                navigation,
+                currentProducts: currentProducts?.length
+            });
+            
             if (!product || !navigation.section) {
+                console.error('shareProduct error: missing product or navigation', {product, navigation});
                 if (tg) {
                     tg.showAlert('Ошибка: не удалось получить данные товара');
                 }
@@ -2020,8 +2064,52 @@
             
             const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
             
+            console.log('Generated share URL:', shareUrl);
+            console.log('Share parameters:', {
+                sectionHash,
+                categoryHash,
+                modelHash,
+                submodelHash,
+                productIndex
+            });
+            
             if (tg) {
-                tg.openTelegramLink(shareUrl);
+                console.log('Sending share data to bot via WebApp...');
+                
+                // Формируем данные о товаре для отправки
+                const productData = {
+                    action: 'share_product',
+                    product: product,
+                    navigation: {
+                        section: sectionHash,
+                        category: categoryHash,
+                        model: modelHash,
+                        submodel: submodelHash,
+                        productIndex: productIndex
+                    },
+                    shareUrl: shareUrl
+                };
+                
+                try {
+                    // Отправляем данные родительскому чату через WebApp
+                    tg.sendData(JSON.stringify(productData));
+                    console.log('Product data sent via tg.sendData():', productData);
+                    
+                    // Показываем успешное уведомление
+                    tg.showAlert('Товар отправлен в чат! 📦');
+                    
+                    // Закрываем WebApp
+                    setTimeout(() => {
+                        tg.close();
+                    }, 1500);
+                    
+                } catch (e) {
+                    console.log('sendData failed, trying alternative approach:', e);
+                    
+                    // Альтернатива: показываем ссылку для ручного копирования
+                    const message = `Скопируйте ссылку для отправки товара:\n\n${shareUrl}`;
+                    tg.showAlert(message);
+                }
             } else {
                 const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
                 
@@ -2044,7 +2132,15 @@
             const product = favorite.product;
             const navigation = favorite.navigation;
             
+            console.log('shareProductFromFavorites called:', {
+                favoriteIndex,
+                product,
+                navigation,
+                favorite
+            });
+            
             if (!product || !navigation.section) {
+                console.error('shareProductFromFavorites error: missing product or navigation', {product, navigation});
                 if (tg) {
                     tg.showAlert('Ошибка: не удалось получить данные товара');
                 }
@@ -2056,12 +2152,60 @@
             const modelHash = navigation.model?.id || 'null';
             const submodelHash = navigation.submodel?.id || 'null';
             
-            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
+            // Для избранного используем индекс 0, так как мы всегда делимся первым вхождением этого товара
+            const productIndex = 0;
+            
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
+            
+            console.log('Generated share URL from favorites:', shareUrl);
+            console.log('Share parameters from favorites:', {
+                sectionHash,
+                categoryHash,
+                modelHash,
+                submodelHash,
+                productIndex
+            });
             
             if (tg) {
-                tg.openTelegramLink(shareUrl);
+                console.log('Sending share data to bot via WebApp from favorites...');
+                
+                // Формируем данные о товаре для отправки
+                const productData = {
+                    action: 'share_product',
+                    product: product,
+                    navigation: {
+                        section: sectionHash,
+                        category: categoryHash,
+                        model: modelHash,
+                        submodel: submodelHash,
+                        productIndex: productIndex
+                    },
+                    shareUrl: shareUrl,
+                    source: 'favorites'
+                };
+                
+                try {
+                    // Отправляем данные родительскому чату через WebApp
+                    tg.sendData(JSON.stringify(productData));
+                    console.log('Product data sent via tg.sendData() from favorites:', productData);
+                    
+                    // Показываем успешное уведомление
+                    tg.showAlert('Товар из избранного отправлен в чат! 📦⭐');
+                    
+                    // Закрываем WebApp
+                    setTimeout(() => {
+                        tg.close();
+                    }, 1500);
+                    
+                } catch (e) {
+                    console.log('sendData failed, trying alternative approach:', e);
+                    
+                    // Альтернатива: показываем ссылку для ручного копирования
+                    const message = `Скопируйте ссылку для отправки товара:\n\n${shareUrl}`;
+                    tg.showAlert(message);
+                }
             } else {
-                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} 0`;
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
                 alert(message);
             }
         }
@@ -2758,6 +2902,100 @@
             
             // Проверяем URL параметры для автоматического открытия чата
             checkUrlParamsForChat();
+            checkUrlParamsForCatalog();
+        }
+
+        function checkUrlParamsForCatalog() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const section = urlParams.get('section');
+                const category = urlParams.get('category');
+                const model = urlParams.get('model');
+                const submodel = urlParams.get('submodel');
+                const productIndex = urlParams.get('product');
+                
+                if (section) {
+                    console.log('Автоматическая навигация к товару:', {section, category, model, submodel, productIndex});
+                    
+                    // Очищаем параметры из URL сразу
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, newUrl);
+                    
+                    // Навигируемся к товару
+                    setTimeout(async () => {
+                        try {
+                            await navigateToProduct(section, category, model, submodel, parseInt(productIndex) || 0);
+                        } catch (error) {
+                            console.error('Ошибка навигации к товару:', error);
+                        }
+                    }, 1000); // Даем время загрузиться приложению
+                }
+            } catch (error) {
+                console.error('Ошибка обработки параметров каталога:', error);
+            }
+        }
+
+        async function navigateToProduct(sectionHash, categoryHash, modelHash, submodelHash, productIndex) {
+            try {
+                // Переключаемся на каталог
+                switchSection('catalog');
+                
+                // Загружаем секции
+                const sections = await loadSections();
+                const section = sections.find(s => s.id === sectionHash);
+                if (!section) {
+                    console.error('Секция не найдена:', sectionHash);
+                    return;
+                }
+                
+                // Открываем секцию
+                await openSection(section.id, section.name);
+                
+                if (categoryHash && categoryHash !== 'null') {
+                    // Открываем категорию
+                    const categories = await loadCategories(sectionHash);
+                    const category = categories.find(c => c.id === categoryHash);
+                    if (category) {
+                        await openCategory(sectionHash, category.id, category.name);
+                        
+                        if (modelHash && modelHash !== 'null') {
+                            // Открываем модель
+                            const models = await loadModels(sectionHash, categoryHash);
+                            const model = models.find(m => m.id === modelHash);
+                            if (model) {
+                                await openModel(sectionHash, categoryHash, model.id, model.name);
+                                
+                                if (submodelHash && submodelHash !== 'null') {
+                                    // Открываем подмодель
+                                    const submodels = await loadSubmodels(sectionHash, categoryHash, modelHash);
+                                    const submodel = submodels.find(sm => sm.id === submodelHash);
+                                    if (submodel) {
+                                        await openSubmodel(sectionHash, categoryHash, modelHash, submodel.id, submodel.name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Прокручиваем к нужному товару
+                if (productIndex > 0) {
+                    setTimeout(() => {
+                        const productElements = document.querySelectorAll('.product-item');
+                        if (productElements[productIndex]) {
+                            productElements[productIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Подсвечиваем товар
+                            productElements[productIndex].style.border = '2px solid #007bff';
+                            setTimeout(() => {
+                                productElements[productIndex].style.border = '';
+                            }, 3000);
+                        }
+                    }, 500);
+                }
+                
+            } catch (error) {
+                console.error('Ошибка навигации к товару:', error);
+            }
         }
 
         function checkUrlParamsForChat() {
@@ -3142,8 +3380,13 @@
             scheduleFeatherReplace();
         }
 
-        function renderCategories(categories, sectionId, sectionName) {
+        function renderCategories(categories, sectionId, sectionName, allLeadToProducts = false) {
             let html = '<div class="space-y-3">';
+            
+            // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ категории ведут к товарам
+            if (allLeadToProducts) {
+                html += `<div id="preview-container" class="mb-4"></div>`;
+            }
             
             categories.forEach(category => {
                 if (!category) return;
@@ -3184,11 +3427,44 @@
             `;
             
             elements.content.innerHTML = html;
+            
+            // Загружаем превью фото асинхронно, если все категории ведут к товарам
+            if (allLeadToProducts) {
+                setTimeout(async () => {
+                    const previewContainer = document.getElementById('preview-container');
+                    if (previewContainer && categories.length > 0) {
+                        const firstCategory = categories[0];
+                        const previewUrl = await getPreviewImageFromProducts(sectionId, firstCategory.id, null, null);
+                        
+                        if (previewUrl) {
+                            previewContainer.innerHTML = `
+                                <div class="preview-image-container mb-4 text-center">
+                                    <div class="inline-block">
+                                        <img src="${escapeHtml(previewUrl)}" 
+                                             alt="Превью товаров" 
+                                             class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
+                                             style="max-height: 200px; width: auto;"
+                                             onerror="this.parentElement.parentElement.remove()"
+                                             loading="lazy">
+                                        <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }, 100);
+            }
+            
             scheduleFeatherReplace();
         }
 
-        function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
+        function renderModels(models, sectionId, sectionName, categoryId, categoryName, allLeadToProducts = false) {
             let html = '<div class="space-y-3">';
+            
+            // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ модели ведут к товарам
+            if (allLeadToProducts) {
+                html += `<div id="preview-container" class="mb-4"></div>`;
+            }
             
             models.forEach(model => {
                 if (!model) return;
@@ -3229,7 +3505,76 @@
             `;
             
             elements.content.innerHTML = html;
+            
+            // Загружаем превью фото асинхронно, если все модели ведут к товарам
+            if (allLeadToProducts) {
+                setTimeout(async () => {
+                    const previewContainer = document.getElementById('preview-container');
+                    if (previewContainer && models.length > 0) {
+                        const firstModel = models[0];
+                        const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, firstModel.id, null);
+                        
+                        if (previewUrl) {
+                            previewContainer.innerHTML = `
+                                <div class="preview-image-container mb-4 text-center">
+                                    <div class="inline-block">
+                                        <img src="${escapeHtml(previewUrl)}" 
+                                             alt="Превью товаров" 
+                                             class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
+                                             style="max-height: 200px; width: auto;"
+                                             onerror="this.parentElement.parentElement.remove()"
+                                             loading="lazy">
+                                        <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }, 100);
+            }
+            
             scheduleFeatherReplace();
+        }
+
+        // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ПЕРВОГО ФОТО ИЗ ТОВАРОВ
+        async function getPreviewImageFromProducts(sectionId, categoryId, modelId, submodelId) {
+            try {
+                const safeSectionId = sectionId || 'null';
+                const safeCategoryId = categoryId || 'null';
+                const safeModelId = modelId || 'null';
+                const safeSubmodelId = submodelId || 'null';
+                
+                console.log('Getting preview image for:', { safeSectionId, safeCategoryId, safeModelId, safeSubmodelId });
+                
+                const endpoint = `${API_BASE}/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
+                console.log('Preview API endpoint:', endpoint);
+                
+                const response = await fetch(endpoint);
+                if (!response.ok) {
+                    console.log('Preview API error:', response.status, response.statusText);
+                    return null;
+                }
+                
+                const data = await response.json();
+                console.log('Preview API response:', data);
+                
+                if (data?.products && data.products.length > 0) {
+                    // Ищем первый товар с фото
+                    for (let product of data.products) {
+                        console.log('Checking product for photo:', product);
+                        if (product.photo_url && product.photo_url.trim() !== '') {
+                            console.log('Found preview image:', product.photo_url);
+                            return product.photo_url;
+                        }
+                    }
+                }
+                
+                console.log('No preview image found');
+                return null;
+            } catch (error) {
+                console.error('Не удалось получить превью фото:', error);
+                return null;
+            }
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
@@ -3244,14 +3589,29 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                    <div class="submodel-item">
+                        <!-- Превью фото для каждой подмодели -->
+                        <div class="preview-image-container mb-2 text-center">
+                            <div class="inline-block" style="width: 100%;">
+                                <div class="preview-placeholder-${safeId}" 
+                                     style="width: 100%; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+                                            color: white; font-size: 14px; font-weight: bold;">
+                                    🖼️ Загрузка...
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- Кнопка подмодели -->
+                        <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                            <div class="p-4">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -3274,6 +3634,73 @@
             `;
             
             elements.content.innerHTML = html;
+            
+            // Загружаем превью для КАЖДОЙ подмодели отдельно
+            setTimeout(async () => {
+                for (let submodel of submodels) {
+                    if (!submodel) continue;
+                    
+                    try {
+                        const safeId = escapeHtml(submodel.id);
+                        const placeholder = document.querySelector(`.preview-placeholder-${safeId}`);
+                        
+                        if (placeholder) {
+                            console.log(`Loading preview for submodel: ${submodel.name}`);
+                            
+                            // Получаем превью для конкретной подмодели
+                            const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, submodel.id);
+                            console.log(`Preview URL for ${submodel.name}:`, previewUrl);
+                            
+                            if (previewUrl && previewUrl.trim() !== '') {
+                                // Конвертируем Google Drive ссылки в прямые ссылки
+                                let fullImageUrl = previewUrl;
+                                
+                                if (previewUrl.includes('drive.google.com/uc?export=view&id=')) {
+                                    // Извлекаем ID из Google Drive ссылки
+                                    const match = previewUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                                    if (match && match[1]) {
+                                        fullImageUrl = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400-h300`;
+                                    }
+                                } else if (!previewUrl.startsWith('http')) {
+                                    fullImageUrl = `https://dmitrii2613.pythonanywhere.com/static/images/${previewUrl}`;
+                                }
+                                
+                                console.log(`Converted image URL for ${submodel.name}:`, fullImageUrl);
+                                
+                                placeholder.innerHTML = `
+                                    <img src="${escapeHtml(fullImageUrl)}" 
+                                         alt="Превью ${escapeHtml(submodel.name)}" 
+                                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
+                                         onload="console.log('✅ Preview loaded for ${escapeHtml(submodel.name)}')"
+                                         onerror="console.log('❌ Preview failed for ${escapeHtml(submodel.name)}'); this.parentElement.innerHTML = '<div style=\\'color: white; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;\\'>�<br>Нет фото</div>';">
+                                `;
+                            } else {
+                                console.log(`No preview URL for ${submodel.name}, showing placeholder`);
+                                placeholder.innerHTML = `
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
+                                        <div style="font-size: 32px; margin-bottom: 5px;">📦</div>
+                                        <div style="font-size: 12px;">Товары ${escapeHtml(submodel.name)}</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error loading preview for ${submodel.name}:`, error);
+                        // При ошибке API показываем иконку
+                        const safeId = escapeHtml(submodel.id);
+                        const placeholder = document.querySelector(`.preview-placeholder-${safeId}`);
+                        if (placeholder) {
+                            placeholder.innerHTML = `
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
+                                    <div style="font-size: 32px; margin-bottom: 5px;">🛍️</div>
+                                    <div style="font-size: 12px;">Товары ${escapeHtml(submodel.name)}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }, 300);
+            
             scheduleFeatherReplace();
         }
 
