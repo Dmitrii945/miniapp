@@ -4460,7 +4460,21 @@
         function getChatSessionKey(brigadeName, objectName) {
             const tg = window.Telegram?.WebApp;
             const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
+            // Создаем такой же ключ как на сервере
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
+        }
+        
+        // Функция для генерации хеша (упрощенная версия MD5)
+        async function generateSessionId(userId, brigadeName, objectName) {
+            const sessionKey = `${userId}_${brigadeName}_${objectName || 'general'}`;
+            // Используем Web Crypto API для генерации хеша
+            const encoder = new TextEncoder();
+            const data = encoder.encode(sessionKey);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            // Берем первые 16 символов как на сервере
+            return `chat_${hashHex.substring(0, 16)}`;
         }
 
         async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null) {
@@ -4476,8 +4490,12 @@
                 // Сохраняем brigadeRow для возможного восстановления сессии
                 localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
 
+                // Генерируем детерминированный session_id
+                const expectedSessionId = await generateSessionId(userId, brigadeName, objectName);
+                console.log('Ожидаемый session_id:', expectedSessionId);
+
                 // Проверяем, есть ли уже сохраненная сессия
-                const sessionKey = getChatSessionKey(brigadeRow, objectName);
+                const sessionKey = getChatSessionKey(brigadeName, objectName);
                 const savedSession = localStorage.getItem(sessionKey);
                 console.log('Session key:', sessionKey, 'Saved session:', savedSession);
 
