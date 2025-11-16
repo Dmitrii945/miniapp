@@ -1,3 +1,20 @@
+        // Открытие уникального чата для расчета окон
+        function openWindowChat() {
+            // Получаем уникальный идентификатор пользователя (например, из Telegram WebApp)
+            let userId = tg?.initDataUnsafe?.user?.id || localStorage.getItem('uniqueWindowChatId');
+            if (!userId) {
+                // Если нет Telegram, генерируем уникальный id и сохраняем
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('uniqueWindowChatId', userId);
+            }
+            // Открываем чат (можно заменить на реальную ссылку или модальное окно)
+            const chatUrl = `https://dmitrii2613.pythonanywhere.com/window-chat?user=${encodeURIComponent(userId)}`;
+            if (tg) {
+                tg.openLink(chatUrl);
+            } else {
+                window.open(chatUrl, '_blank');
+            }
+        }
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -31,44 +48,44 @@
         
         /* Базовый стиль для всех стеклянных кнопок */
         .glass-btn, button:not(.no-glass) {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #ffffff !important;
             border-radius: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            text-shadow: none !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
             cursor: pointer !important;
         }
         
         .glass-btn:hover, button:not(.no-glass):hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
             color: #ffffff !important;
         }
         
         .tg-theme-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #ffffff !important;
             border-radius: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            text-shadow: none !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
             font-weight: 600 !important;
         }
         
         .tg-theme-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
             color: #ffffff !important;
         }
         
@@ -131,20 +148,20 @@
             color: #000000 !important;
             padding: 6px 14px !important;
             border-radius: 12px !important;
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            text-shadow: none !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
         }
         
         .breadcrumb-item:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
             color: #000000 !important;
         }
         
@@ -209,25 +226,25 @@
         }
         
         .retry-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: white !important;
             padding: 12px 24px !important;
             border-radius: 16px !important;
             cursor: pointer !important;
             font-weight: 600 !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .retry-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
         }
 
         .action-buttons {
@@ -240,7 +257,7 @@
             flex: 1;
             padding: 14px 16px;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             font-weight: 600;
             font-size: 0.9rem;
             cursor: pointer;
@@ -250,45 +267,45 @@
             justify-content: center;
             gap: 8px;
             color: #ffffff !important;
-            background: rgba(255, 255, 255, 0.03) !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            text-shadow: none !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .action-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
             color: #ffffff !important;
         }
         
         .phone-button, .gis-button, .taxi-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #ffffff !important;
             border-radius: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            text-shadow: none !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
             font-weight: 600 !important;
         }
         
         .phone-button:hover, .gis-button:hover, .taxi-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
             color: #ffffff !important;
         }
 
         .back-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: white !important;
             padding: 12px 20px !important;
             border-radius: 16px !important;
@@ -296,21 +313,21 @@
             font-weight: 600 !important;
             width: 100% !important;
             margin-top: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .back-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
         }
 
         .clickable-card {
@@ -330,12 +347,9 @@
         }
 
         header {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
+            background: linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #ffffff 50%, #e8e8e8 75%, #b8b8b8 100%) !important;
             color: white;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2);
         }
 
         header h1, header span, header .page-title {
@@ -658,7 +672,7 @@
             color: white;
         }
 
-        .product-card .favorite-label {
+        .favorite-label {
             position: absolute;
             top: 10px;
             left: 10px;
@@ -667,7 +681,7 @@
             border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 500;
-            color: #000000 !important;
+            color: #374151;
             z-index: 10;
         }
 
@@ -1336,58 +1350,36 @@
         }
         
         .chat-session-item {
-            padding: 16px;
-            margin-bottom: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            cursor: pointer;
         }
         
         .chat-session-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            background-color: #f9fafb;
         }
         
         .chat-session-item:last-child {
-            margin-bottom: 0;
+            border-bottom: none;
         }
         
         .delete-chat-btn {
-            background: rgba(239, 68, 68, 0.9) !important;
-            color: white !important;
-            border: 1px solid rgba(220, 38, 38, 0.5) !important;
-            border-radius: 8px;
-            padding: 8px 12px;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 36px;
-            min-height: 36px;
+            transition: background-color 0.2s;
             margin-left: 8px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
         }
         
         .delete-chat-btn:hover {
-            background: rgba(220, 38, 38, 1) !important;
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
-        }
-        
-        .delete-chat-btn svg {
-            stroke: white !important;
+            background-color: #dc2626;
         }
 
         .chat-input {
@@ -1397,8 +1389,6 @@
             border-radius: 24px;
             font-size: 14px;
             outline: none;
-            color: #000000;
-            background-color: #ffffff;
         }
 
         .chat-input:focus {
@@ -1408,29 +1398,19 @@
         .chat-send-btn {
             width: 44px;
             height: 44px;
-            background: #ffffff;
-            border: 2px solid #3B82F6;
+            background: #3B82F6;
+            border: none;
             border-radius: 50%;
-            color: #3B82F6;
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+            transition: background 0.2s;
         }
 
         .chat-send-btn:hover {
-            background: #3B82F6;
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-        
-        .chat-send-btn svg {
-            stroke: currentColor !important;
-            fill: none !important;
-            width: 20px !important;
-            height: 20px !important;
+            background: #2563EB;
         }
         
         .info-button {
@@ -1495,164 +1475,12 @@
             padding: 0;
             margin-bottom: 8px;
         }
-        
-        /* Стили для карусели товаров */
-        .products-carousel-container {
-            margin-top: 32px;
-            padding-top: 24px;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: none;
-        }
-        
-        .products-carousel-container.visible {
-            display: block;
-        }
-        
-        .carousel-divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 20%, rgba(255, 255, 255, 0.3) 80%, transparent);
-            margin: 0 16px 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .carousel-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 0 16px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: 0.5px;
-        }
-        
-        .products-carousel {
-            display: flex;
-            overflow-x: auto;
-            gap: 20px;
-            padding: 0 calc(50vw - 140px) 24px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-            cursor: grab;
-        }
-        
-        .products-carousel:active {
-            cursor: grabbing;
-        }
-        
-        .products-carousel::-webkit-scrollbar {
-            height: 8px;
-        }
-        
-        .products-carousel::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-        }
-        
-        .products-carousel::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
-        
-        .products-carousel::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-        
-        .carousel-card {
-            flex: 0 0 280px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
-            overflow: hidden;
-            transition: all 0.4s ease;
-            cursor: pointer;
-            position: relative;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transform: scale(0.9);
-            opacity: 0.6;
-        }
-        
-        .carousel-card.center {
-            transform: scale(1);
-            opacity: 1;
-            z-index: 2;
-        }
-        
-        .carousel-card:hover {
-            transform: scale(0.95) translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255, 255, 255, 0.25);
-        }
-        
-        .carousel-card.center:hover {
-            transform: scale(1.02) translateY(-4px);
-        }
-        
-        .carousel-card * {
-            color: #ffffff !important;
-        }
-        
-        .carousel-image-container {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.2);
-        }
-        
-        .carousel-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            display: block;
-        }
-        
-        .carousel-card-content {
-            padding: 16px;
-        }
-        
-        .carousel-card-title {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 8px;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-        
-        .carousel-card-price {
-            font-size: 1.125rem;
-            font-weight: 800;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            margin: 0;
-        }
     </style>
 </head>
 <body class="min-h-screen" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);">
     <div id="app" class="max-w-md mx-auto">
         <!-- Header -->
-        <header class="shadow-lg p-4 sticky top-0 z-10">
-            <!-- Фото и имя пользователя -->
-            <div id="userInfoHeader" class="flex items-center gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
-                <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
-                <div id="userNameHeader" class="text-white font-medium">
-                    <!-- Имя пользователя будет вставлено через JS -->
-                </div>
-            </div>
-            
+        <header class="shadow-lg p-4 sticky top-0 z-10" style="background: linear-gradient(45deg, #1e3a8a, #1e40af, #3b82f6, #06b6d4, #0891b2);">
             <div class="flex items-center justify-between">
                 <!-- Левая группа: Меню -->
                 <div class="flex items-center">
@@ -1667,7 +1495,7 @@
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
                 
-                <!-- Правая группа: Чаты -->
+                <!-- Правая группа: Чаты и Установка -->
                 <div class="flex items-center gap-2">
                     <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
                         <i data-feather="message-circle"></i>
@@ -1706,6 +1534,18 @@
 
         <!-- Main Content -->
         <main id="content" class="p-4 fade-in">
+            <!-- Кнопки меню каталога -->
+            <div class="flex gap-2 mb-4">
+                <button class="tg-theme-button" onclick="openTaxiMenu()">
+                    <i data-feather="car"></i> Такси
+                </button>
+                <button class="tg-theme-button" onclick="loadBrigades()">
+                    <i data-feather="users"></i> Бригады
+                </button>
+                <button class="tg-theme-button" onclick="openWindowChat()">
+                    <i data-feather="message-square"></i> РАССЧЕТ ОКОН
+                </button>
+            </div>
             <!-- Контент загружается динамически -->
         </main>
 
@@ -1755,12 +1595,6 @@
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div style="padding: 16px; border-bottom: 1px solid rgba(0,0,0,0.1);">
-                <button onclick="loadBrigades(); closeMyChatsModal();" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-green-600 transition">
-                    <i data-feather="users" class="w-5 h-5 mr-2"></i>
-                    БРИГАДЫ
-                </button>
-            </div>
             <div class="chat-messages" id="myChatsContent">
                 <div class="text-center p-4">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
@@ -1802,13 +1636,13 @@
             <div class="chat-modal-input">
                 <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input">
                 <button onclick="sendChatModalMessage()" class="chat-send-btn">
-                    <i data-feather="send" style="stroke: #3B82F6 !important;"></i>
+                    <i data-feather="send"></i>
                 </button>
             </div>
         </div>
 
         <!-- Side Menu -->
-        <div id="sideMenu" class="hidden fixed inset-0 bg-black bg-opacity-30" style="z-index: 1000;">
+        <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-30">
             <div class="absolute right-0 top-0 h-full w-80 transform translate-x-full transition-transform duration-300" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border-left: 1px solid rgba(255, 255, 255, 0.2);">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-8">
@@ -1829,6 +1663,15 @@
                         </div>
 
                         <div class="menu-divider"></div>
+                            <!-- РАССЧЕТ ОКОН -->
+                            <div class="menu-item" onclick="openWindowChat(); closeSideMenu();">
+                                <i data-feather="message-square"></i>
+                                <div>
+                                    <div class="font-medium text-white">РАССЧЕТ ОКОН</div>
+                                    <div class="text-sm opacity-80">Уникальный чат для расчета окон</div>
+                                </div>
+                            </div>
+                            <div class="menu-divider"></div>
                         
                         <!-- Бригады -->
                         <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
@@ -1880,6 +1723,17 @@
 
                         <div class="menu-divider"></div>
 
+                        <!-- Добавить на главный экран -->
+                        <div class="menu-item" onclick="installPWA(); closeSideMenu();">
+                            <i data-feather="plus-square"></i>
+                            <div>
+                                <div class="font-medium">Добавить на главный экран</div>
+                                <div class="text-sm text-gray-600">Быстрый доступ к приложению</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
                         <!-- МЕНЮ -->
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
@@ -1892,13 +1746,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Карусель товаров -->
-        <div class="carousel-divider"></div>
-        <div class="products-carousel-container">
-            <h2 class="carousel-title">Популярные материалы</h2>
-            <div class="products-carousel" id="productsCarousel"></div>
-        </div>
     </div>
 
     <script>
@@ -1909,6 +1756,21 @@
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
+
+        // Открытие уникального чата для расчета окон
+        function openWindowChat() {
+            let userId = tg?.initDataUnsafe?.user?.id || localStorage.getItem('uniqueWindowChatId');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('uniqueWindowChatId', userId);
+            }
+            const chatUrl = `https://dmitrii2613.pythonanywhere.com/window-chat?user=${encodeURIComponent(userId)}`;
+            if (tg) {
+                tg.openLink(chatUrl);
+            } else {
+                window.open(chatUrl, '_blank');
+            }
+        }
 
         // Состояние приложения
         let navigationStack = [];
@@ -1959,44 +1821,6 @@
         };
 
         // ========== УТИЛИТЫ ==========
-
-        function displayUserName() {
-            const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const userInfoHeader = document.getElementById('userInfoHeader');
-            const userNameHeader = document.getElementById('userNameHeader');
-            const userPhoto = document.getElementById('userPhoto');
-            
-            if (userInfoHeader && userNameHeader && userInfo.first_name) {
-                // Формируем отображаемое имя
-                const displayName = userInfo.username 
-                    ? `@${userInfo.username}` 
-                    : `${userInfo.first_name}${userInfo.last_name ? ' ' + userInfo.last_name : ''}`;
-                
-                userNameHeader.textContent = displayName;
-                userInfoHeader.style.display = 'flex';
-                
-                // Если есть фото профиля
-                if (userInfo.photo_url && userPhoto) {
-                    userPhoto.src = userInfo.photo_url;
-                    userPhoto.style.display = 'block';
-                } else if (userPhoto) {
-                    // Если нет фото, показываем инициалы в круге
-                    userPhoto.style.display = 'none';
-                    const initials = (userInfo.first_name?.[0] || '') + (userInfo.last_name?.[0] || '');
-                    if (initials) {
-                        userNameHeader.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid rgba(255,255,255,0.3);">
-                                    ${initials}
-                                </div>
-                                <span>${displayName}</span>
-                            </div>
-                        `;
-                    }
-                }
-            }
-        }
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -2089,8 +1913,12 @@
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
-            const phoneNumber = CONTACT_INFO.phone.replace(/-/g, '');
-            window.location.href = `tel:${phoneNumber}`;
+            const phoneNumber = CONTACT_INFO.phone;
+            if (tg) {
+                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            } else {
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            }
         }
 
         function open2GIS() {
@@ -2248,8 +2076,6 @@
 
         // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
         function toggleFavorite(product, productIndex) {
-            console.log('toggleFavorite called with product:', product);
-            
             const productId = generateProductId(product);
             const isFavorite = favorites.some(fav => fav.id === productId);
             
@@ -2260,16 +2086,12 @@
                 }
             } else {
                 const navigation = getCurrentNavigation();
-                const favoriteItem = {
+                favorites.push({
                     id: productId,
                     product: product,
                     navigation: navigation,
                     timestamp: Date.now()
-                };
-                console.log('Adding to favorites:', favoriteItem);
-                console.log('Product photo_url:', product.photo_url);
-                
-                favorites.push(favoriteItem);
+                });
                 if (tg) {
                     tg.showAlert('Товар добавлен в избранное');
                 }
@@ -2321,13 +2143,8 @@
             let html = '<div class="product-list">';
             
             html += `
-                <div class="sticky-favorites-header">
-                    ${favorites.length > 0 ? `
-                        <button onclick="requestAllFavorites()" class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-blue-600 transition">
-                            <i data-feather="send" class="w-5 h-5 mr-2"></i>
-                            Запросить все товары
-                        </button>
-                    ` : ''}
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
                 </div>
             `;
 
@@ -2406,7 +2223,7 @@
                     <div class="mt-3">
                         <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                            Позвонить
+                            ${CONTACT_INFO.phone}
                         </button>
                     </div>
                 `;
@@ -2469,43 +2286,6 @@
             ].filter(Boolean).join(' → ');
 
             const message = `Здравствуйте! Интересует товар из избранного: ${productInfo}. Подскажите подробности.`;
-            
-            if (tg) {
-                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
-            } else {
-                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
-            }
-        }
-
-        function requestAllFavorites() {
-            if (favorites.length === 0) {
-                if (tg) {
-                    tg.showAlert('В избранном нет товаров');
-                } else {
-                    alert('В избранном нет товаров');
-                }
-                return;
-            }
-
-            let message = `Здравствуйте! Интересуют следующие товары из избранного:\n\n`;
-            
-            favorites.forEach((fav, index) => {
-                const product = fav.product;
-                const navigation = fav.navigation;
-                
-                const productInfo = [
-                    navigation.section?.name,
-                    navigation.category?.name,
-                    navigation.model?.name,
-                    navigation.submodel?.name,
-                    product?.color,
-                    product?.price && product.price !== 'Цена не указана' ? product.price : ''
-                ].filter(Boolean).join(' → ');
-                
-                message += `${index + 1}. ${productInfo}\n`;
-            });
-            
-            message += `\nПодскажите подробности по этим товарам.`;
             
             if (tg) {
                 tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
@@ -2843,7 +2623,7 @@
                         <div class="space-y-3">
                             <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
                                 <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                Позвонить
+                                ${CONTACT_INFO.phone}
                             </button>
                             
                             <button onclick="loadBrigades()" class="back-to-brigades">
@@ -2968,7 +2748,7 @@
                     <div class="space-y-3">
                         <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
                             <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                            Позвонить
+                            ${CONTACT_INFO.phone}
                         </button>
                         
                         <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
@@ -3387,333 +3167,6 @@
                 hideLoading();
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
-            }
-        }
-
-        // ========== КАРУСЕЛЬ ТОВАРОВ ==========
-        
-        let carouselRefreshInterval = null;
-        
-        // Загрузка случайных товаров для карусели через API
-        async function loadRandomProducts() {
-            try {
-                // Пробуем загрузить через API
-                const data = await apiFetch('/random_products?count=10');
-                
-                if (data && Array.isArray(data.products) && data.products.length > 0) {
-                    return data.products;
-                }
-                
-                // Если API не вернул товары, берем из текущих на странице
-                if (currentProducts && currentProducts.length > 0) {
-                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
-                    return shuffled.slice(0, Math.min(10, shuffled.length));
-                }
-                
-                return [];
-            } catch (error) {
-                // При ошибке API пробуем взять из currentProducts
-                if (currentProducts && currentProducts.length > 0) {
-                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
-                    return shuffled.slice(0, Math.min(10, shuffled.length));
-                }
-                return [];
-            }
-        }
-        
-        // Рендер карусели товаров
-        function renderProductCarousel(products) {
-            const carousel = document.getElementById('productsCarousel');
-            const container = document.querySelector('.products-carousel-container');
-            if (!carousel || !container) return;
-            
-            if (!products || products.length === 0) {
-                container.classList.remove('visible');
-                return;
-            }
-            
-            console.log('🎠 Rendering carousel with products:', products);
-            
-            container.classList.add('visible');
-            
-            carousel.innerHTML = products.map((product, index) => {
-                // Получаем URL фото
-                let photoUrl = product.photo_url || '';
-                
-                // Если это относительный путь прокси - добавляем API_BASE
-                if (photoUrl.startsWith('/api/image_proxy/')) {
-                    // Убираем /api/ из начала, так как API_BASE уже содержит /api
-                    photoUrl = API_BASE + photoUrl.substring(4); // убираем '/api'
-                }
-                
-                // Для прокси URL не нужны альтернативы - он сам обрабатывает ошибки
-                const imageUrl = photoUrl;
-                const alternativeUrls = [];
-                
-                // Форматируем название товара без "Без модели/подмодели"
-                let productName = product.name || product.color || 'Товар';
-                productName = productName
-                    .replace(/\s*-\s*Без модели\s*/gi, '')
-                    .replace(/\s*-\s*Без подмодели\s*/gi, '')
-                    .replace(/\s*-\s*$/, '') // убираем висящие дефисы в конце
-                    .trim();
-                
-                // Обновляем photo_url в объекте product для правильного сохранения в избранное
-                product.photo_url = photoUrl;
-                
-                console.log(`Product ${index} photo_url updated to:`, product.photo_url);
-                
-                const productId = product.id || product.row_index || 0;
-                
-                return `
-                    <div class="carousel-card" 
-                         onclick="openProductFromCarousel(${productId})" 
-                         style="cursor: pointer;"
-                         data-product-id="${productId}"
-                         data-category="${escapeHtml(product.category || '')}"
-                         data-color="${escapeHtml(product.color || '')}">
-                        <div class="carousel-image-container">
-                            ${imageUrl ? `
-                                <img src="${escapeHtml(imageUrl)}" 
-                                     alt="${escapeHtml(productName)}" 
-                                     class="carousel-image"
-                                     crossorigin="anonymous"
-                                     onerror="handleUniversalImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                     data-tried-alternative="0">
-                            ` : `
-                                <div class="carousel-image" style="display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1);">
-                                    <div style="text-align: center; color: rgba(255,255,255,0.5);">
-                                        <i data-feather="image" style="width: 48px; height: 48px;"></i>
-                                        <div style="font-size: 12px; margin-top: 8px;">Нет фото</div>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-                        <div class="carousel-card-content">
-                            <h3 class="carousel-card-title">
-                                ${productName}
-                            </h3>
-                            ${product.price ? `
-                                <p class="carousel-card-price">
-                                    ${product.price} ₽${product.unit ? '/' + product.unit : ''}
-                                </p>
-                            ` : ''}
-                            <div style="display: flex; gap: 8px; margin-top: 12px;">
-                                <button 
-                                    onclick="event.stopPropagation(); window.location.href='tel:${CONTACT_INFO.phone.replace(/-/g, '')}';" 
-                                    class="glass-btn phone-button"
-                                    style="flex: 1; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                    <i data-feather="phone" class="w-4 h-4"></i>
-                                    <span style="font-size: 0.875rem;">Позвонить</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Перерисовываем иконки
-            feather.replace();
-        }
-        
-        // Автообновление карусели каждые 5 минут
-        function startCarouselAutoRefresh() {
-            // Очищаем предыдущий интервал если есть
-            if (carouselRefreshInterval) {
-                clearInterval(carouselRefreshInterval);
-            }
-            
-            // Устанавливаем новый интервал на 5 минут (300000 мс)
-            carouselRefreshInterval = setInterval(async () => {
-                const products = await loadRandomProducts();
-                renderProductCarousel(products);
-            }, 300000); // 5 минут
-        }
-        
-        // Открытие товара из карусели - находим его в каталоге и открываем модальное окно
-        async function openProductFromCarousel(productId) {
-            console.log('Opening product from carousel, ID:', productId);
-            
-            // Закрываем текущее модальное окно если открыто
-            closeModal();
-            
-            // Переходим на страницу каталога если не на ней
-            if (currentPage !== 'catalog') {
-                showPage('catalog');
-            }
-            
-            // Ищем товар в currentProducts по id
-            let productIndex = currentProducts.findIndex(p => {
-                return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
-            });
-            
-            // Если товар не найден в текущих продуктах, загружаем его категорию
-            if (productIndex === -1) {
-                try {
-                    // Получаем информацию о товаре через API
-                    const response = await apiFetch(`/product/${productId}`);
-                    if (response && response.product) {
-                        const product = response.product;
-                        
-                        // Сбрасываем фильтры и загружаем категорию товара
-                        navigation.section = null;
-                        navigation.category = { id: product.category_id, name: product.category };
-                        navigation.model = null;
-                        navigation.submodel = null;
-                        
-                        await loadProducts();
-                        
-                        // Ищем товар снова после загрузки
-                        productIndex = currentProducts.findIndex(p => {
-                            return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Ошибка загрузки товара:', error);
-                }
-            }
-            
-            if (productIndex !== -1) {
-                // Нашли товар - открываем его модальное окно
-                setTimeout(() => {
-                    openModal(currentProducts[productIndex], productIndex);
-                }, 100);
-            } else {
-                console.log('Товар не найден в каталоге. ID:', productId);
-                if (tg) {
-                    tg.showAlert('Товар не найден в каталоге');
-                }
-            }
-        }
-        
-        // Инициализация карусели
-        async function initProductCarousel() {
-            const products = await loadRandomProducts();
-            renderProductCarousel(products);
-            startCarouselAutoRefresh();
-            
-            // Добавляем обработку свайпов для переключения по одной карточке
-            const carousel = document.getElementById('productsCarousel');
-            if (carousel) {
-                let currentIndex = 0;
-                const cards = () => carousel.querySelectorAll('.carousel-card');
-                
-                // Функция для прокрутки к конкретной карточке
-                const scrollToCard = (index) => {
-                    const allCards = cards();
-                    if (index >= 0 && index < allCards.length) {
-                        currentIndex = index;
-                        const card = allCards[index];
-                        const cardLeft = card.offsetLeft;
-                        const cardWidth = card.offsetWidth;
-                        const carouselWidth = carousel.offsetWidth;
-                        const scrollPosition = cardLeft - (carouselWidth / 2) + (cardWidth / 2);
-                        
-                        carousel.scrollTo({
-                            left: scrollPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                };
-                
-                // Функция для обновления центральной карточки
-                const updateCenterCard = () => {
-                    const allCards = cards();
-                    const carouselCenter = carousel.offsetWidth / 2 + carousel.scrollLeft;
-                    
-                    allCards.forEach((card, index) => {
-                        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-                        const distance = Math.abs(carouselCenter - cardCenter);
-                        
-                        if (distance < card.offsetWidth / 2) {
-                            card.classList.add('center');
-                            currentIndex = index;
-                        } else {
-                            card.classList.remove('center');
-                        }
-                    });
-                };
-                
-                // Обработка свайпов
-                let touchStartX = 0;
-                let touchStartTime = 0;
-                let scrollStartLeft = 0;
-                
-                carousel.addEventListener('touchstart', (e) => {
-                    touchStartX = e.touches[0].pageX;
-                    touchStartTime = Date.now();
-                    scrollStartLeft = carousel.scrollLeft;
-                }, { passive: true });
-                
-                carousel.addEventListener('touchend', (e) => {
-                    const touchEndX = e.changedTouches[0].pageX;
-                    const touchDuration = Date.now() - touchStartTime;
-                    const touchDistance = touchStartX - touchEndX;
-                    const scrollDistance = carousel.scrollLeft - scrollStartLeft;
-                    
-                    // Всегда центрируем карточку после окончания касания
-                    setTimeout(() => {
-                        // Определяем свайп (быстрое движение или достаточное смещение)
-                        const isSwipe = Math.abs(touchDistance) > 50 || 
-                                       (touchDuration < 300 && Math.abs(touchDistance) > 20);
-                        
-                        if (isSwipe) {
-                            if (touchDistance > 0) {
-                                // Свайп влево - следующая карточка
-                                scrollToCard(currentIndex + 1);
-                            } else {
-                                // Свайп вправо - предыдущая карточка
-                                scrollToCard(currentIndex - 1);
-                            }
-                        } else {
-                            // Если не свайп, центрируем текущую карточку
-                            scrollToCard(currentIndex);
-                        }
-                    }, 50);
-                });
-                
-                // Обработка колесика мыши
-                carousel.addEventListener('wheel', (e) => {
-                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                        e.preventDefault();
-                        if (e.deltaX > 0) {
-                            scrollToCard(currentIndex + 1);
-                        } else {
-                            scrollToCard(currentIndex - 1);
-                        }
-                    }
-                }, { passive: false });
-                
-                // Обновление при скролле (для других способов прокрутки)
-                let scrollTimeout;
-                carousel.addEventListener('scroll', () => {
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => {
-                        requestAnimationFrame(updateCenterCard);
-                    }, 50);
-                }, { passive: true });
-                
-                // Центрируем карточку когда прокрутка заканчивается
-                carousel.addEventListener('scrollend', () => {
-                    updateCenterCard();
-                    scrollToCard(currentIndex);
-                });
-                
-                // Fallback для браузеров без scrollend
-                let isScrolling;
-                carousel.addEventListener('scroll', () => {
-                    clearTimeout(isScrolling);
-                    isScrolling = setTimeout(() => {
-                        updateCenterCard();
-                        scrollToCard(currentIndex);
-                    }, 150);
-                }, { passive: true });
-                
-                // Начальное обновление
-                setTimeout(() => {
-                    updateCenterCard();
-                    scrollToCard(0);
-                }, 100);
             }
         }
 
@@ -4381,6 +3834,12 @@
             const navigation = getCurrentNavigation();
             let html = '<div class="product-list">';
             
+            html += `
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold" style="color: #000000 !important;">Найдено товаров: ${currentProducts.length}</h2>
+                </div>
+            `;
+            
             html += renderProductBreadcrumbs(navigation);
 
             currentProducts.forEach((product, index) => {
@@ -4389,11 +3848,7 @@
                 const productId = generateProductId(product);
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 const color = safeString(product.color, 'Не указан');
-                    // Убираем "ШТ" из цены
-                    let price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
-                    if (typeof price === 'string') {
-                        price = price.replace(/\s*ШТ\.?/gi, '').replace(/шт\.?/gi, '').replace(/ШТ\.?/gi, '');
-                    }
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
@@ -4414,9 +3869,9 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                    ${price && price !== 'Цена не указана' ? `
-                                        <span class="price-badge">${escapeHtml(price)}</span>
-                                    ` : ''}
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -4436,7 +3891,7 @@
                     <div class="mt-3">
                         <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                            Позвонить
+                            ${CONTACT_INFO.phone}
                         </button>
                     </div>
                 `;
@@ -4454,28 +3909,17 @@
                 html += `</div></div>`;
             });
 
-                // Закрепляем кнопку "Назад" внизу экрана
-                html += `
-                    <div style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 100; background: rgba(30,41,59,0.95); padding: 12px 0; box-shadow: 0 -2px 12px rgba(0,0,0,0.15);">
-                        <button onclick="goBack()" class="back-button" style="margin: 0; width: 90%; max-width: 400px; display: block; margin-left: auto; margin-right: auto;">
-                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                            Назад
-                        </button>
-                    </div>
-                `;
+            html += `
+                <button onclick="goBack()" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Назад
+                </button>
+            `;
 
             html += '</div>';
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
-            
-            // Обновляем карусель если она уже инициализирована
-            if (carouselRefreshInterval) {
-                setTimeout(async () => {
-                    const products = await loadRandomProducts();
-                    renderProductCarousel(products);
-                }, 500);
-            }
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -4802,9 +4246,6 @@
                 fixMobileColors();
                 scheduleFeatherReplace();
                 
-                // Отображаем имя пользователя
-                displayUserName();
-                
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
                 const installButton = document.getElementById('installButton');
@@ -4844,10 +4285,6 @@
                 
                 setTimeout(() => {
                     loadSections();
-                    // Инициализация карусели через 1 секунду
-                    setTimeout(() => {
-                        initProductCarousel();
-                    }, 1000);
                 }, 100);
                 
             } catch (error) {
@@ -4862,7 +4299,6 @@
         let currentChatObject = null;
         let currentChatTelegramId = null;  // Telegram ID текущей бригады
         let chatMessages = [];
-        let chatRefreshInterval = null;
 
         // Получить или создать session_id для чата
         function getChatSessionKey(brigadeName, objectName) {
@@ -4975,14 +4411,6 @@
             // Загружаем историю сообщений с сервера
             await loadChatHistory();
             
-            // Запускаем автообновление чата каждые 2 секунды
-            if (chatRefreshInterval) {
-                clearInterval(chatRefreshInterval);
-            }
-            chatRefreshInterval = setInterval(async () => {
-                await loadChatHistory();
-            }, 2000);
-            
             // Фокус на input
             setTimeout(() => {
                 document.getElementById('chatModalInput').focus();
@@ -5016,12 +4444,6 @@
             const modal = document.getElementById('chatModal');
             modal.classList.add('hidden');
             document.getElementById('chatModalInput').value = '';
-            
-            // Останавливаем автообновление чата
-            if (chatRefreshInterval) {
-                clearInterval(chatRefreshInterval);
-                chatRefreshInterval = null;
-            }
         }
 
         function addChatMessage(type, senderName, text, timestamp) {
@@ -5275,8 +4697,8 @@
                             <div class="chat-session-item">
                                 <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
-                                        <h3 class="font-semibold text-white">Чат с ${session.user_name}</h3>
-                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
+                                        <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
+                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
                                         <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
                                     </div>
                                     <span class="text-xs text-gray-400">
@@ -5294,8 +4716,8 @@
                             <div class="chat-session-item">
                                 <div class="flex justify-between items-start" onclick="openChatSessionAsCustomer('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
-                                        <h3 class="font-semibold text-white">${session.brigade_name}</h3>
-                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
+                                        <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
+                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
                                         <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
                                     </div>
                                     <span class="text-xs text-gray-400">
