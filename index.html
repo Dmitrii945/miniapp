@@ -2755,6 +2755,45 @@
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
             }
+            
+            // Проверяем URL параметры для автоматического открытия чата
+            checkUrlParamsForChat();
+        }
+
+        function checkUrlParamsForChat() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const openChatSessionId = urlParams.get('openChat');
+                
+                if (openChatSessionId) {
+                    console.log('Автоматическое открытие чата из уведомления, session_id:', openChatSessionId);
+                    
+                    // Получаем данные чата по session_id
+                    setTimeout(async () => {
+                        try {
+                            const response = await fetch(`${API_BASE}/chat/session_info/${openChatSessionId}`);
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                console.log('Данные чата получены:', data);
+                                
+                                // Открываем чат как бригада (так как уведомление приходит бригаде)
+                                openChatSessionAsBrigade(data.session_id, data.brigade_name, data.object_name || '');
+                            } else {
+                                console.error('Чат не найден:', data.error);
+                            }
+                        } catch (error) {
+                            console.error('Ошибка получения данных чата:', error);
+                        }
+                        
+                        // Очищаем параметры из URL
+                        const newUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, newUrl);
+                    }, 1000); // Даем время загрузиться приложению
+                }
+            } catch (error) {
+                console.error('Ошибка обработки параметров чата:', error);
+            }
         }
 
         // ========== API ФУНКЦИИ ==========
