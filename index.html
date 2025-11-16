@@ -7,7 +7,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --tg-theme-bg-color: #ffffff;
@@ -18,62 +17,13 @@
             --tg-theme-button-text-color: #ffffff;
         }
         
-        /* Общие стили и шрифты */
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        h1, h2, h3 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            color: #ffffff;
-        }
-        
-        /* Базовый стиль для всех стеклянных кнопок */
-        .glass-btn, button:not(.no-glass) {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-            border-radius: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-            cursor: pointer !important;
-        }
-        
-        .glass-btn:hover, button:not(.no-glass):hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-        }
-        
         .tg-theme-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-            border-radius: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-            font-weight: 600 !important;
-        }
-        
-        .tg-theme-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
+            background-color: var(--tg-theme-button-color, #3B82F6);
+            color: var(--tg-theme-button-text-color, #ffffff);
         }
         
         .tg-theme-text {
-            color: var(--tg-theme-text-color, #ffffff) !important;
+            color: var(--tg-theme-text-color, #000000) !important;
         }
         
         .tg-theme-hint {
@@ -127,25 +77,14 @@
         }
         
         .breadcrumb-item {
-            cursor: pointer !important;
-            color: #000000 !important;
-            padding: 6px 14px !important;
-            border-radius: 12px !important;
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            cursor: pointer;
+            color: #3B82F6 !important;
+            transition: color 0.2s;
         }
         
         .breadcrumb-item:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-            color: #000000 !important;
+            color: #1D4ED8 !important;
+            text-decoration: underline;
         }
         
         .breadcrumb-separator {
@@ -160,74 +99,48 @@
         }
         
         .product-card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             cursor: pointer;
             position: relative;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
         }
 
         .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .product-card * {
-            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
         .category-card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             cursor: pointer;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
         }
 
         .category-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-            border-color: rgba(255,255,255,0.5);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .category-card * {
-            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
         .retry-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: white !important;
-            padding: 12px 24px !important;
-            border-radius: 16px !important;
-            cursor: pointer !important;
-            font-weight: 600 !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            background-color: #3B82F6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
         }
         
         .retry-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            background-color: #2563EB;
         }
 
         .action-buttons {
@@ -238,79 +151,80 @@
         
         .action-button {
             flex: 1;
-            padding: 14px 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            font-weight: 600;
-            font-size: 0.9rem;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            color: #ffffff !important;
-            background: rgba(255, 255, 255, 0.03) !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            gap: 6px;
+            color: white !important;
         }
         
         .action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            color: #ffffff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .phone-button, .gis-button, .taxi-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-            border-radius: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-            font-weight: 600 !important;
+        .phone-button {
+            background-color: #10B981;
+            color: white;
         }
         
-        .phone-button:hover, .gis-button:hover, .taxi-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
+        .phone-button:hover {
+            background-color: #059669;
+        }
+        
+        .gis-button {
+            background-color: #F59E0B;
+            color: white;
+        }
+        
+        .gis-button:hover {
+            background-color: #D97706;
         }
 
+        .taxi-button {
+            background-color: #8B5CF6;
+            color: white;
+        }
+        
+        .taxi-button:hover {
+            background-color: #7C3AED;
+        }
+
+        .share-button {
+            background-color: #EC4899;
+            color: white;
+        }
+        
+        .share-button:hover {
+            background-color: #DB2777;
+        }
+        
         .back-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: white !important;
-            padding: 12px 20px !important;
-            border-radius: 16px !important;
-            cursor: pointer !important;
-            font-weight: 600 !important;
-            width: 100% !important;
-            margin-top: 16px !important;
-            backdrop-filter: blur(40px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-            transition: all 0.3s ease !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            background-color: #6B7280;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .back-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            background-color: #4B5563;
+            transform: translateY(-1px);
         }
 
         .clickable-card {
@@ -323,33 +237,17 @@
         }
 
         body {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);
-            min-height: 100vh;
-            color: white;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            color: #000000;
+            background-color: #f9fafb;
         }
 
         header {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            color: white;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
-        }
-
-        header h1, header span, header .page-title {
-            color: #ffffff !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            background-color: white;
+            color: #000000;
         }
 
         h1, h2, h3, h4, h5, h6, p, span, div {
-            color: inherit;
-        }
-
-        /* Переопределение Tailwind классов для белого текста */
-        .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700 {
-            color: #ffffff !important;
+            color: #000000;
         }
 
         button {
@@ -361,7 +259,7 @@
         }
 
         .text-contrast {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
 
         .bg-contrast {
@@ -369,112 +267,55 @@
         }
 
         .menu-button {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
-            border-radius: 16px !important;
-            padding: 12px 16px !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 8px !important;
-            font-weight: 600 !important;
-            text-shadow: none !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
-            cursor: pointer !important;
+            background-color: #10B981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .menu-button:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-            color: #ffffff !important;
+            background-color: #059669;
+            transform: scale(1.05);
         }
 
         .install-button {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
-            border-radius: 16px !important;
-            padding: 12px !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 8px !important;
-            font-weight: 600 !important;
-            text-shadow: none !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
-            cursor: pointer !important;
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .install-button:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-            color: #ffffff !important;
-        }
-        
-        .chat-button {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
-            border-radius: 16px !important;
-            padding: 8px 12px !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            text-shadow: none !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
-            cursor: pointer !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-        }
-        
-        .chat-button:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-            color: #ffffff !important;
-        }
-        
-        .chat-button i {
-            width: 14px;
-            height: 14px;
+            background-color: #2563EB;
+            transform: scale(1.05);
         }
 
         .menu-item {
-            padding: 16px 20px !important;
-            border-radius: 16px !important;
-            transition: all 0.3s ease !important;
-            cursor: pointer !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-            color: white !important;
-            background: rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            margin-bottom: 8px !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1F2937;
         }
 
         .menu-item:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            transform: translateX(-4px) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            background-color: #F3F4F6;
+            transform: translateX(4px);
         }
 
         .menu-item i {
@@ -484,8 +325,8 @@
 
         .menu-divider {
             height: 1px;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 12px 0;
+            background-color: #E5E7EB;
+            margin: 8px 0;
         }
 
         .taxi-buttons {
@@ -496,139 +337,69 @@
         
         .taxi-service-button {
             flex: 1;
-            padding: 12px 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            font-weight: 600;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
             font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             color: white !important;
-            background: rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .taxi-service-button:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .yandex-taxi, .uber-taxi {
-            background: rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        .yandex-taxi {
+            background-color: #FFCC00;
+            color: #000 !important;
         }
         
-        .yandex-taxi:hover, .uber-taxi:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
+        .yandex-taxi:hover {
+            background-color: #E6B800;
         }
         
-        /* Стили для квадратных кнопок в стартовом меню */
-        .bottom-action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin: 24px 16px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        .uber-taxi {
+            background-color: #000000;
+            color: white !important;
         }
         
-        .square-action-button {
-            height: 100px;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            border-radius: 20px !important;
-            font-weight: 600 !important;
-            font-size: 12px !important;
-            cursor: pointer !important;
-            transition: all 0.4s ease !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 6px !important;
-            color: #ffffff !important;
-            text-align: center !important;
-            position: relative !important;
-            overflow: hidden !important;
-            background: rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            text-shadow: none !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
-        }
-        
-        .square-action-button:hover {
-            transform: translateY(-4px) !important;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.2) !important;
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            color: #ffffff !important;
-        }
-        
-        .square-action-button:active {
-            transform: translateY(-2px);
-        }
-        
-        .square-button-icon {
-            font-size: 16px;
-            margin-bottom: 2px;
-        }
-
-        .square-action-button svg {
-            width: 16px;
-            height: 16px;
+        .uber-taxi:hover {
+            background-color: #333333;
         }
 
         .header-title {
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            margin: 0 16px;
         }
 
         .main-title {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
+            font-size: 1.125rem;
+            font-weight: 600;
             line-height: 1.2;
-            color: #FFFFFF;
-            letter-spacing: -0.02em;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .sub-title {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.875rem;
-            color: #ffffff !important;
-            font-weight: 500;
+            font-size: 1.125rem;
+            color: #6B7280;
+            font-weight: 400;
             line-height: 1;
-            margin-top: 4px;
-            letter-spacing: 0.05em;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            margin-top: 2px;
         }
 
         .favorite-button {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: #000000;
-            border: 1px solid #333333;
+            background: white;
+            border: 1px solid #e5e7eb;
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -640,12 +411,8 @@
             z-index: 10;
         }
 
-        .favorite-button i {
-            color: white;
-        }
-
         .favorite-button:hover {
-            background-color: #1a1a1a;
+            background-color: #f9fafb;
             transform: scale(1.1);
         }
 
@@ -658,7 +425,7 @@
             color: white;
         }
 
-        .product-card .favorite-label {
+        .favorite-label {
             position: absolute;
             top: 10px;
             left: 10px;
@@ -667,8 +434,15 @@
             border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 500;
-            color: #000000 !important;
+            color: #374151;
             z-index: 10;
+        }
+
+        .two-column-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
         }
 
         .large-button {
@@ -701,7 +475,7 @@
             font-weight: 700;
             margin-bottom: 20px;
             padding: 0 8px;
-            color: #ffffff;
+            color: #1F2937;
             border-left: 4px solid #3B82F6;
             padding-left: 12px;
         }
@@ -713,30 +487,21 @@
         }
 
         .brigade-card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             cursor: pointer;
             height: 140px;
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
         }
 
         .brigade-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .brigade-card * {
-            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .chat-object-btn {
@@ -776,7 +541,7 @@
         .brigade-image-placeholder {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -795,7 +560,7 @@
             font-size: 0.875rem;
             font-weight: 600;
             margin-bottom: 4px;
-            color: #ffffff;
+            color: #1F2937;
             line-height: 1.2;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -804,7 +569,7 @@
         }
 
         .brigade-description {
-            color: #e5e7eb;
+            color: #6B7280;
             font-size: 0.75rem;
             line-height: 1.2;
             display: -webkit-box;
@@ -825,95 +590,59 @@
         }
 
         .object-card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             cursor: pointer;
             margin-bottom: 16px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
         }
 
         .object-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .object-card * {
-            color: #ffffff !important;
-        }
-
-        /* Исключение для кнопки информации - более высокая специфичность */
-        .object-card .object-card .info-button,
-        .object-card .info-button,
-        .object-card .info-button *,
-        button.info-button,
-        button.info-button * {
-            color: #000000 !important;
-            background: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .object-title {
             font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #ffffff;
+            color: #1F2937;
         }
 
         .object-description {
-            color: #e5e7eb;
+            color: #6B7280;
             line-height: 1.5;
             font-size: 0.9rem;
         }
 
         /* НОВЫЕ СТИЛИ ДЛЯ ГАЛЕРЕИ ОБЪЕКТОВ */
         .object-gallery-container {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
             overflow: hidden;
             margin-bottom: 16px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
-        }
-
-        .object-gallery-container * {
-            color: #ffffff !important;
-        }
-
-        /* Исключение для кнопки информации - более высокая специфичность */
-        .object-gallery-container .object-gallery-container .info-button,
-        .object-gallery-container .info-button,
-        .object-gallery-container .info-button *,
-        .object-gallery-container button.info-button,
-        .object-gallery-container button.info-button * {
-            color: #000000 !important;
-            background: #ffffff !important;
         }
 
         .object-gallery-header {
             padding: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .object-gallery-title {
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 4px;
-            color: #ffffff;
+            color: #1F2937;
         }
 
         .object-gallery-description {
-            color: #e5e7eb;
+            color: #6B7280;
             font-size: 0.9rem;
             line-height: 1.4;
         }
@@ -1245,7 +974,7 @@
         }
 
         .chat-modal-header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             display: flex;
             justify-content: space-between;
@@ -1297,28 +1026,17 @@
 
         .chat-message-user {
             align-self: flex-end;
-            background: #DBEAFE;
-            color: #1E40AF;
+            background: #3B82F6;
+            color: white;
             border-bottom-right-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .chat-message-brigade {
             align-self: flex-start;
             background: white;
-            color: #000000;
+            color: #1F2937;
             border-bottom-left-radius: 4px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        .chat-message-system {
-            align-self: center;
-            background: #F3F4F6;
-            color: #6B7280;
-            font-size: 13px;
-            font-style: italic;
-            text-align: center;
-            max-width: 85%;
         }
 
         .chat-message-time {
@@ -1334,61 +1052,6 @@
             display: flex;
             gap: 8px;
         }
-        
-        .chat-session-item {
-            padding: 16px;
-            margin-bottom: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-        }
-        
-        .chat-session-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        
-        .chat-session-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .delete-chat-btn {
-            background: rgba(239, 68, 68, 0.9) !important;
-            color: white !important;
-            border: 1px solid rgba(220, 38, 38, 0.5) !important;
-            border-radius: 8px;
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 36px;
-            min-height: 36px;
-            margin-left: 8px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
-        }
-        
-        .delete-chat-btn:hover {
-            background: rgba(220, 38, 38, 1) !important;
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
-        }
-        
-        .delete-chat-btn svg {
-            stroke: white !important;
-        }
 
         .chat-input {
             flex: 1;
@@ -1397,8 +1060,6 @@
             border-radius: 24px;
             font-size: 14px;
             outline: none;
-            color: #000000;
-            background-color: #ffffff;
         }
 
         .chat-input:focus {
@@ -1408,35 +1069,25 @@
         .chat-send-btn {
             width: 44px;
             height: 44px;
-            background: #ffffff;
-            border: 2px solid #3B82F6;
+            background: #3B82F6;
+            border: none;
             border-radius: 50%;
-            color: #3B82F6;
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+            transition: background 0.2s;
         }
 
         .chat-send-btn:hover {
-            background: #3B82F6;
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-        
-        .chat-send-btn svg {
-            stroke: currentColor !important;
-            fill: none !important;
-            width: 20px !important;
-            height: 20px !important;
+            background: #2563EB;
         }
         
         .info-button {
-            background: #ffffff;
-            color: #000000 !important;
-            border: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
             border-radius: 8px;
             padding: 12px 20px;
             font-weight: 500;
@@ -1452,229 +1103,29 @@
         
         .info-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            background: #f8f9fa;
-        }
-
-        .info-button * {
-            color: #000000 !important;
-        }
-        
-        /* СТИЛИ ДЛЯ ПРЕВЬЮ ИЗОБРАЖЕНИЙ */
-        .preview-image-container {
-            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-        }
-        
-        .preview-image {
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .preview-image:hover {
-            transform: scale(1.02);
-        }
-        
-        .preview-image-container .text-sm {
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* СТИЛИ ДЛЯ ОТДЕЛЬНЫХ ПРЕВЬЮ КАЖДОЙ КНОПКИ */
-        .submodel-item {
-            margin-bottom: 16px;
-        }
-        
-        .submodel-item .preview-image-container {
-            background: none;
-            padding: 0;
-            margin-bottom: 8px;
-        }
-        
-        /* Стили для карусели товаров */
-        .products-carousel-container {
-            margin-top: 32px;
-            padding-top: 24px;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: none;
-        }
-        
-        .products-carousel-container.visible {
-            display: block;
-        }
-        
-        .carousel-divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 20%, rgba(255, 255, 255, 0.3) 80%, transparent);
-            margin: 0 16px 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .carousel-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 0 16px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: 0.5px;
-        }
-        
-        .products-carousel {
-            display: flex;
-            overflow-x: auto;
-            gap: 20px;
-            padding: 0 calc(50vw - 140px) 24px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-            cursor: grab;
-        }
-        
-        .products-carousel:active {
-            cursor: grabbing;
-        }
-        
-        .products-carousel::-webkit-scrollbar {
-            height: 8px;
-        }
-        
-        .products-carousel::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-        }
-        
-        .products-carousel::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
-        
-        .products-carousel::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-        
-        .carousel-card {
-            flex: 0 0 280px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
-            overflow: hidden;
-            transition: all 0.4s ease;
-            cursor: pointer;
-            position: relative;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transform: scale(0.9);
-            opacity: 0.6;
-        }
-        
-        .carousel-card.center {
-            transform: scale(1);
-            opacity: 1;
-            z-index: 2;
-        }
-        
-        .carousel-card:hover {
-            transform: scale(0.95) translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255, 255, 255, 0.25);
-        }
-        
-        .carousel-card.center:hover {
-            transform: scale(1.02) translateY(-4px);
-        }
-        
-        .carousel-card * {
-            color: #ffffff !important;
-        }
-        
-        .carousel-image-container {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.2);
-        }
-        
-        .carousel-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            display: block;
-        }
-        
-        .carousel-card-content {
-            padding: 16px;
-        }
-        
-        .carousel-card-title {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 8px;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-        
-        .carousel-card-price {
-            font-size: 1.125rem;
-            font-weight: 800;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            margin: 0;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
     </style>
 </head>
-<body class="min-h-screen" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);">
+<body class="bg-gray-50 min-h-screen">
     <div id="app" class="max-w-md mx-auto">
         <!-- Header -->
-        <header class="shadow-lg p-4 sticky top-0 z-10">
-            <!-- Фото и имя пользователя -->
-            <div id="userInfoHeader" class="flex items-center gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
-                <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
-                <div id="userNameHeader" class="text-white font-medium">
-                    <!-- Имя пользователя будет вставлено через JS -->
-                </div>
-            </div>
-            
-            <div class="flex items-center justify-between">
-                <!-- Левая группа: Меню -->
-                <div class="flex items-center">
-                    <button id="toggleMenu" class="menu-button">
-                        <i data-feather="menu"></i>
-                    </button>
-                </div>
-                
-                <!-- Центральная группа: Название -->
-                <div class="header-title flex-1">
-                    <h1 class="main-title" id="pageTitle">Каталог товаров</h1>
+        <header class="bg-white shadow-sm p-4 sticky top-0 z-10">
+            <div class="flex justify-between items-center">
+                <button id="toggleMenu" class="menu-button">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="header-title">
+                    <h1 class="main-title tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
-                
-                <!-- Правая группа: Чаты -->
-                <div class="flex items-center gap-2">
-                    <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
-                        <i data-feather="message-circle"></i>
-                        <span class="hidden sm:inline">Чаты</span>
-                    </button>
-                </div>
+                <button id="installButton" class="install-button" title="Добавить на главный экран">
+                    <i data-feather="plus-square"></i>
+                </button>
             </div>
+            
+            <!-- Breadcrumbs -->
+            <div id="breadcrumbs" class="flex items-center text-sm mt-2 overflow-x-auto whitespace-nowrap"></div>
         </header>
 
         <!-- Loading -->
@@ -1747,41 +1198,6 @@
             </div>
         </div>
 
-        <!-- My Chats Modal -->
-        <div id="myChatsModal" class="chat-modal hidden">
-            <div class="chat-modal-header">
-                <h2 class="chat-modal-title">Мои чаты</h2>
-                <button onclick="closeMyChatsModal()" class="chat-modal-close">
-                    <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div style="padding: 16px; border-bottom: 1px solid rgba(0,0,0,0.1);">
-                <button onclick="loadBrigades(); closeMyChatsModal();" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-green-600 transition">
-                    <i data-feather="users" class="w-5 h-5 mr-2"></i>
-                    БРИГАДЫ
-                </button>
-            </div>
-            <div class="chat-messages" id="myChatsContent">
-                <div class="text-center p-4">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
-                    <p class="mt-2 text-gray-600">Загружаю чаты...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chat Modal -->
-        <div id="infoModal" class="info-modal hidden">
-            <div class="info-modal-header">
-                <h2 class="info-modal-title">Информация по объекту</h2>
-                <button onclick="closeInfoModal()" class="info-modal-close">
-                    <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="info-modal-content" id="infoModalContent">
-                <!-- Сюда вставляется описание -->
-            </div>
-        </div>
-
         <!-- Chat Modal -->
         <div id="chatModal" class="chat-modal hidden">
             <div class="chat-modal-header">
@@ -1802,18 +1218,18 @@
             <div class="chat-modal-input">
                 <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input">
                 <button onclick="sendChatModalMessage()" class="chat-send-btn">
-                    <i data-feather="send" style="stroke: #3B82F6 !important;"></i>
+                    <i data-feather="send"></i>
                 </button>
             </div>
         </div>
 
         <!-- Side Menu -->
-        <div id="sideMenu" class="hidden fixed inset-0 bg-black bg-opacity-30" style="z-index: 1000;">
-            <div class="absolute right-0 top-0 h-full w-80 transform translate-x-full transition-transform duration-300" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border-left: 1px solid rgba(255, 255, 255, 0.2);">
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-8">
-                        <h2 class="text-lg font-semibold text-white">Меню</h2>
-                        <button id="closeMenu" class="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-all duration-200" style="color: white;">
+        <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+            <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
+                <div class="p-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-semibold text-contrast">Меню</h2>
+                        <button id="closeMenu" class="p-2 rounded-lg hover:bg-gray-100">
                             <i data-feather="x"></i>
                         </button>
                     </div>
@@ -1823,8 +1239,8 @@
                         <div class="menu-item" onclick="loadFavorites(); closeSideMenu();">
                             <i data-feather="heart"></i>
                             <div>
-                                <div class="font-medium text-white">Избранное</div>
-                                <div class="text-sm opacity-80">Сохраненные товары</div>
+                                <div class="font-medium">Избранное</div>
+                                <div class="text-sm text-gray-600">Сохраненные товары</div>
                             </div>
                         </div>
 
@@ -1834,8 +1250,8 @@
                         <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
                             <i data-feather="users"></i>
                             <div>
-                                <div class="font-medium text-white">Бригады</div>
-                                <div class="text-sm opacity-80">Наши строительные бригады</div>
+                                <div class="font-medium">Бригады</div>
+                                <div class="text-sm text-gray-600">Наши строительные бригады</div>
                             </div>
                         </div>
 
@@ -1845,16 +1261,16 @@
                         <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
                             <i data-feather="phone"></i>
                             <div>
-                                <div class="font-medium text-white">Телефон</div>
-                                <div class="text-sm opacity-80">60-01-60</div>
+                                <div class="font-medium">Телефон</div>
+                                <div class="text-sm text-gray-600">60-01-60</div>
                             </div>
                         </div>
                         
                         <div class="menu-item" onclick="open2GIS(); closeSideMenu();">
                             <i data-feather="map-pin"></i>
                             <div>
-                                <div class="font-medium text-white">2GIS</div>
-                                <div class="text-sm opacity-80">Наш адрес на карте</div>
+                                <div class="font-medium">2GIS</div>
+                                <div class="text-sm text-gray-600">Наш адрес на карте</div>
                             </div>
                         </div>
 
@@ -1880,6 +1296,17 @@
 
                         <div class="menu-divider"></div>
 
+                        <!-- Добавить на главный экран -->
+                        <div class="menu-item" onclick="installPWA(); closeSideMenu();">
+                            <i data-feather="plus-square"></i>
+                            <div>
+                                <div class="font-medium">Добавить на главный экран</div>
+                                <div class="text-sm text-gray-600">Быстрый доступ к приложению</div>
+                            </div>
+                        </div>
+
+                        <div class="menu-divider"></div>
+
                         <!-- МЕНЮ -->
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
@@ -1891,13 +1318,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Карусель товаров -->
-        <div class="carousel-divider"></div>
-        <div class="products-carousel-container">
-            <h2 class="carousel-title">Популярные материалы</h2>
-            <div class="products-carousel" id="productsCarousel"></div>
         </div>
     </div>
 
@@ -1939,6 +1359,7 @@
         // DOM элементы
         const elements = {
             content: document.getElementById('content'),
+            breadcrumbs: document.getElementById('breadcrumbs'),
             loading: document.getElementById('loading'),
             emptyState: document.getElementById('emptyState'),
             emptyMessage: document.getElementById('emptyMessage'),
@@ -1959,44 +1380,6 @@
         };
 
         // ========== УТИЛИТЫ ==========
-
-        function displayUserName() {
-            const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const userInfoHeader = document.getElementById('userInfoHeader');
-            const userNameHeader = document.getElementById('userNameHeader');
-            const userPhoto = document.getElementById('userPhoto');
-            
-            if (userInfoHeader && userNameHeader && userInfo.first_name) {
-                // Формируем отображаемое имя
-                const displayName = userInfo.username 
-                    ? `@${userInfo.username}` 
-                    : `${userInfo.first_name}${userInfo.last_name ? ' ' + userInfo.last_name : ''}`;
-                
-                userNameHeader.textContent = displayName;
-                userInfoHeader.style.display = 'flex';
-                
-                // Если есть фото профиля
-                if (userInfo.photo_url && userPhoto) {
-                    userPhoto.src = userInfo.photo_url;
-                    userPhoto.style.display = 'block';
-                } else if (userPhoto) {
-                    // Если нет фото, показываем инициалы в круге
-                    userPhoto.style.display = 'none';
-                    const initials = (userInfo.first_name?.[0] || '') + (userInfo.last_name?.[0] || '');
-                    if (initials) {
-                        userNameHeader.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid rgba(255,255,255,0.3);">
-                                    ${initials}
-                                </div>
-                                <span>${displayName}</span>
-                            </div>
-                        `;
-                    }
-                }
-            }
-        }
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -2089,8 +1472,12 @@
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
-            const phoneNumber = CONTACT_INFO.phone.replace(/-/g, '');
-            window.location.href = `tel:${phoneNumber}`;
+            const phoneNumber = CONTACT_INFO.phone;
+            if (tg) {
+                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            } else {
+                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
+            }
         }
 
         function open2GIS() {
@@ -2107,6 +1494,46 @@
             } else {
                 window.open(CONTACT_INFO.telegramChannel, '_blank');
             }
+        }
+
+        // ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ
+        function callTaxi() {
+            const address = encodeURIComponent(CONTACT_INFO.address);
+            const lat = CONTACT_INFO.coordinates.lat;
+            const lon = CONTACT_INFO.coordinates.lon;
+            
+            let html = `
+                <div class="bg-white rounded-xl p-4 shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-contrast">Вызвать такси</h3>
+                    <p class="text-gray-600 mb-4 text-contrast">Выберите сервис такси для поездки в наш магазин:</p>
+                    
+                    <div class="taxi-buttons">
+                        <button onclick="openYandexTaxi()" class="taxi-service-button yandex-taxi">
+                            <i data-feather="navigation" class="w-4 h-4"></i>
+                            Яндекс Такси
+                        </button>
+                        <button onclick="openUber()" class="taxi-service-button uber-taxi">
+                            <i data-feather="car" class="w-4 h-4"></i>
+                            Uber
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                        <p class="text-sm text-blue-700">
+                            <i data-feather="map-pin" class="w-4 h-4 inline mr-1"></i>
+                            Адрес: ${CONTACT_INFO.address}
+                        </p>
+                    </div>
+                    
+                    <button onclick="loadSections()" class="back-button mt-4">
+                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Назад в каталог
+                    </button>
+                </div>
+            `;
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
         }
 
         function openTaxiMenu() {
@@ -2248,8 +1675,6 @@
 
         // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
         function toggleFavorite(product, productIndex) {
-            console.log('toggleFavorite called with product:', product);
-            
             const productId = generateProductId(product);
             const isFavorite = favorites.some(fav => fav.id === productId);
             
@@ -2260,16 +1685,12 @@
                 }
             } else {
                 const navigation = getCurrentNavigation();
-                const favoriteItem = {
+                favorites.push({
                     id: productId,
                     product: product,
                     navigation: navigation,
                     timestamp: Date.now()
-                };
-                console.log('Adding to favorites:', favoriteItem);
-                console.log('Product photo_url:', product.photo_url);
-                
-                favorites.push(favoriteItem);
+                });
                 if (tg) {
                     tg.showAlert('Товар добавлен в избранное');
                 }
@@ -2321,13 +1742,8 @@
             let html = '<div class="product-list">';
             
             html += `
-                <div class="favorites-header" style="position: sticky; top: 64px; z-index: 10; background: var(--bg-color); padding-top: 12px; padding-bottom: 12px;">
-                    ${favorites.length > 0 ? `
-                        <button onclick="requestAllFavorites()" class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-blue-600 transition">
-                            <i data-feather="send" class="w-5 h-5 mr-2"></i>
-                            Запросить все товары
-                        </button>
-                    ` : ''}
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
                 </div>
             `;
 
@@ -2377,7 +1793,7 @@
                 }
 
                 if (navigation) {
-                    const breadcrumbs = ['СКИДКА СЕРВИС']; // Всегда начинаем с "СКИДКА СЕРВИС"
+                    const breadcrumbs = [];
                     
                     if (navigation.section) {
                         breadcrumbs.push(navigation.section.name);
@@ -2395,7 +1811,7 @@
                         breadcrumbs.push(navigation.submodel.name);
                     }
 
-                    if (breadcrumbs.length > 1) { // Изменяем условие, так как у нас всегда есть "СКИДКА СЕРВИС"
+                    if (breadcrumbs.length > 0) {
                         html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
                     }
                 }
@@ -2403,10 +1819,14 @@
                 html += `</div>`;
 
                 html += `
-                    <div class="mt-3">
-                        <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
-                            <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                            Позвонить
+                    <div class="two-column-buttons">
+                        <button onclick="makePhoneCall()" class="large-button phone-button">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        <button onclick="shareProductFromFavorites(${index})" class="large-button share-button">
+                            <i data-feather="share-2" class="w-4 h-4"></i>
+                            Поделиться
                         </button>
                     </div>
                 `;
@@ -2477,40 +1897,68 @@
             }
         }
 
-        function requestAllFavorites() {
-            if (favorites.length === 0) {
+        // ФУНКЦИЯ ДЛЯ ПОДЕЛИТЬСЯ ТОВАРОМ
+        function shareProduct(productIndex) {
+            const product = currentProducts[productIndex];
+            const navigation = getCurrentNavigation();
+            
+            if (!product || !navigation.section) {
                 if (tg) {
-                    tg.showAlert('В избранном нет товаров');
-                } else {
-                    alert('В избранном нет товаров');
+                    tg.showAlert('Ошибка: не удалось получить данные товара');
                 }
                 return;
             }
 
-            let message = `Здравствуйте! Интересуют следующие товары из избранного:\n\n`;
+            const sectionHash = navigation.section.id;
+            const categoryHash = navigation.category?.id || 'null';
+            const modelHash = navigation.model?.id || 'null';
+            const submodelHash = navigation.submodel?.id || 'null';
             
-            favorites.forEach((fav, index) => {
-                const product = fav.product;
-                const navigation = fav.navigation;
-                
-                const productInfo = [
-                    navigation.section?.name,
-                    navigation.category?.name,
-                    navigation.model?.name,
-                    navigation.submodel?.name,
-                    product?.color,
-                    product?.price && product.price !== 'Цена не указана' ? product.price : ''
-                ].filter(Boolean).join(' → ');
-                
-                message += `${index + 1}. ${productInfo}\n`;
-            });
-            
-            message += `\nПодскажите подробности по этим товарам.`;
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_${productIndex}`;
             
             if (tg) {
-                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+                tg.openTelegramLink(shareUrl);
             } else {
-                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} ${productIndex}`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: `Товар: ${product.color || 'Без названия'}`,
+                        text: `Посмотрите этот товар в каталоге Скидка Сервис`,
+                        url: shareUrl
+                    }).catch(() => {
+                        alert(message);
+                    });
+                } else {
+                    alert(message);
+                }
+            }
+        }
+
+        function shareProductFromFavorites(favoriteIndex) {
+            const favorite = favorites[favoriteIndex];
+            const product = favorite.product;
+            const navigation = favorite.navigation;
+            
+            if (!product || !navigation.section) {
+                if (tg) {
+                    tg.showAlert('Ошибка: не удалось получить данные товара');
+                }
+                return;
+            }
+
+            const sectionHash = navigation.section.id;
+            const categoryHash = navigation.category?.id || 'null';
+            const modelHash = navigation.model?.id || 'null';
+            const submodelHash = navigation.submodel?.id || 'null';
+            
+            const shareUrl = `https://t.me/${BOT_USERNAME}?start=share_${sectionHash}_${categoryHash}_${modelHash}_${submodelHash}_0`;
+            
+            if (tg) {
+                tg.openTelegramLink(shareUrl);
+            } else {
+                const message = `Чтобы поделиться товаром, перейдите по ссылке:\n\n${shareUrl}\n\nИли скопируйте команду для бота:\n\n/share ${sectionHash} ${categoryHash} ${modelHash} ${submodelHash} 0`;
+                alert(message);
             }
         }
 
@@ -2714,7 +2162,7 @@
                 
                 html += `
                     <div class="brigade-group">
-                        <h2 class="brigade-group-title" style="color: #ffffff !important;">${escapeHtml(group.group_name)}</h2>
+                        <h2 class="brigade-group-title">${escapeHtml(group.group_name)}</h2>
                         <div class="brigade-grid">
                 `;
                 
@@ -2781,8 +2229,8 @@
             let html = `
                 <div class="space-y-6">
                     <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h2 class="text-2xl font-bold mb-2" style="color: #000000 !important;">${escapeHtml(brigade.brigade_name)}</h2>
-                        <p style="color: #000000 !important;">${escapeHtml(groupName)}</p>
+                        <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
+                        <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
                     </div>
             `;
         
@@ -2826,7 +2274,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -2843,7 +2291,7 @@
                         <div class="space-y-3">
                             <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
                                 <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                Позвонить
+                                ${CONTACT_INFO.phone}
                             </button>
                             
                             <button onclick="loadBrigades()" class="back-to-brigades">
@@ -2879,9 +2327,10 @@
         function renderObjectGalleryPage(groupName, brigade, object) {
             let html = `
                 <div class="space-y-6">
-                    <div class="bg-white rounded-xl p-6 shadow-sm mb-4">
-                        <h2 class="text-2xl font-bold mb-2" style="color: #000000 !important;">${escapeHtml(object.object_name)}</h2>
-                        <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+                    <div class="object-gallery-container">
+                        <div class="object-gallery-header">
+                            <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
+                            <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
             `;
         
             // Экранируем описание для использования в атрибуте data
@@ -2899,8 +2348,7 @@
             }
         
             html += `
-                    </div>
-                    <div class="object-gallery-container">
+                        </div>
             `;
         
             if (!object.all_photos || object.all_photos.length === 0) {
@@ -2963,20 +2411,20 @@
             }
         
             html += `
-                    </div>
+                        </div>
                         
-                    <div class="space-y-3">
-                        <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                            <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                            Позвонить
-                        </button>
-                        
-                        <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
-                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                            Назад к объектам
-                        </button>
+                        <div class="space-y-3">
+                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                                ${CONTACT_INFO.phone}
+                            </button>
+                            
+                            <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                                Назад к объектам
+                            </button>
+                        </div>
                     </div>
-                </div>
             `;
             
             elements.content.innerHTML = html;
@@ -3198,142 +2646,10 @@
             if (tg) {
                 try {
                     tg.expand();
+                    tg.enableClosingConfirmation();
                 } catch (error) {
                     console.log('Ошибка инициализации Telegram Web App:', error);
                 }
-            }
-            
-            // Проверяем URL параметры для автоматического открытия чата
-            checkUrlParamsForChat();
-            checkUrlParamsForCatalog();
-        }
-
-        function checkUrlParamsForCatalog() {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const section = urlParams.get('section');
-                const category = urlParams.get('category');
-                const model = urlParams.get('model');
-                const submodel = urlParams.get('submodel');
-                const productIndex = urlParams.get('product');
-                
-                if (section) {
-                    console.log('Автоматическая навигация к товару:', {section, category, model, submodel, productIndex});
-                    
-                    // Очищаем параметры из URL сразу
-                    const newUrl = window.location.pathname;
-                    window.history.replaceState({}, document.title, newUrl);
-                    
-                    // Навигируемся к товару
-                    setTimeout(async () => {
-                        try {
-                            await navigateToProduct(section, category, model, submodel, parseInt(productIndex) || 0);
-                        } catch (error) {
-                            console.error('Ошибка навигации к товару:', error);
-                        }
-                    }, 1000); // Даем время загрузиться приложению
-                }
-            } catch (error) {
-                console.error('Ошибка обработки параметров каталога:', error);
-            }
-        }
-
-        async function navigateToProduct(sectionHash, categoryHash, modelHash, submodelHash, productIndex) {
-            try {
-                // Переключаемся на каталог
-                switchSection('catalog');
-                
-                // Загружаем секции
-                const sections = await loadSections();
-                const section = sections.find(s => s.id === sectionHash);
-                if (!section) {
-                    console.error('Секция не найдена:', sectionHash);
-                    return;
-                }
-                
-                // Открываем секцию
-                await openSection(section.id, section.name);
-                
-                if (categoryHash && categoryHash !== 'null') {
-                    // Открываем категорию
-                    const categories = await loadCategories(sectionHash);
-                    const category = categories.find(c => c.id === categoryHash);
-                    if (category) {
-                        await openCategory(sectionHash, category.id, category.name);
-                        
-                        if (modelHash && modelHash !== 'null') {
-                            // Открываем модель
-                            const models = await loadModels(sectionHash, categoryHash);
-                            const model = models.find(m => m.id === modelHash);
-                            if (model) {
-                                await openModel(sectionHash, categoryHash, model.id, model.name);
-                                
-                                if (submodelHash && submodelHash !== 'null') {
-                                    // Открываем подмодель
-                                    const submodels = await loadSubmodels(sectionHash, categoryHash, modelHash);
-                                    const submodel = submodels.find(sm => sm.id === submodelHash);
-                                    if (submodel) {
-                                        await openSubmodel(sectionHash, categoryHash, modelHash, submodel.id, submodel.name);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                // Прокручиваем к нужному товару
-                if (productIndex > 0) {
-                    setTimeout(() => {
-                        const productElements = document.querySelectorAll('.product-item');
-                        if (productElements[productIndex]) {
-                            productElements[productIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            // Подсвечиваем товар
-                            productElements[productIndex].style.border = '2px solid #007bff';
-                            setTimeout(() => {
-                                productElements[productIndex].style.border = '';
-                            }, 3000);
-                        }
-                    }, 500);
-                }
-                
-            } catch (error) {
-                console.error('Ошибка навигации к товару:', error);
-            }
-        }
-
-        function checkUrlParamsForChat() {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const openChatSessionId = urlParams.get('openChat');
-                
-                if (openChatSessionId) {
-                    console.log('Автоматическое открытие чата из уведомления, session_id:', openChatSessionId);
-                    
-                    // Получаем данные чата по session_id
-                    setTimeout(async () => {
-                        try {
-                            const response = await fetch(`${API_BASE}/chat/session_info/${openChatSessionId}`);
-                            const data = await response.json();
-                            
-                            if (data.success) {
-                                console.log('Данные чата получены:', data);
-                                
-                                // Открываем чат как бригада (так как уведомление приходит бригаде)
-                                openChatSessionAsBrigade(data.session_id, data.brigade_name, data.object_name || '');
-                            } else {
-                                console.error('Чат не найден:', data.error);
-                            }
-                        } catch (error) {
-                            console.error('Ошибка получения данных чата:', error);
-                        }
-                        
-                        // Очищаем параметры из URL
-                        const newUrl = window.location.pathname;
-                        window.history.replaceState({}, document.title, newUrl);
-                    }, 1000); // Даем время загрузиться приложению
-                }
-            } catch (error) {
-                console.error('Ошибка обработки параметров чата:', error);
             }
         }
 
@@ -3386,333 +2702,6 @@
                 hideLoading();
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
-            }
-        }
-
-        // ========== КАРУСЕЛЬ ТОВАРОВ ==========
-        
-        let carouselRefreshInterval = null;
-        
-        // Загрузка случайных товаров для карусели через API
-        async function loadRandomProducts() {
-            try {
-                // Пробуем загрузить через API
-                const data = await apiFetch('/random_products?count=10');
-                
-                if (data && Array.isArray(data.products) && data.products.length > 0) {
-                    return data.products;
-                }
-                
-                // Если API не вернул товары, берем из текущих на странице
-                if (currentProducts && currentProducts.length > 0) {
-                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
-                    return shuffled.slice(0, Math.min(10, shuffled.length));
-                }
-                
-                return [];
-            } catch (error) {
-                // При ошибке API пробуем взять из currentProducts
-                if (currentProducts && currentProducts.length > 0) {
-                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
-                    return shuffled.slice(0, Math.min(10, shuffled.length));
-                }
-                return [];
-            }
-        }
-        
-        // Рендер карусели товаров
-        function renderProductCarousel(products) {
-            const carousel = document.getElementById('productsCarousel');
-            const container = document.querySelector('.products-carousel-container');
-            if (!carousel || !container) return;
-            
-            if (!products || products.length === 0) {
-                container.classList.remove('visible');
-                return;
-            }
-            
-            console.log('🎠 Rendering carousel with products:', products);
-            
-            container.classList.add('visible');
-            
-            carousel.innerHTML = products.map((product, index) => {
-                // Получаем URL фото
-                let photoUrl = product.photo_url || '';
-                
-                // Если это относительный путь прокси - добавляем API_BASE
-                if (photoUrl.startsWith('/api/image_proxy/')) {
-                    // Убираем /api/ из начала, так как API_BASE уже содержит /api
-                    photoUrl = API_BASE + photoUrl.substring(4); // убираем '/api'
-                }
-                
-                // Для прокси URL не нужны альтернативы - он сам обрабатывает ошибки
-                const imageUrl = photoUrl;
-                const alternativeUrls = [];
-                
-                // Форматируем название товара без "Без модели/подмодели"
-                let productName = product.name || product.color || 'Товар';
-                productName = productName
-                    .replace(/\s*-\s*Без модели\s*/gi, '')
-                    .replace(/\s*-\s*Без подмодели\s*/gi, '')
-                    .replace(/\s*-\s*$/, '') // убираем висящие дефисы в конце
-                    .trim();
-                
-                // Обновляем photo_url в объекте product для правильного сохранения в избранное
-                product.photo_url = photoUrl;
-                
-                console.log(`Product ${index} photo_url updated to:`, product.photo_url);
-                
-                const productId = product.id || product.row_index || 0;
-                
-                return `
-                    <div class="carousel-card" 
-                         onclick="openProductFromCarousel(${productId})" 
-                         style="cursor: pointer;"
-                         data-product-id="${productId}"
-                         data-category="${escapeHtml(product.category || '')}"
-                         data-color="${escapeHtml(product.color || '')}">
-                        <div class="carousel-image-container">
-                            ${imageUrl ? `
-                                <img src="${escapeHtml(imageUrl)}" 
-                                     alt="${escapeHtml(productName)}" 
-                                     class="carousel-image"
-                                     crossorigin="anonymous"
-                                     onerror="handleUniversalImageError(this, '${escapeHtml(photoUrl)}', ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
-                                     data-tried-alternative="0">
-                            ` : `
-                                <div class="carousel-image" style="display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1);">
-                                    <div style="text-align: center; color: rgba(255,255,255,0.5);">
-                                        <i data-feather="image" style="width: 48px; height: 48px;"></i>
-                                        <div style="font-size: 12px; margin-top: 8px;">Нет фото</div>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-                        <div class="carousel-card-content">
-                            <h3 class="carousel-card-title">
-                                ${productName}
-                            </h3>
-                            ${product.price ? `
-                                <p class="carousel-card-price">
-                                    ${product.price} ₽${product.unit ? '/' + product.unit : ''}
-                                </p>
-                            ` : ''}
-                            <div style="display: flex; gap: 8px; margin-top: 12px;">
-                                <button 
-                                    onclick="event.stopPropagation(); window.location.href='tel:${CONTACT_INFO.phone.replace(/-/g, '')}';" 
-                                    class="glass-btn phone-button"
-                                    style="flex: 1; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                    <i data-feather="phone" class="w-4 h-4"></i>
-                                    <span style="font-size: 0.875rem;">Позвонить</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Перерисовываем иконки
-            feather.replace();
-        }
-        
-        // Автообновление карусели каждые 5 минут
-        function startCarouselAutoRefresh() {
-            // Очищаем предыдущий интервал если есть
-            if (carouselRefreshInterval) {
-                clearInterval(carouselRefreshInterval);
-            }
-            
-            // Устанавливаем новый интервал на 5 минут (300000 мс)
-            carouselRefreshInterval = setInterval(async () => {
-                const products = await loadRandomProducts();
-                renderProductCarousel(products);
-            }, 300000); // 5 минут
-        }
-        
-        // Открытие товара из карусели - находим его в каталоге и открываем модальное окно
-        async function openProductFromCarousel(productId) {
-            console.log('Opening product from carousel, ID:', productId);
-            
-            // Закрываем текущее модальное окно если открыто
-            closeModal();
-            
-            // Переходим на страницу каталога если не на ней
-            if (currentPage !== 'catalog') {
-                showPage('catalog');
-            }
-            
-            // Ищем товар в currentProducts по id
-            let productIndex = currentProducts.findIndex(p => {
-                return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
-            });
-            
-            // Если товар не найден в текущих продуктах, загружаем его категорию
-            if (productIndex === -1) {
-                try {
-                    // Получаем информацию о товаре через API
-                    const response = await apiFetch(`/product/${productId}`);
-                    if (response && response.product) {
-                        const product = response.product;
-                        
-                        // Сбрасываем фильтры и загружаем категорию товара
-                        navigation.section = null;
-                        navigation.category = { id: product.category_id, name: product.category };
-                        navigation.model = null;
-                        navigation.submodel = null;
-                        
-                        await loadProducts();
-                        
-                        // Ищем товар снова после загрузки
-                        productIndex = currentProducts.findIndex(p => {
-                            return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Ошибка загрузки товара:', error);
-                }
-            }
-            
-            if (productIndex !== -1) {
-                // Нашли товар - открываем его модальное окно
-                setTimeout(() => {
-                    openModal(currentProducts[productIndex], productIndex);
-                }, 100);
-            } else {
-                console.log('Товар не найден в каталоге. ID:', productId);
-                if (tg) {
-                    tg.showAlert('Товар не найден в каталоге');
-                }
-            }
-        }
-        
-        // Инициализация карусели
-        async function initProductCarousel() {
-            const products = await loadRandomProducts();
-            renderProductCarousel(products);
-            startCarouselAutoRefresh();
-            
-            // Добавляем обработку свайпов для переключения по одной карточке
-            const carousel = document.getElementById('productsCarousel');
-            if (carousel) {
-                let currentIndex = 0;
-                const cards = () => carousel.querySelectorAll('.carousel-card');
-                
-                // Функция для прокрутки к конкретной карточке
-                const scrollToCard = (index) => {
-                    const allCards = cards();
-                    if (index >= 0 && index < allCards.length) {
-                        currentIndex = index;
-                        const card = allCards[index];
-                        const cardLeft = card.offsetLeft;
-                        const cardWidth = card.offsetWidth;
-                        const carouselWidth = carousel.offsetWidth;
-                        const scrollPosition = cardLeft - (carouselWidth / 2) + (cardWidth / 2);
-                        
-                        carousel.scrollTo({
-                            left: scrollPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                };
-                
-                // Функция для обновления центральной карточки
-                const updateCenterCard = () => {
-                    const allCards = cards();
-                    const carouselCenter = carousel.offsetWidth / 2 + carousel.scrollLeft;
-                    
-                    allCards.forEach((card, index) => {
-                        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-                        const distance = Math.abs(carouselCenter - cardCenter);
-                        
-                        if (distance < card.offsetWidth / 2) {
-                            card.classList.add('center');
-                            currentIndex = index;
-                        } else {
-                            card.classList.remove('center');
-                        }
-                    });
-                };
-                
-                // Обработка свайпов
-                let touchStartX = 0;
-                let touchStartTime = 0;
-                let scrollStartLeft = 0;
-                
-                carousel.addEventListener('touchstart', (e) => {
-                    touchStartX = e.touches[0].pageX;
-                    touchStartTime = Date.now();
-                    scrollStartLeft = carousel.scrollLeft;
-                }, { passive: true });
-                
-                carousel.addEventListener('touchend', (e) => {
-                    const touchEndX = e.changedTouches[0].pageX;
-                    const touchDuration = Date.now() - touchStartTime;
-                    const touchDistance = touchStartX - touchEndX;
-                    const scrollDistance = carousel.scrollLeft - scrollStartLeft;
-                    
-                    // Всегда центрируем карточку после окончания касания
-                    setTimeout(() => {
-                        // Определяем свайп (быстрое движение или достаточное смещение)
-                        const isSwipe = Math.abs(touchDistance) > 50 || 
-                                       (touchDuration < 300 && Math.abs(touchDistance) > 20);
-                        
-                        if (isSwipe) {
-                            if (touchDistance > 0) {
-                                // Свайп влево - следующая карточка
-                                scrollToCard(currentIndex + 1);
-                            } else {
-                                // Свайп вправо - предыдущая карточка
-                                scrollToCard(currentIndex - 1);
-                            }
-                        } else {
-                            // Если не свайп, центрируем текущую карточку
-                            scrollToCard(currentIndex);
-                        }
-                    }, 50);
-                });
-                
-                // Обработка колесика мыши
-                carousel.addEventListener('wheel', (e) => {
-                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                        e.preventDefault();
-                        if (e.deltaX > 0) {
-                            scrollToCard(currentIndex + 1);
-                        } else {
-                            scrollToCard(currentIndex - 1);
-                        }
-                    }
-                }, { passive: false });
-                
-                // Обновление при скролле (для других способов прокрутки)
-                let scrollTimeout;
-                carousel.addEventListener('scroll', () => {
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => {
-                        requestAnimationFrame(updateCenterCard);
-                    }, 50);
-                }, { passive: true });
-                
-                // Центрируем карточку когда прокрутка заканчивается
-                carousel.addEventListener('scrollend', () => {
-                    updateCenterCard();
-                    scrollToCard(currentIndex);
-                });
-                
-                // Fallback для браузеров без scrollend
-                let isScrolling;
-                carousel.addEventListener('scroll', () => {
-                    clearTimeout(isScrolling);
-                    isScrolling = setTimeout(() => {
-                        updateCenterCard();
-                        scrollToCard(currentIndex);
-                    }, 150);
-                }, { passive: true });
-                
-                // Начальное обновление
-                setTimeout(() => {
-                    updateCenterCard();
-                    scrollToCard(0);
-                }, 100);
             }
         }
 
@@ -3958,23 +2947,39 @@
                 </div>
             `;
 
-
-            
-            html += '</div>';
-
-            // Добавляем квадратные кнопки в стартовое меню
             html += `
-                <div class="bottom-action-buttons">
-                    <button class="square-action-button brigades-button" onclick="openBrigades()">
-                        <i data-feather="users"></i>
-                        <span>БРИГАДЫ</span>
-                    </button>
-                    <button class="square-action-button taxi-square-button" onclick="callTaxi()">
-                        <i data-feather="car"></i>
-                        <span>ТАКСИ</span>
-                    </button>
+                <div class="category-card fade-in" onclick="loadBrigades()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="users" class="w-5 h-5 mr-3 text-blue-500"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Бригады</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">Строительные бригады</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
+
+            html += `
+                <div class="category-card fade-in" onclick="callTaxi()">
+                    <div class="p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="car" class="w-5 h-5 mr-3 text-purple-600"></i>
+                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Вызвать такси</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-500">До магазина</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
             
             if (!html) {
                 showEmptyState('Нет доступных разделов');
@@ -3994,13 +2999,8 @@
             scheduleFeatherReplace();
         }
 
-        function renderCategories(categories, sectionId, sectionName, allLeadToProducts = false) {
+        function renderCategories(categories, sectionId, sectionName) {
             let html = '<div class="space-y-3">';
-            
-            // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ категории ведут к товарам
-            if (allLeadToProducts) {
-                html += `<div id="preview-container" class="mb-4"></div>`;
-            }
             
             categories.forEach(category => {
                 if (!category) return;
@@ -4041,44 +3041,11 @@
             `;
             
             elements.content.innerHTML = html;
-            
-            // Загружаем превью фото асинхронно, если все категории ведут к товарам
-            if (allLeadToProducts) {
-                setTimeout(async () => {
-                    const previewContainer = document.getElementById('preview-container');
-                    if (previewContainer && categories.length > 0) {
-                        const firstCategory = categories[0];
-                        const previewUrl = await getPreviewImageFromProducts(sectionId, firstCategory.id, null, null);
-                        
-                        if (previewUrl) {
-                            previewContainer.innerHTML = `
-                                <div class="preview-image-container mb-4 text-center">
-                                    <div class="inline-block">
-                                        <img src="${escapeHtml(previewUrl)}" 
-                                             alt="Превью товаров" 
-                                             class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
-                                             style="max-height: 200px; width: auto;"
-                                             onerror="this.parentElement.parentElement.remove()"
-                                             loading="lazy">
-                                        <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }
-                }, 100);
-            }
-            
             scheduleFeatherReplace();
         }
 
-        function renderModels(models, sectionId, sectionName, categoryId, categoryName, allLeadToProducts = false) {
+        function renderModels(models, sectionId, sectionName, categoryId, categoryName) {
             let html = '<div class="space-y-3">';
-            
-            // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ модели ведут к товарам
-            if (allLeadToProducts) {
-                html += `<div id="preview-container" class="mb-4"></div>`;
-            }
             
             models.forEach(model => {
                 if (!model) return;
@@ -4119,76 +3086,7 @@
             `;
             
             elements.content.innerHTML = html;
-            
-            // Загружаем превью фото асинхронно, если все модели ведут к товарам
-            if (allLeadToProducts) {
-                setTimeout(async () => {
-                    const previewContainer = document.getElementById('preview-container');
-                    if (previewContainer && models.length > 0) {
-                        const firstModel = models[0];
-                        const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, firstModel.id, null);
-                        
-                        if (previewUrl) {
-                            previewContainer.innerHTML = `
-                                <div class="preview-image-container mb-4 text-center">
-                                    <div class="inline-block">
-                                        <img src="${escapeHtml(previewUrl)}" 
-                                             alt="Превью товаров" 
-                                             class="preview-image rounded-lg shadow-lg max-w-xs mx-auto"
-                                             style="max-height: 200px; width: auto;"
-                                             onerror="this.parentElement.parentElement.remove()"
-                                             loading="lazy">
-                                        <div class="text-sm text-gray-600 mt-2">Пример товаров в разделе</div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }
-                }, 100);
-            }
-            
             scheduleFeatherReplace();
-        }
-
-        // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ПЕРВОГО ФОТО ИЗ ТОВАРОВ
-        async function getPreviewImageFromProducts(sectionId, categoryId, modelId, submodelId) {
-            try {
-                const safeSectionId = sectionId || 'null';
-                const safeCategoryId = categoryId || 'null';
-                const safeModelId = modelId || 'null';
-                const safeSubmodelId = submodelId || 'null';
-                
-                console.log('Getting preview image for:', { safeSectionId, safeCategoryId, safeModelId, safeSubmodelId });
-                
-                const endpoint = `${API_BASE}/products/${safeSectionId}/${safeCategoryId}/${safeModelId}/${safeSubmodelId}`;
-                console.log('Preview API endpoint:', endpoint);
-                
-                const response = await fetch(endpoint);
-                if (!response.ok) {
-                    console.log('Preview API error:', response.status, response.statusText);
-                    return null;
-                }
-                
-                const data = await response.json();
-                console.log('Preview API response:', data);
-                
-                if (data?.products && data.products.length > 0) {
-                    // Ищем первый товар с фото
-                    for (let product of data.products) {
-                        console.log('Checking product for photo:', product);
-                        if (product.photo_url && product.photo_url.trim() !== '') {
-                            console.log('Found preview image:', product.photo_url);
-                            return product.photo_url;
-                        }
-                    }
-                }
-                
-                console.log('No preview image found');
-                return null;
-            } catch (error) {
-                console.error('Не удалось получить превью фото:', error);
-                return null;
-            }
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
@@ -4203,29 +3101,14 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="submodel-item">
-                        <!-- Превью фото для каждой подмодели -->
-                        <div class="preview-image-container mb-2 text-center">
-                            <div class="inline-block" style="width: 100%;">
-                                <div class="preview-placeholder-${safeId}" 
-                                     style="width: 100%; height: 150px; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); 
-                                            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
-                                            color: white; font-size: 14px; font-weight: bold;">
-                                    🖼️ Загрузка...
+                    <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Кнопка подмодели -->
-                        <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
-                            <div class="p-4">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center">
-                                        <h3 class="font-semibold text-lg tg-theme-text text-contrast">${safeName}</h3>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
-                                    </div>
+                                <div class="flex items-center gap-2">
+                                    ${priceText ? `<span class="price-badge">${priceText.replace(' от ', '').replace(' р.', '')}</span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -4248,73 +3131,6 @@
             `;
             
             elements.content.innerHTML = html;
-            
-            // Загружаем превью для КАЖДОЙ подмодели отдельно
-            setTimeout(async () => {
-                for (let submodel of submodels) {
-                    if (!submodel) continue;
-                    
-                    try {
-                        const safeId = escapeHtml(submodel.id);
-                        const placeholder = document.querySelector(`.preview-placeholder-${safeId}`);
-                        
-                        if (placeholder) {
-                            console.log(`Loading preview for submodel: ${submodel.name}`);
-                            
-                            // Получаем превью для конкретной подмодели
-                            const previewUrl = await getPreviewImageFromProducts(sectionId, categoryId, modelId, submodel.id);
-                            console.log(`Preview URL for ${submodel.name}:`, previewUrl);
-                            
-                            if (previewUrl && previewUrl.trim() !== '') {
-                                // Конвертируем Google Drive ссылки в прямые ссылки
-                                let fullImageUrl = previewUrl;
-                                
-                                if (previewUrl.includes('drive.google.com/uc?export=view&id=')) {
-                                    // Извлекаем ID из Google Drive ссылки
-                                    const match = previewUrl.match(/id=([a-zA-Z0-9_-]+)/);
-                                    if (match && match[1]) {
-                                        fullImageUrl = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400-h300`;
-                                    }
-                                } else if (!previewUrl.startsWith('http')) {
-                                    fullImageUrl = `https://dmitrii2613.pythonanywhere.com/static/images/${previewUrl}`;
-                                }
-                                
-                                console.log(`Converted image URL for ${submodel.name}:`, fullImageUrl);
-                                
-                                placeholder.innerHTML = `
-                                    <img src="${escapeHtml(fullImageUrl)}" 
-                                         alt="Превью ${escapeHtml(submodel.name)}" 
-                                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                                         onload="console.log('✅ Preview loaded for ${escapeHtml(submodel.name)}')"
-                                         onerror="console.log('❌ Preview failed for ${escapeHtml(submodel.name)}'); this.parentElement.innerHTML = '<div style=\\'color: white; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;\\'>�<br>Нет фото</div>';">
-                                `;
-                            } else {
-                                console.log(`No preview URL for ${submodel.name}, showing placeholder`);
-                                placeholder.innerHTML = `
-                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
-                                        <div style="font-size: 32px; margin-bottom: 5px;">📦</div>
-                                        <div style="font-size: 12px;">Товары ${escapeHtml(submodel.name)}</div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    } catch (error) {
-                        console.error(`Error loading preview for ${submodel.name}:`, error);
-                        // При ошибке API показываем иконку
-                        const safeId = escapeHtml(submodel.id);
-                        const placeholder = document.querySelector(`.preview-placeholder-${safeId}`);
-                        if (placeholder) {
-                            placeholder.innerHTML = `
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
-                                    <div style="font-size: 32px; margin-bottom: 5px;">🛍️</div>
-                                    <div style="font-size: 12px;">Товары ${escapeHtml(submodel.name)}</div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
-            }, 300);
-            
             scheduleFeatherReplace();
         }
 
@@ -4380,6 +3196,12 @@
             const navigation = getCurrentNavigation();
             let html = '<div class="product-list">';
             
+            html += `
+                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
+                    <h2 class="text-lg font-semibold text-contrast">Найдено товаров: ${currentProducts.length}</h2>
+                </div>
+            `;
+            
             html += renderProductBreadcrumbs(navigation);
 
             currentProducts.forEach((product, index) => {
@@ -4428,10 +3250,14 @@
                 html += `</div>`;
 
                 html += `
-                    <div class="mt-3">
-                        <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
-                            <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                            Позвонить
+                    <div class="two-column-buttons">
+                        <button onclick="makePhoneCall()" class="large-button phone-button">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                            ${CONTACT_INFO.phone}
+                        </button>
+                        <button onclick="shareProduct(${index})" class="large-button share-button">
+                            <i data-feather="share-2" class="w-4 h-4"></i>
+                            Поделиться
                         </button>
                     </div>
                 `;
@@ -4460,14 +3286,6 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
-            
-            // Обновляем карусель если она уже инициализирована
-            if (carouselRefreshInterval) {
-                setTimeout(async () => {
-                    const products = await loadRandomProducts();
-                    renderProductCarousel(products);
-                }, 500);
-            }
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -4531,13 +3349,57 @@
         }
 
         function updateBreadcrumbsFromStack() {
-            // Заглушка - breadcrumbs в хедере удалены, остались только в карточках товаров
-            return;
+            const items = [{ name: 'МЕНЮ', action: 'loadSections' }];
+            
+            navigationStack.forEach(item => {
+                if (item && item.name) {
+                    items.push({
+                        name: item.name,
+                        action: null
+                    });
+                }
+            });
+            
+            updateBreadcrumbs(items);
         }
 
         function updateBreadcrumbs(items) {
-            // Заглушка - breadcrumbs в хедере удалены, остались только в карточках товаров
-            return;
+            elements.breadcrumbs.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                if (!item || !item.name) return;
+                
+                const crumb = document.createElement('span');
+                crumb.className = 'flex items-center whitespace-nowrap';
+                
+                if (index > 0) {
+                    const separator = document.createElement('span');
+                    separator.className = 'mx-1 tg-theme-hint text-contrast';
+                    separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
+                    elements.breadcrumbs.appendChild(separator);
+                }
+                
+                const link = document.createElement('span');
+                link.className = 'tg-theme-text text-sm truncate max-w-[120px] text-contrast';
+                link.textContent = item.name;
+                link.title = item.name;
+                
+                if (item.action && index === 0) {
+                    link.style.cursor = 'pointer';
+                    link.addEventListener('click', () => {
+                        if (item.action === 'loadSections') {
+                            loadSections();
+                        }
+                    });
+                } else {
+                    link.style.cursor = 'default';
+                }
+                
+                crumb.appendChild(link);
+                elements.breadcrumbs.appendChild(crumb);
+            });
+            
+            scheduleFeatherReplace();
         }
 
         function updateBackButton() {
@@ -4545,9 +3407,14 @@
             
             try {
                 if (navigationStack.length > 0) {
-                    // Отключено: закреплённая кнопка назад не поддерживается в Telegram WebApp 6.0
+                    if (tg.BackButton) {
+                        tg.BackButton.show();
+                        tg.BackButton.onClick(goBack);
+                    }
                 } else {
-                    // Отключено: закреплённая кнопка назад не поддерживается в Telegram WebApp 6.0
+                    if (tg.BackButton) {
+                        tg.BackButton.hide();
+                    }
                 }
             } catch (error) {
                 console.log('Ошибка обновления кнопки назад:', error);
@@ -4614,86 +3481,6 @@
                     break;
                 default:
                     loadSections();
-            }
-        }
-
-        // ========== ФУНКЦИИ ДЛЯ КВАДРАТНЫХ КНОПОК ==========
-        
-        function openBrigades() {
-            console.log('🏗️ Открываем бригады');
-            loadBrigades();
-        }
-        
-        function callTaxi() {
-            console.log('🚕 Вызываем такси');
-            
-            // Создаем модальное окно с выбором сервиса
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="p-6 rounded-lg shadow-lg max-w-sm w-full mx-4" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.25);">
-                    <h3 class="text-lg font-semibold mb-4 text-center" style="color: #ffffff !important;">Выберите сервис такси</h3>
-                    <div class="space-y-3">
-                        <button onclick="openYandexTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #FFCC00; color: #000000 !important;">
-                            🚕 Яндекс Такси
-                        </button>
-                        <button onclick="openUberTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #000000; color: #ffffff !important;">
-                            🚗 Uber
-                        </button>
-                        <button onclick="closeModal(this.closest('.fixed'))" class="w-full p-3 rounded-lg font-medium" style="background: rgba(255, 255, 255, 0.15); color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3);">
-                            Отмена
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Закрытие по клику на фон
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    document.body.removeChild(modal);
-                }
-            });
-        }
-        
-        function openYandexTaxi() {
-            console.log('🟡 Открываем Яндекс Такси');
-            
-            // Используем существующую функцию с правильными координатами
-            const lat = CONTACT_INFO.coordinates.lat;
-            const lon = CONTACT_INFO.coordinates.lon;
-            const address = encodeURIComponent(CONTACT_INFO.address);
-            
-            const yandexTaxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lon}&end-text=${address}&appmetrica_tracking_id=1178268795219780156`;
-            
-            if (tg) {
-                tg.openLink(yandexTaxiUrl);
-            } else {
-                window.open(yandexTaxiUrl, '_blank');
-            }
-            
-            // Закрываем модал
-            const modal = document.querySelector('.fixed.inset-0');
-            if (modal) {
-                document.body.removeChild(modal);
-            }
-        }
-        
-        function openUberTaxi() {
-            // Используем существующую функцию
-            openUber();
-            
-            // Закрываем модал
-            const modal = document.querySelector('.fixed.inset-0');
-            if (modal) {
-                document.body.removeChild(modal);
-            }
-        }
-        
-        function closeModal(modalElement) {
-            if (modalElement) {
-                document.body.removeChild(modalElement);
             }
         }
 
@@ -4789,9 +3576,6 @@
                 fixMobileColors();
                 scheduleFeatherReplace();
                 
-                // Отображаем имя пользователя
-                displayUserName();
-                
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
                 const installButton = document.getElementById('installButton');
@@ -4831,10 +3615,6 @@
                 
                 setTimeout(() => {
                     loadSections();
-                    // Инициализация карусели через 1 секунду
-                    setTimeout(() => {
-                        initProductCarousel();
-                    }, 1000);
                 }, 100);
                 
             } catch (error) {
@@ -4847,18 +3627,9 @@
         let currentChatSession = null;
         let currentChatBrigade = null;
         let currentChatObject = null;
-        let currentChatTelegramId = null;  // Telegram ID текущей бригады
         let chatMessages = [];
-        let chatRefreshInterval = null;
 
-        // Получить или создать session_id для чата
-        function getChatSessionKey(brigadeName, objectName) {
-            const tg = window.Telegram?.WebApp;
-            const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
-            return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
-        }
-
-        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null) {
+        async function startChatWithBrigade(brigadeName, objectName = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
@@ -4866,30 +3637,9 @@
                 const userId = userInfo.id || 'web_user_' + Date.now();
                 const userName = userInfo.first_name || 'Пользователь';
 
-                console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, userId, userName });
+                console.log('Начинаем чат с бригадой:', { brigadeName, objectName, userId, userName });
 
-                // Сохраняем brigadeRow для возможного восстановления сессии
-                localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
-
-                // Проверяем, есть ли уже сохраненная сессия
-                const sessionKey = getChatSessionKey(brigadeRow, objectName);
-                const savedSession = localStorage.getItem(sessionKey);
-
-                if (savedSession) {
-                    console.log('Найдена существующая сессия:', savedSession);
-                    currentChatSession = savedSession;
-                    currentChatBrigade = brigadeName;
-                    currentChatObject = objectName;
-                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
-                    
-                    // Также обновляем сохраненный telegram_id
-                    localStorage.setItem('lastUsedTelegramId', telegramId);
-                    
-                    openChatModal(brigadeName, objectName);
-                    return;
-                }
-
-                // Создаем новую сессию через API
+                // Отправляем запрос на создание чата
                 const response = await fetch(`${API_BASE}/chat/start`, {
                     method: 'POST',
                     headers: {
@@ -4898,8 +3648,6 @@
                     body: JSON.stringify({
                         user_id: userId,
                         user_name: userName,
-                        brigade_row: brigadeRow,
-                        telegram_id: telegramId,
                         brigade_name: brigadeName,
                         object_name: objectName
                     })
@@ -4913,29 +3661,15 @@
                     currentChatSession = data.session_id;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
-                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
+                    chatMessages = [];
 
-                    // Сохраняем session_id в localStorage
-                    localStorage.setItem(sessionKey, data.session_id);
-                    // Также сохраняем telegram_id для возможного восстановления
-                    localStorage.setItem('lastUsedTelegramId', telegramId);
-                    console.log('Session ID сохранен в localStorage');
-
-                    // Открываем модальное окно чата и загружаем историю
+                    // Открываем модальное окно чата
                     openChatModal(brigadeName, objectName);
+
+                    // Добавляем приветственное сообщение
+                    addChatMessage('brigade', 'Система', 'Ваш запрос получен. Бригада свяжется с вами в ближайшее время.', new Date());
                 } else {
-                    // Специальная обработка ошибок
-                    if (data.error === 'own_object') {
-                        const tg = window.Telegram?.WebApp;
-                        const errorMessage = 'Это ваш объект, вы не можете начать чат сами с собой';
-                        if (tg?.showAlert) {
-                            tg.showAlert(errorMessage);
-                        } else {
-                            alert(errorMessage);
-                        }
-                    } else {
-                        throw new Error(data.error || 'Не удалось создать чат');
-                    }
+                    throw new Error(data.error || 'Не удалось создать чат');
                 }
             } catch (error) {
                 console.error('Ошибка при создании чата:', error);
@@ -4949,7 +3683,7 @@
             }
         }
 
-        async function openChatModal(brigadeName, objectName) {
+        function openChatModal(brigadeName, objectName) {
             const modal = document.getElementById('chatModal');
             const title = document.getElementById('chatModalTitle');
             const subtitle = document.getElementById('chatModalSubtitle');
@@ -4958,17 +3692,7 @@
             subtitle.textContent = objectName || 'Общий чат';
 
             modal.classList.remove('hidden');
-            
-            // Загружаем историю сообщений с сервера
-            await loadChatHistory();
-            
-            // Запускаем автообновление чата каждые 2 секунды
-            if (chatRefreshInterval) {
-                clearInterval(chatRefreshInterval);
-            }
-            chatRefreshInterval = setInterval(async () => {
-                await loadChatHistory();
-            }, 2000);
+            renderChatMessages();
             
             // Фокус на input
             setTimeout(() => {
@@ -4976,39 +3700,10 @@
             }, 100);
         }
 
-        async function loadChatHistory() {
-            if (!currentChatSession) {
-                renderChatMessages();
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/chat/history/${currentChatSession}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    chatMessages = data.messages || [];
-                    renderChatMessages();
-                } else {
-                    console.error('Ошибка загрузки истории:', data.error);
-                    renderChatMessages();
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки истории чата:', error);
-                renderChatMessages();
-            }
-        }
-
         function closeChatModal() {
             const modal = document.getElementById('chatModal');
             modal.classList.add('hidden');
             document.getElementById('chatModalInput').value = '';
-            
-            // Останавливаем автообновление чата
-            if (chatRefreshInterval) {
-                clearInterval(chatRefreshInterval);
-                chatRefreshInterval = null;
-            }
         }
 
         function addChatMessage(type, senderName, text, timestamp) {
@@ -5035,79 +3730,19 @@
                 return;
             }
 
-            // Получаем информацию о текущем пользователе
-            const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const currentUserId = userInfo.id ? String(userInfo.id) : null;
-            const currentUserName = userInfo.first_name || 'Вы';
-
             let html = '';
             chatMessages.forEach(msg => {
-                // Определяем время
-                let time;
-                if (msg.timestamp) {
-                    try {
-                        const date = new Date(msg.timestamp);
-                        time = date.toLocaleTimeString('ru-RU', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    } catch (e) {
-                        time = '';
-                    }
-                } else {
-                    time = '';
-                }
-
-                // Определяем, является ли это сообщением текущего пользователя
-                let messageClass = 'chat-message-brigade';  // По умолчанию - чужое сообщение (слева, белое)
-                
-                if (msg.type === 'system') {
-                    messageClass = 'chat-message-system';
-                } else {
-                    let isMyMessage = false;
-                    
-                    // Получаем имя текущего пользователя
-                    const currentUserNameFromTelegram = userInfo.first_name || 'Пользователь';
-                    
-                    // Определяем по имени отправителя - самый надежный способ
-                    if (msg.sender_name === currentUserNameFromTelegram || msg.sender_name === 'Вы') {
-                        // Это сообщение от текущего пользователя
-                        isMyMessage = true;
-                    } else {
-                        // Это сообщение от собеседника
-                        isMyMessage = false;
-                        
-                        // Дополнительная проверка по типам для случаев, когда имена могут совпадать
-                        if (currentChatTelegramId === null) {
-                            // Покупатель: его сообщения типа 'user'
-                            isMyMessage = (msg.type === 'user');
-                        } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
-                            // Бригада: её сообщения типа 'brigade'
-                            isMyMessage = (msg.type === 'brigade');
-                        } else {
-                            // Fallback: покупатель
-                            isMyMessage = (msg.type === 'user');
-                        }
-                    }
-
-                    messageClass = isMyMessage ? 'chat-message-user' : 'chat-message-brigade';
-                }
-                
-                console.log('Message debug:', {
-                    text: (msg.text || '').substring(0, 20),
-                    type: msg.type,
-                    currentUserId: currentUserId,
-                    currentChatTelegramId: currentChatTelegramId,
-                    isCurrentUserBrigade: currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId),
-                    isMyMessage: messageClass === 'chat-message-user',
-                    messageClass: messageClass
+                const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
+
+                const messageClass = msg.type === 'user' ? 'chat-message-user' : 'chat-message-brigade';
                 
                 html += `
                     <div class="chat-message ${messageClass}">
                         <div>${escapeHtml(msg.text)}</div>
-                        ${time ? `<div class="chat-message-time">${time}</div>` : ''}
+                        <div class="chat-message-time">${time}</div>
                     </div>
                 `;
             });
@@ -5126,51 +3761,20 @@
             }
 
             if (!currentChatSession) {
-                console.error('Чат не активен - currentChatSession не установлен');
-                
-                // Попытаемся восстановить сессию из localStorage
-                if (currentChatBrigade && currentChatObject) {
-                    const tg = window.Telegram?.WebApp;
-                    const userInfo = tg?.initDataUnsafe?.user || {};
-                    const userId = userInfo.id || 'web_user_' + Date.now();
-                    
-                    // Попытаемся найти в localStorage
-                    const brigadeRow = localStorage.getItem('lastUsedBrigadeRow') || 'unknown';
-                    const sessionKey = getChatSessionKey(brigadeRow, currentChatObject);
-                    const savedSession = localStorage.getItem(sessionKey);
-                    
-                    if (savedSession) {
-                        currentChatSession = savedSession;
-                        console.log('Сессия восстановлена из localStorage:', savedSession);
-                    } else {
-                        // Создаем новый ID сессии
-                        currentChatSession = `${userId}_${brigadeRow}_${currentChatObject || 'general'}_${Date.now()}`;
-                        localStorage.setItem(sessionKey, currentChatSession);
-                        console.log('Создана новая сессия:', currentChatSession);
-                    }
-                    
-                    // Если не установлен telegram_id, пытаемся его найти
-                    if (!currentChatTelegramId) {
-                        const savedTelegramId = localStorage.getItem('lastUsedTelegramId');
-                        if (savedTelegramId) {
-                            currentChatTelegramId = savedTelegramId;
-                        }
-                    }
-                } else {
-                    alert('Чат не активен. Пожалуйста, откройте чат заново из карточки объекта.');
-                    return;
-                }
+                alert('Чат не активен');
+                return;
             }
 
-            // Очищаем поле ввода сразу
-            input.value = '';
-
-            // Отправляем сообщение на сервер
+            // Добавляем сообщение в локальный массив
             const tg = window.Telegram?.WebApp;
             const userInfo = tg?.initDataUnsafe?.user || {};
             const userId = userInfo.id || 'web_user_' + Date.now();
             const userName = userInfo.first_name || 'Вы';
 
+            addChatMessage('user', userName, message, new Date());
+            input.value = '';
+
+            // Отправляем сообщение на сервер
             sendMessageToServer(userId, userName, message);
         }
 
@@ -5185,7 +3789,6 @@
                         session_id: currentChatSession,
                         user_id: userId,
                         user_name: userName,
-                        telegram_id: currentChatTelegramId,
                         brigade_name: currentChatBrigade,
                         object_name: currentChatObject,
                         message_text: messageText
@@ -5195,16 +3798,11 @@
                 const data = await response.json();
                 console.log('Сообщение отправлено на сервер:', data);
 
-                if (data.success) {
-                    // Перезагружаем историю чата после отправки
-                    await loadChatHistory();
-                } else {
+                if (!data.success) {
                     console.error('Ошибка отправки сообщения:', data.error);
-                    alert('Не удалось отправить сообщение');
                 }
             } catch (error) {
                 console.error('Ошибка отправки сообщения на сервер:', error);
-                alert('Ошибка связи с сервером');
             }
         }
 
@@ -5219,221 +3817,6 @@
                 });
             }
         });
-
-        // ===== МОИ ЧАТЫ =====
-        async function showMyChats() {
-            const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const userId = userInfo.id || 'web_user_' + Date.now();
-
-            document.getElementById('myChatsModal').classList.remove('hidden');
-
-            try {
-                // Сначала проверяем, является ли пользователь бригадой
-                const brigadeCheckResponse = await fetch(`${API_BASE}/debug/brigades`);
-                const brigadeData = await brigadeCheckResponse.json();
-                
-                let isBrigade = false;
-                if (brigadeData.success) {
-                    // Ищем пользователя среди бригад по telegram_id
-                    isBrigade = brigadeData.brigades.some(brigade => 
-                        brigade.type === 'brigade' && 
-                        brigade.telegram_id === String(userId)
-                    );
-                }
-
-                // Используем соответствующий endpoint
-                let response;
-                if (isBrigade) {
-                    console.log('Пользователь является бригадой, загружаем чаты бригады');
-                    response = await fetch(`${API_BASE}/chat/brigade_sessions/${userId}`);
-                } else {
-                    console.log('Пользователь является покупателем, загружаем чаты пользователя');
-                    response = await fetch(`${API_BASE}/chat/user_sessions/${userId}`);
-                }
-
-                const data = await response.json();
-                const content = document.getElementById('myChatsContent');
-
-                if (data.success && data.sessions.length > 0) {
-                    if (isBrigade) {
-                        // Для бригады показываем чаты с покупателями
-                        content.innerHTML = data.sessions.map(session => `
-                            <div class="chat-session-item">
-                                <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
-                                    <div class="flex-1">
-                                        <h3 class="font-semibold text-white">Чат с ${session.user_name}</h3>
-                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
-                                        <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
-                                    </div>
-                                    <span class="text-xs text-gray-400">
-                                        ${new Date(session.created_at).toLocaleDateString()}
-                                    </span>
-                                </div>
-                                <button class="delete-chat-btn" onclick="deleteChatSession('${session.session_id}', event)" title="Удалить чат">
-                                    <i data-feather="trash-2" class="w-3 h-3"></i>
-                                </button>
-                            </div>
-                        `).join('');
-                    } else {
-                        // Для покупателя показываем чаты с бригадами
-                        content.innerHTML = data.sessions.map(session => `
-                            <div class="chat-session-item">
-                                <div class="flex justify-between items-start" onclick="openChatSessionAsCustomer('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
-                                    <div class="flex-1">
-                                        <h3 class="font-semibold text-white">${session.brigade_name}</h3>
-                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
-                                        <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
-                                    </div>
-                                    <span class="text-xs text-gray-400">
-                                        ${new Date(session.created_at).toLocaleDateString()}
-                                    </span>
-                                </div>
-                                <button class="delete-chat-btn" onclick="deleteChatSession('${session.session_id}', event)" title="Удалить чат">
-                                    <i data-feather="trash-2" class="w-3 h-3"></i>
-                                </button>
-                            </div>
-                        `).join('');
-                    }
-                } else {
-                    const emptyMessage = isBrigade ? 
-                        'Нет сообщений от клиентов' : 
-                        'Нет активных чатов';
-                    const emptyDescription = isBrigade ?
-                        'Когда клиенты напишут вам, их сообщения появятся здесь' :
-                        'Начните диалог с бригадой, написав им сообщение';
-                        
-                    content.innerHTML = `
-                        <div class="text-center p-8">
-                            <i data-feather="message-circle" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
-                            <h3 class="text-lg font-semibold text-gray-700 mb-2">${emptyMessage}</h3>
-                            <p class="text-gray-500">${emptyDescription}</p>
-                        </div>
-                    `;
-                }
-
-                feather.replace();
-            } catch (error) {
-                console.error('Ошибка загрузки чатов:', error);
-                document.getElementById('myChatsContent').innerHTML = `
-                    <div class="text-center p-4 text-red-600">
-                        <p>Не удалось загрузить чаты</p>
-                    </div>
-                `;
-            }
-        }
-
-        function closeMyChatsModal() {
-            document.getElementById('myChatsModal').classList.add('hidden');
-        }
-
-        function openChatSessionAsBrigade(sessionId, brigadeName, objectName) {
-            currentChatSession = sessionId;
-            currentChatBrigade = brigadeName;
-            currentChatObject = objectName;
-            
-            const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const userId = userInfo.id;
-            
-            // Бригада открывает чат - currentChatTelegramId = её собственный ID
-            currentChatTelegramId = String(userId);
-            
-            console.log('Opening chat session as brigade:', {
-                sessionId, brigadeName, objectName,
-                currentUserId: userId,
-                currentChatTelegramId: currentChatTelegramId
-            });
-            
-            closeMyChatsModal();
-            openChatModal(brigadeName, objectName);
-        }
-
-        function openChatSessionAsCustomer(sessionId, brigadeName, objectName) {
-            currentChatSession = sessionId;
-            currentChatBrigade = brigadeName;
-            currentChatObject = objectName;
-            
-            // Покупатель открывает чат - currentChatTelegramId НЕ устанавливаем или ставим null
-            // Это позволит определить, что пользователь - покупатель
-            currentChatTelegramId = null;
-            
-            console.log('Opening chat session as customer:', {
-                sessionId, brigadeName, objectName,
-                currentChatTelegramId: currentChatTelegramId
-            });
-            
-            closeMyChatsModal();
-            openChatModal(brigadeName, objectName);
-        }
-
-        function openChatSession(sessionId, brigadeName, objectName) {
-            // Оставляем старую функцию для совместимости
-            currentChatSession = sessionId;
-            currentChatBrigade = brigadeName;
-            currentChatObject = objectName;
-            
-            const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const userId = userInfo.id;
-            
-            // По умолчанию считаем бригадой (для обратной совместимости)
-            currentChatTelegramId = String(userId);
-            
-            closeMyChatsModal();
-            openChatModal(brigadeName, objectName);
-        }
-
-        async function deleteChatSession(sessionId, event) {
-            // Предотвращаем срабатывание клика по элементу чата
-            event.stopPropagation();
-            
-            const confirmDelete = confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.');
-            
-            if (!confirmDelete) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/chat/delete/${sessionId}`, {
-                    method: 'DELETE'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Удаляем чат из localStorage если он там есть
-                    const keys = Object.keys(localStorage);
-                    for (const key of keys) {
-                        if (key.startsWith('chat_session_') && localStorage.getItem(key) === sessionId) {
-                            localStorage.removeItem(key);
-                            console.log(`Удален session_id из localStorage: ${key}`);
-                            break;
-                        }
-                    }
-
-                    // Закрываем чат если он открыт
-                    if (currentChatSession === sessionId) {
-                        closeChatModal();
-                        currentChatSession = null;
-                        currentChatBrigade = null;
-                        currentChatObject = null;
-                        currentChatTelegramId = null;
-                    }
-
-                    // Обновляем список чатов
-                    showMyChats();
-                    
-                    alert('Чат удален');
-                } else {
-                    console.error('Ошибка удаления чата:', data.error);
-                    alert('Не удалось удалить чат');
-                }
-            } catch (error) {
-                console.error('Ошибка при удалении чата:', error);
-                alert('Ошибка при удалении чата');
-            }
-        }
 
         // Глобальные функции
         // Глобальные функции
@@ -5457,6 +3840,8 @@
         window.contactAboutSpecificProductFromFavorites = contactAboutSpecificProductFromFavorites;
         window.toggleFavorite = toggleFavorite;
         window.toggleFavoriteFromFavorites = toggleFavoriteFromFavorites;
+        window.shareProduct = shareProduct;
+        window.shareProductFromFavorites = shareProductFromFavorites;
         window.makePhoneCall = makePhoneCall;
         window.open2GIS = open2GIS;
         window.openTelegramChannel = openTelegramChannel;
@@ -5479,12 +3864,6 @@
         window.startChatWithBrigade = startChatWithBrigade;
         window.closeChatModal = closeChatModal;
         window.sendChatModalMessage = sendChatModalMessage;
-        window.showMyChats = showMyChats;
-        window.closeMyChatsModal = closeMyChatsModal;
-        window.openChatSession = openChatSession;
-        window.openChatSessionAsBrigade = openChatSessionAsBrigade;
-        window.openChatSessionAsCustomer = openChatSessionAsCustomer;
-        window.deleteChatSession = deleteChatSession;
     </script>
 </body>
 </html>
