@@ -4892,9 +4892,22 @@
 
         async function sendMessageToServer(userId, userName, messageText, imageFile = null) {
             try {
+                console.log('=== ОТПРАВКА СООБЩЕНИЯ ===');
+                console.log('Параметры:', {
+                    userId,
+                    userName,
+                    messageText,
+                    hasImage: !!imageFile,
+                    currentChatSession,
+                    currentChatTelegramId,
+                    currentChatBrigade,
+                    currentChatObject
+                });
+                
                 let response;
                 
                 if (imageFile) {
+                    console.log('📤 Отправка с изображением через FormData');
                     // Отправляем с изображением через FormData
                     const formData = new FormData();
                     formData.append('session_id', currentChatSession);
@@ -4911,36 +4924,43 @@
                         body: formData
                     });
                 } else {
+                    console.log('📤 Отправка текста через JSON');
                     // Отправляем только текст через JSON
+                    const requestBody = {
+                        session_id: currentChatSession,
+                        user_id: userId,
+                        user_name: userName,
+                        telegram_id: currentChatTelegramId,
+                        brigade_name: currentChatBrigade,
+                        object_name: currentChatObject,
+                        message_text: messageText
+                    };
+                    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+                    
                     response = await fetch(`${API_BASE}/chat/send_message`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            session_id: currentChatSession,
-                            user_id: userId,
-                            user_name: userName,
-                            telegram_id: currentChatTelegramId,
-                            brigade_name: currentChatBrigade,
-                            object_name: currentChatObject,
-                            message_text: messageText
-                        })
+                        body: JSON.stringify(requestBody)
                     });
                 }
 
+                console.log('📥 Ответ сервера:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Сообщение отправлено на сервер:', data);
+                console.log('Response data:', JSON.stringify(data, null, 2));
 
                 if (data.success) {
+                    console.log('✅ Сообщение успешно отправлено');
                     // Перезагружаем историю чата после отправки
                     await loadChatHistory();
                 } else {
-                    console.error('Ошибка отправки сообщения:', data.error);
+                    console.error('❌ Ошибка от сервера:', data.error);
                     alert('Не удалось отправить сообщение');
                 }
             } catch (error) {
-                console.error('Ошибка отправки сообщения на сервер:', error);
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА отправки:', error);
+                console.error('Stack trace:', error.stack);
                 alert('Ошибка связи с сервером');
             }
         }
