@@ -2760,7 +2760,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', ${object.object_row || 'null'}, '${escapeHtml(object.telegram_id || '')}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row || 'null'}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', ${object.object_row || 'null'}, '${escapeHtml(object.telegram_id || '')}')" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -4472,7 +4472,8 @@
                 const userId = userInfo.id || 'web_user_' + Date.now();
                 const userName = userInfo.first_name || 'Пользователь';
 
-                console.log('Начинаем чат с бригадой:', { 
+                console.log('=== НАЧАЛО СОЗДАНИЯ ЧАТА ===');
+                console.log('Параметры функции:', { 
                     brigadeRow, 
                     brigadeTelegramId, 
                     brigadeName, 
@@ -4483,8 +4484,32 @@
                     userName 
                 });
                 
+                // Проверяем обязательные параметры
+                if (!brigadeTelegramId || brigadeTelegramId === '' || brigadeTelegramId === 'null') {
+                    console.error('❌ Отсутствует brigade_telegram_id');
+                    const errorMessage = 'Не указан Telegram ID бригады. Обратитесь к администратору.';
+                    if (tg?.showAlert) {
+                        tg.showAlert(errorMessage);
+                    } else {
+                        alert(errorMessage);
+                    }
+                    return;
+                }
+                
+                if (!objectTelegramId || objectTelegramId === '' || objectTelegramId === 'null') {
+                    console.error('❌ Отсутствует object_telegram_id');
+                    const errorMessage = 'Не указан владелец объекта. Обратитесь к администратору.';
+                    if (tg?.showAlert) {
+                        tg.showAlert(errorMessage);
+                    } else {
+                        alert(errorMessage);
+                    }
+                    return;
+                }
+                
                 // Проверяем, не пытается ли пользователь написать самому себе
-                if (objectTelegramId && userId && String(objectTelegramId) === String(userId)) {
+                if (String(objectTelegramId) === String(userId)) {
+                    console.warn('⚠️ Пользователь пытается написать по своему объекту');
                     const errorMessage = 'Это ваш объект, вы не можете начать чат сами с собой';
                     if (tg?.showAlert) {
                         tg.showAlert(errorMessage);
@@ -4500,9 +4525,10 @@
                 // Проверяем, есть ли уже сохраненная сессия
                 const sessionKey = getChatSessionKey(brigadeRow, objectRow);
                 const savedSession = localStorage.getItem(sessionKey);
+                console.log('Session key:', sessionKey, 'Saved session:', savedSession);
 
                 if (savedSession) {
-                    console.log('Найдена существующая сессия:', savedSession);
+                    console.log('✅ Найдена существующая сессия:', savedSession);
                     currentChatSession = savedSession;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
@@ -4516,25 +4542,30 @@
                 }
 
                 // Создаем новую сессию через API
+                console.log('📤 Отправка запроса на сервер...');
+                const requestBody = {
+                    user_id: userId,
+                    user_name: userName,
+                    brigade_row: brigadeRow,
+                    brigade_telegram_id: brigadeTelegramId,
+                    brigade_name: brigadeName,
+                    object_name: objectName,
+                    object_row: objectRow,
+                    object_telegram_id: objectTelegramId
+                };
+                console.log('Request body:', JSON.stringify(requestBody, null, 2));
+                
                 const response = await fetch(`${API_BASE}/chat/start`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        user_name: userName,
-                        brigade_row: brigadeRow,
-                        brigade_telegram_id: brigadeTelegramId,
-                        brigade_name: brigadeName,
-                        object_name: objectName,
-                        object_row: objectRow,
-                        object_telegram_id: objectTelegramId
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
+                console.log('📥 Ответ сервера:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Ответ сервера:', data);
+                console.log('Response data:', JSON.stringify(data, null, 2));
 
                 if (data.success) {
                     // Сохраняем данные чата
@@ -4553,6 +4584,7 @@
                     openChatModal(brigadeName, objectName);
                 } else {
                     // Специальная обработка ошибок
+                    console.error('❌ Ошибка от сервера:', data.error, data.message);
                     if (data.error === 'own_object') {
                         const tg = window.Telegram?.WebApp;
                         const errorMessage = 'Это ваш объект, вы не можете начать чат сами с собой';
@@ -4562,13 +4594,14 @@
                             alert(errorMessage);
                         }
                     } else {
-                        throw new Error(data.error || 'Не удалось создать чат');
+                        throw new Error(data.error || data.message || 'Не удалось создать чат');
                     }
                 }
             } catch (error) {
-                console.error('Ошибка при создании чата:', error);
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при создании чата:', error);
+                console.error('Stack trace:', error.stack);
                 const tg = window.Telegram?.WebApp;
-                const errorMessage = 'Не удалось связаться с бригадой. Попробуйте позже или позвоните по телефону.';
+                const errorMessage = `Не удалось связаться с бригадой.\nОшибка: ${error.message}\n\nПопробуйте позже или позвоните по телефону.`;
                 if (tg?.showAlert) {
                     tg.showAlert(errorMessage);
                 } else {
