@@ -3276,12 +3276,6 @@
         // Рендер карусели товаров
         // ...existing code...
 
-                renderSections(data.sections);
-                updateBackButton();
-            } catch (error) {
-                showError('Не удалось загрузить разделы');
-            }
-        }
 
         async function loadCategories(sectionId, sectionName) {
             lastAction = { type: 'loadCategories', sectionId, sectionName };
