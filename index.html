@@ -398,6 +398,86 @@
         .uber-taxi:hover {
             background-color: #333333;
         }
+        
+        /* Стили для квадратных кнопок в стартовом меню */
+        .bottom-action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .square-action-button {
+            height: 80px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: white !important;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .square-action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .square-action-button:active {
+            transform: translateY(-1px);
+        }
+        
+        .brigades-button {
+            background: linear-gradient(135deg, #10B981, #059669);
+        }
+        
+        .brigades-button:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+        
+        .taxi-square-button {
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            position: relative;
+        }
+        
+        .taxi-square-button:hover {
+            background: linear-gradient(135deg, #7C3AED, #6D28D9);
+        }
+        
+        .taxi-checker-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
+            background-size: 12px 12px;
+            background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+            opacity: 0.3;
+        }
+        
+        .square-button-icon {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .square-action-button svg {
+            width: 16px;
+            height: 16px;
+        }
 
         .header-title {
             display: flex;
@@ -1627,46 +1707,6 @@
             } else {
                 window.open(CONTACT_INFO.telegramChannel, '_blank');
             }
-        }
-
-        // ФУНКЦИИ ДЛЯ ВЫЗОВА ТАКСИ
-        function callTaxi() {
-            const address = encodeURIComponent(CONTACT_INFO.address);
-            const lat = CONTACT_INFO.coordinates.lat;
-            const lon = CONTACT_INFO.coordinates.lon;
-            
-            let html = `
-                <div class="bg-white rounded-xl p-4 shadow-lg">
-                    <h3 class="text-lg font-semibold mb-4 text-contrast">Вызвать такси</h3>
-                    <p class="text-gray-600 mb-4 text-contrast">Выберите сервис такси для поездки в наш магазин:</p>
-                    
-                    <div class="taxi-buttons">
-                        <button onclick="openYandexTaxi()" class="taxi-service-button yandex-taxi">
-                            <i data-feather="navigation" class="w-4 h-4"></i>
-                            Яндекс Такси
-                        </button>
-                        <button onclick="openUber()" class="taxi-service-button uber-taxi">
-                            <i data-feather="car" class="w-4 h-4"></i>
-                            Uber
-                        </button>
-                    </div>
-                    
-                    <div class="mt-4 p-3 bg-blue-50 rounded-lg">
-                        <p class="text-sm text-blue-700">
-                            <i data-feather="map-pin" class="w-4 h-4 inline mr-1"></i>
-                            Адрес: ${CONTACT_INFO.address}
-                        </p>
-                    </div>
-                    
-                    <button onclick="loadSections()" class="back-button mt-4">
-                        <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                        Назад в каталог
-                    </button>
-                </div>
-            `;
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
         }
 
         function openTaxiMenu() {
@@ -3144,39 +3184,23 @@
                 </div>
             `;
 
-            html += `
-                <div class="category-card fade-in" onclick="loadBrigades()">
-                    <div class="p-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center">
-                                <i data-feather="users" class="w-5 h-5 mr-3 text-blue-500"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Бригады</h3>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-500">Строительные бригады</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
 
-            html += `
-                <div class="category-card fade-in" onclick="callTaxi()">
-                    <div class="p-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center">
-                                <i data-feather="car" class="w-5 h-5 mr-3 text-purple-600"></i>
-                                <h3 class="font-semibold text-lg tg-theme-text text-contrast">Вызвать такси</h3>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-500">До магазина</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
             
             html += '</div>';
+
+            // Добавляем квадратные кнопки в стартовое меню
+            html += `
+                <div class="bottom-action-buttons">
+                    <button class="square-action-button brigades-button" onclick="openBrigades()">
+                        <i data-feather="users"></i>
+                        <span>БРИГАДЫ</span>
+                    </button>
+                    <button class="square-action-button taxi-square-button" onclick="callTaxi()">
+                        <i data-feather="car"></i>
+                        <span>ТАКСИ</span>
+                    </button>
+                </div>
+            `;
             
             if (!html) {
                 showEmptyState('Нет доступных разделов');
@@ -3863,6 +3887,86 @@
                     break;
                 default:
                     loadSections();
+            }
+        }
+
+        // ========== ФУНКЦИИ ДЛЯ КВАДРАТНЫХ КНОПОК ==========
+        
+        function openBrigades() {
+            console.log('🏗️ Открываем бригады');
+            loadBrigades();
+        }
+        
+        function callTaxi() {
+            console.log('🚕 Вызываем такси');
+            
+            // Создаем модальное окно с выбором сервиса
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Выберите сервис такси</h3>
+                    <div class="space-y-3">
+                        <button onclick="openYandexTaxi()" class="w-full p-3 rounded-lg font-medium text-black" style="background-color: #FFCC00;">
+                            🚕 Яндекс Такси
+                        </button>
+                        <button onclick="openUberTaxi()" class="w-full p-3 rounded-lg font-medium text-white" style="background-color: #000000;">
+                            🚗 Uber
+                        </button>
+                        <button onclick="closeModal(this.closest('.fixed'))" class="w-full p-3 rounded-lg font-medium text-gray-600 bg-gray-100 hover:bg-gray-200">
+                            Отмена
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Закрытие по клику на фон
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+        }
+        
+        function openYandexTaxi() {
+            console.log('🟡 Открываем Яндекс Такси');
+            
+            // Используем существующую функцию с правильными координатами
+            const lat = CONTACT_INFO.coordinates.lat;
+            const lon = CONTACT_INFO.coordinates.lon;
+            const address = encodeURIComponent(CONTACT_INFO.address);
+            
+            const yandexTaxiUrl = `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lon}&end-text=${address}&appmetrica_tracking_id=1178268795219780156`;
+            
+            if (tg) {
+                tg.openLink(yandexTaxiUrl);
+            } else {
+                window.open(yandexTaxiUrl, '_blank');
+            }
+            
+            // Закрываем модал
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+        }
+        
+        function openUberTaxi() {
+            // Используем существующую функцию
+            openUber();
+            
+            // Закрываем модал
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+        }
+        
+        function closeModal(modalElement) {
+            if (modalElement) {
+                document.body.removeChild(modalElement);
             }
         }
 
