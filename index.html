@@ -1493,7 +1493,151 @@
         .submodel-item .preview-image-container {
             background: none;
             padding: 0;
-                }
+            margin-bottom: 8px;
+        }
+        
+        /* Стили для карусели товаров */
+        .products-carousel-container {
+            margin-top: 32px;
+            padding-top: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: none;
+        }
+        
+        .products-carousel-container.visible {
+            display: block;
+        }
+        
+        .carousel-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 20%, rgba(255, 255, 255, 0.3) 80%, transparent);
+            margin: 0 16px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .carousel-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 0 16px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+        }
+        
+        .products-carousel {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            padding: 0 calc(50vw - 140px) 24px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+            cursor: grab;
+        }
+        
+        .products-carousel:active {
+            cursor: grabbing;
+        }
+        
+        .products-carousel::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .products-carousel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        
+        .products-carousel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        .products-carousel::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .carousel-card {
+            flex: 0 0 280px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transform: scale(0.9);
+            opacity: 0.6;
+        }
+        
+        .carousel-card.center {
+            transform: scale(1);
+            opacity: 1;
+            z-index: 2;
+        }
+        
+        .carousel-card:hover {
+            transform: scale(0.95) translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .carousel-card.center:hover {
+            transform: scale(1.02) translateY(-4px);
+        }
+        
+        .carousel-card * {
+            color: #ffffff !important;
+        }
+        
+        .carousel-image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .carousel-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        
+        .carousel-card-content {
+            padding: 16px;
+        }
+        
+        .carousel-card-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .carousel-card-price {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin: 0;
         }
     </style>
 </head>
@@ -1718,7 +1862,7 @@
                         <div class="menu-item" onclick="openTaxiMenu(); closeSideMenu();">
                             <i data-feather="car"></i>
                             <div>
-                                                               <div class="font-medium">Вызвать такси</div>
+                                <div class="font-medium">Вызвать такси</div>
                                 <div class="text-sm text-gray-600">До нашего магазина</div>
                             </div>
                         </div>
@@ -1749,7 +1893,12 @@
             </div>
         </div>
         
-        <!-- ...existing code... -->
+        <!-- Карусель товаров -->
+        <div class="carousel-divider"></div>
+        <div class="products-carousel-container">
+            <h2 class="carousel-title">Популярные материалы</h2>
+            <div class="products-carousel" id="productsCarousel"></div>
+        </div>
     </div>
 
     <script>
@@ -2192,7 +2341,8 @@
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
-                console.log('DEBUG photo_url:', photoUrl);
+                const photoDescription = safeString(product.photo_description);
+                
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
@@ -3035,10 +3185,8 @@
             
             if (Math.abs(diff) > swipeThreshold) {
                 if (diff > 0) {
-                    // Свайп влево - следующая карточка
                     nextGalleryImage();
                 } else {
-                    // Свайп вправо - предыдущая карточка
                     prevGalleryImage();
                 }
             }
@@ -3116,8 +3264,8 @@
                         
                         if (modelHash && modelHash !== 'null') {
                             // Открываем модель
-                            const modelsData = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
-                            const model = modelsData.models.find(m => m.id === modelHash);
+                            const models = await loadModels(sectionHash, categoryHash);
+                            const model = models.find(m => m.id === modelHash);
                             if (model) {
                                 await openModel(sectionHash, categoryHash, model.id, model.name);
                                 
@@ -3250,32 +3398,196 @@
         async function loadRandomProducts() {
             try {
                 // Пробуем загрузить через API
-                const data = await apiFetch('/random_products?count=10');
-                
-                if (data && Array.isArray(data.products) && data.products.length > 0) {
-                    return data.products;
+                // Карусель товаров удалена
+                        navigation.section = null;
+                        navigation.category = { id: product.category_id, name: product.category };
+                        navigation.model = null;
+                        navigation.submodel = null;
+                        
+                        await loadProducts();
+                        
+                        // Ищем товар снова после загрузки
+                        productIndex = currentProducts.findIndex(p => {
+                            return (p.id && p.id === productId) || (p.row_index && p.row_index === productId);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки товара:', error);
                 }
-                
-                // Если API не вернул товары, берем из текущих на странице
-                if (currentProducts && currentProducts.length > 0) {
-                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
-                    return shuffled.slice(0, Math.min(10, shuffled.length));
+            }
+            
+            if (productIndex !== -1) {
+                // Нашли товар - открываем его модальное окно
+                setTimeout(() => {
+                    openModal(currentProducts[productIndex], productIndex);
+                }, 100);
+            } else {
+                console.log('Товар не найден в каталоге. ID:', productId);
+                if (tg) {
+                    tg.showAlert('Товар не найден в каталоге');
                 }
-                
-                return [];
-            } catch (error) {
-                // При ошибке API пробуем взять из currentProducts
-                if (currentProducts && currentProducts.length > 0) {
-                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
-                    return shuffled.slice(0, Math.min(10, shuffled.length));
-                }
-                return [];
             }
         }
         
-        // Рендер карусели товаров
-        // ...existing code...
+        // Инициализация карусели
+        async function initProductCarousel() {
+            const products = await loadRandomProducts();
+            renderProductCarousel(products);
+            startCarouselAutoRefresh();
+            
+            // Добавляем обработку свайпов для переключения по одной карточке
+            const carousel = document.getElementById('productsCarousel');
+            if (carousel) {
+                let currentIndex = 0;
+                const cards = () => carousel.querySelectorAll('.carousel-card');
+                
+                // Функция для прокрутки к конкретной карточке
+                const scrollToCard = (index) => {
+                    const allCards = cards();
+                    if (index >= 0 && index < allCards.length) {
+                        currentIndex = index;
+                        const card = allCards[index];
+                        const cardLeft = card.offsetLeft;
+                        const cardWidth = card.offsetWidth;
+                        const carouselWidth = carousel.offsetWidth;
+                        const scrollPosition = cardLeft - (carouselWidth / 2) + (cardWidth / 2);
+                        
+                        carousel.scrollTo({
+                            left: scrollPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                };
+                
+                // Функция для обновления центральной карточки
+                const updateCenterCard = () => {
+                    const allCards = cards();
+                    const carouselCenter = carousel.offsetWidth / 2 + carousel.scrollLeft;
+                    
+                    allCards.forEach((card, index) => {
+                        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+                        const distance = Math.abs(carouselCenter - cardCenter);
+                        
+                        if (distance < card.offsetWidth / 2) {
+                            card.classList.add('center');
+                            currentIndex = index;
+                        } else {
+                            card.classList.remove('center');
+                        }
+                    });
+                };
+                
+                // Обработка свайпов
+                let touchStartX = 0;
+                let touchStartTime = 0;
+                let scrollStartLeft = 0;
+                
+                carousel.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].pageX;
+                    touchStartTime = Date.now();
+                    scrollStartLeft = carousel.scrollLeft;
+                }, { passive: true });
+                
+                carousel.addEventListener('touchend', (e) => {
+                    const touchEndX = e.changedTouches[0].pageX;
+                    const touchDuration = Date.now() - touchStartTime;
+                    const touchDistance = touchStartX - touchEndX;
+                    const scrollDistance = carousel.scrollLeft - scrollStartLeft;
+                    
+                    // Всегда центрируем карточку после окончания касания
+                    setTimeout(() => {
+                        // Определяем свайп (быстрое движение или достаточное смещение)
+                        const isSwipe = Math.abs(touchDistance) > 50 || 
+                                       (touchDuration < 300 && Math.abs(touchDistance) > 20);
+                        
+                        if (isSwipe) {
+                            if (touchDistance > 0) {
+                                // Свайп влево - следующая карточка
+                                scrollToCard(currentIndex + 1);
+                            } else {
+                                // Свайп вправо - предыдущая карточка
+                                scrollToCard(currentIndex - 1);
+                            }
+                        } else {
+                            // Если не свайп, центрируем текущую карточку
+                            scrollToCard(currentIndex);
+                        }
+                    }, 50);
+                });
+                
+                // Обработка колесика мыши
+                carousel.addEventListener('wheel', (e) => {
+                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                        e.preventDefault();
+                        if (e.deltaX > 0) {
+                            scrollToCard(currentIndex + 1);
+                        } else {
+                            scrollToCard(currentIndex - 1);
+                        }
+                    }
+                }, { passive: false });
+                
+                // Обновление при скролле (для других способов прокрутки)
+                let scrollTimeout;
+                carousel.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        requestAnimationFrame(updateCenterCard);
+                    }, 50);
+                }, { passive: true });
+                
+                // Центрируем карточку когда прокрутка заканчивается
+                carousel.addEventListener('scrollend', () => {
+                    updateCenterCard();
+                    scrollToCard(currentIndex);
+                });
+                
+                // Fallback для браузеров без scrollend
+                let isScrolling;
+                carousel.addEventListener('scroll', () => {
+                    clearTimeout(isScrolling);
+                    isScrolling = setTimeout(() => {
+                        updateCenterCard();
+                        scrollToCard(currentIndex);
+                    }, 150);
+                }, { passive: true });
+                
+                // Начальное обновление
+                setTimeout(() => {
+                    updateCenterCard();
+                    scrollToCard(0);
+                }, 100);
+            }
+        }
 
+        // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
+
+        async function loadSections() {
+            lastAction = { type: 'loadSections' };
+            
+            try {
+                navigationStack = [];
+                updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
+                elements.pageTitle.textContent = 'Каталог товаров';
+                
+                const data = await apiFetch('/sections');
+                
+                if (data?.error) {
+                    showEmptyState('Ошибка загрузки разделов');
+                    return;
+                }
+                
+                if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+                    showEmptyState('Разделы не найдены');
+                    return;
+                }
+
+                renderSections(data.sections);
+                updateBackButton();
+            } catch (error) {
+                showError('Не удалось загрузить разделы');
+            }
+        }
 
         async function loadCategories(sectionId, sectionName) {
             lastAction = { type: 'loadCategories', sectionId, sectionName };
@@ -3924,7 +4236,7 @@
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
-                console.log('DEBUG photo_url:', photoUrl);
+                
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
@@ -4391,8 +4703,7 @@
         // Получить или создать session_id для чата
         function getChatSessionKey(brigadeName, objectName) {
             const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const userId = userInfo.id || 'web_user';
+            const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
 
