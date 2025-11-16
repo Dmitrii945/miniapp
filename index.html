@@ -7,6 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --tg-theme-bg-color: #ffffff;
@@ -17,13 +18,62 @@
             --tg-theme-button-text-color: #ffffff;
         }
         
+        /* Общие стили и шрифты */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        /* Базовый стиль для всех стеклянных кнопок */
+        .glass-btn, button:not(.no-glass) {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-radius: 16px !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            cursor: pointer !important;
+        }
+        
+        .glass-btn:hover, button:not(.no-glass):hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+        
         .tg-theme-button {
-            background-color: var(--tg-theme-button-color, #3B82F6);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-radius: 16px !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            font-weight: 600 !important;
+        }
+        
+        .tg-theme-button:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
         }
         
         .tg-theme-text {
-            color: var(--tg-theme-text-color, #000000) !important;
+            color: var(--tg-theme-text-color, #ffffff) !important;
         }
         
         .tg-theme-hint {
@@ -77,14 +127,25 @@
         }
         
         .breadcrumb-item {
-            cursor: pointer;
-            color: #3B82F6 !important;
-            transition: color 0.2s;
+            cursor: pointer !important;
+            color: #000000 !important;
+            padding: 6px 14px !important;
+            border-radius: 12px !important;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
         }
         
         .breadcrumb-item:hover {
-            color: #1D4ED8 !important;
-            text-decoration: underline;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            color: #000000 !important;
         }
         
         .breadcrumb-separator {
@@ -99,48 +160,74 @@
         }
         
         .product-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
         }
 
         .product-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .product-card * {
+            color: #ffffff !important;
         }
         
         .category-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             cursor: pointer;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
         }
 
         .category-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            border-color: rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .category-card * {
+            color: #ffffff !important;
         }
         
         .retry-button {
-            background-color: #3B82F6;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            padding: 12px 24px !important;
+            border-radius: 16px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
         }
         
         .retry-button:hover {
-            background-color: #2563EB;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
 
         .action-buttons {
@@ -151,80 +238,79 @@
         
         .action-button {
             flex: 1;
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 500;
-            font-size: 0.875rem;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            font-weight: 600;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            color: white !important;
+            gap: 8px;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
         }
         
         .action-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
         }
         
-        .phone-button {
-            background-color: #10B981;
-            color: white;
+        .phone-button, .gis-button, .taxi-button {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-radius: 16px !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            transition: all 0.3s ease !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            font-weight: 600 !important;
         }
         
-        .phone-button:hover {
-            background-color: #059669;
-        }
-        
-        .gis-button {
-            background-color: #F59E0B;
-            color: white;
-        }
-        
-        .gis-button:hover {
-            background-color: #D97706;
+        .phone-button:hover, .gis-button:hover, .taxi-button:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
         }
 
-        .taxi-button {
-            background-color: #8B5CF6;
-            color: white;
-        }
-        
-        .taxi-button:hover {
-            background-color: #7C3AED;
-        }
-
-        .phone-button {
-            background-color: #3B82F6;
-            color: white;
-        }
-        
-        .phone-button:hover {
-            background-color: #2563EB;
-        }
-        
         .back-button {
-            background-color: #6B7280;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            width: 100%;
-            margin-top: 16px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            padding: 12px 20px !important;
+            border-radius: 16px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            width: 100% !important;
+            margin-top: 16px !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
         }
         
         .back-button:hover {
-            background-color: #4B5563;
-            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
 
         .clickable-card {
@@ -237,17 +323,33 @@
         }
 
         body {
-            color: #000000;
-            background-color: #f9fafb;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
         }
 
         header {
-            background-color: white;
-            color: #000000;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        header h1, header span, header .page-title {
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         h1, h2, h3, h4, h5, h6, p, span, div {
-            color: #000000;
+            color: inherit;
+        }
+
+        /* Переопределение Tailwind классов для белого текста */
+        .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700 {
+            color: #ffffff !important;
         }
 
         button {
@@ -259,7 +361,7 @@
         }
 
         .text-contrast {
-            color: #000000 !important;
+            color: #ffffff !important;
         }
 
         .bg-contrast {
@@ -267,59 +369,82 @@
         }
 
         .menu-button {
-            background-color: #10B981;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+            border-radius: 16px !important;
+            padding: 12px 16px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            font-weight: 600 !important;
+            text-shadow: none !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            cursor: pointer !important;
         }
 
         .menu-button:hover {
-            background-color: #059669;
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            color: #ffffff !important;
         }
 
         .install-button {
-            background-color: #3B82F6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+            border-radius: 16px !important;
+            padding: 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            font-weight: 600 !important;
+            text-shadow: none !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            cursor: pointer !important;
         }
 
         .install-button:hover {
-            background-color: #2563EB;
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            color: #ffffff !important;
         }
         
         .chat-button {
-            background-color: #10B981;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+            border-radius: 16px !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            text-shadow: none !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
         }
         
         .chat-button:hover {
-            background-color: #059669;
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            color: #ffffff !important;
         }
         
         .chat-button i {
@@ -328,19 +453,28 @@
         }
 
         .menu-item {
-            padding: 12px 16px;
-            border-radius: 8px;
-            transition: all 0.2s;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #1F2937;
+            padding: 16px 20px !important;
+            border-radius: 16px !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            color: white !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin-bottom: 8px !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
 
         .menu-item:hover {
-            background-color: #F3F4F6;
-            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateX(-4px) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
         }
 
         .menu-item i {
@@ -350,8 +484,8 @@
 
         .menu-divider {
             height: 1px;
-            background-color: #E5E7EB;
-            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 12px 0;
         }
 
         .taxi-buttons {
@@ -362,111 +496,92 @@
         
         .taxi-service-button {
             flex: 1;
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 500;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            font-weight: 600;
             font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
             color: white !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .taxi-service-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
         }
         
-        .yandex-taxi {
-            background-color: #FFCC00;
-            color: #000 !important;
+        .yandex-taxi, .uber-taxi {
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
         
-        .yandex-taxi:hover {
-            background-color: #E6B800;
-        }
-        
-        .uber-taxi {
-            background-color: #000000;
-            color: white !important;
-        }
-        
-        .uber-taxi:hover {
-            background-color: #333333;
+        .yandex-taxi:hover, .uber-taxi:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
         }
         
         /* Стили для квадратных кнопок в стартовом меню */
         .bottom-action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
-            margin-bottom: 16px;
+            gap: 16px;
+            margin: 24px 16px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
         .square-action-button {
-            height: 80px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            color: white !important;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            height: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 20px !important;
+            font-weight: 600 !important;
+            font-size: 12px !important;
+            cursor: pointer !important;
+            transition: all 0.4s ease !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            color: #ffffff !important;
+            text-align: center !important;
+            position: relative !important;
+            overflow: hidden !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            text-shadow: none !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
         }
         
         .square-action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-4px) !important;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.2) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            color: #ffffff !important;
         }
         
         .square-action-button:active {
-            transform: translateY(-1px);
-        }
-        
-        .brigades-button {
-            background: linear-gradient(135deg, #10B981, #059669);
-        }
-        
-        .brigades-button:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-        }
-        
-        .taxi-square-button {
-            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-            position: relative;
-        }
-        
-        .taxi-square-button:hover {
-            background: linear-gradient(135deg, #7C3AED, #6D28D9);
-        }
-        
-        .taxi-checker-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
-                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
-            background-size: 12px 12px;
-            background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
-            opacity: 0.3;
+            transform: translateY(-2px);
         }
         
         .square-button-icon {
@@ -483,28 +598,37 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
+            margin: 0 16px;
         }
 
         .main-title {
-            font-size: 1.125rem;
-            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
             line-height: 1.2;
+            color: #FFFFFF;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .sub-title {
-            font-size: 1.125rem;
-            color: #6B7280;
-            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            color: #ffffff !important;
+            font-weight: 500;
             line-height: 1;
-            margin-top: 2px;
+            margin-top: 4px;
+            letter-spacing: 0.05em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .favorite-button {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: #000000;
+            border: 1px solid #333333;
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -516,8 +640,12 @@
             z-index: 10;
         }
 
+        .favorite-button i {
+            color: white;
+        }
+
         .favorite-button:hover {
-            background-color: #f9fafb;
+            background-color: #1a1a1a;
             transform: scale(1.1);
         }
 
@@ -530,7 +658,7 @@
             color: white;
         }
 
-        .favorite-label {
+        .product-card .favorite-label {
             position: absolute;
             top: 10px;
             left: 10px;
@@ -539,7 +667,7 @@
             border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 500;
-            color: #374151;
+            color: #000000 !important;
             z-index: 10;
         }
 
@@ -573,7 +701,7 @@
             font-weight: 700;
             margin-bottom: 20px;
             padding: 0 8px;
-            color: #1F2937;
+            color: #ffffff;
             border-left: 4px solid #3B82F6;
             padding-left: 12px;
         }
@@ -585,21 +713,30 @@
         }
 
         .brigade-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             cursor: pointer;
             height: 140px;
             display: flex;
             flex-direction: column;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
         }
 
         .brigade-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .brigade-card * {
+            color: #ffffff !important;
         }
 
         .chat-object-btn {
@@ -639,7 +776,7 @@
         .brigade-image-placeholder {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -658,7 +795,7 @@
             font-size: 0.875rem;
             font-weight: 600;
             margin-bottom: 4px;
-            color: #1F2937;
+            color: #ffffff;
             line-height: 1.2;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -667,7 +804,7 @@
         }
 
         .brigade-description {
-            color: #6B7280;
+            color: #e5e7eb;
             font-size: 0.75rem;
             line-height: 1.2;
             display: -webkit-box;
@@ -688,59 +825,95 @@
         }
 
         .object-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             cursor: pointer;
             margin-bottom: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
         }
 
         .object-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .object-card * {
+            color: #ffffff !important;
+        }
+
+        /* Исключение для кнопки информации - более высокая специфичность */
+        .object-card .object-card .info-button,
+        .object-card .info-button,
+        .object-card .info-button *,
+        button.info-button,
+        button.info-button * {
+            color: #000000 !important;
+            background: #ffffff !important;
         }
 
         .object-title {
             font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #1F2937;
+            color: #ffffff;
         }
 
         .object-description {
-            color: #6B7280;
+            color: #e5e7eb;
             line-height: 1.5;
             font-size: 0.9rem;
         }
 
         /* НОВЫЕ СТИЛИ ДЛЯ ГАЛЕРЕИ ОБЪЕКТОВ */
         .object-gallery-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             overflow: hidden;
             margin-bottom: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff !important;
+        }
+
+        .object-gallery-container * {
+            color: #ffffff !important;
+        }
+
+        /* Исключение для кнопки информации - более высокая специфичность */
+        .object-gallery-container .object-gallery-container .info-button,
+        .object-gallery-container .info-button,
+        .object-gallery-container .info-button *,
+        .object-gallery-container button.info-button,
+        .object-gallery-container button.info-button * {
+            color: #000000 !important;
+            background: #ffffff !important;
         }
 
         .object-gallery-header {
             padding: 16px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
         }
 
         .object-gallery-title {
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 4px;
-            color: #1F2937;
+            color: #ffffff;
         }
 
         .object-gallery-description {
-            color: #6B7280;
+            color: #e5e7eb;
             font-size: 0.9rem;
             line-height: 1.4;
         }
@@ -1072,7 +1245,7 @@
         }
 
         .chat-modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
             padding: 20px;
             display: flex;
             justify-content: space-between;
@@ -1133,7 +1306,7 @@
         .chat-message-brigade {
             align-self: flex-start;
             background: white;
-            color: #1F2937;
+            color: #000000;
             border-bottom-left-radius: 4px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
@@ -1163,36 +1336,58 @@
         }
         
         .chat-session-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f3f4f6;
-            transition: background-color 0.2s;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            cursor: pointer;
         }
         
         .chat-session-item:hover {
-            background-color: #f9fafb;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
         
         .chat-session-item:last-child {
-            border-bottom: none;
+            margin-bottom: 0;
         }
         
         .delete-chat-btn {
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 11px;
+            background: rgba(239, 68, 68, 0.9) !important;
+            color: white !important;
+            border: 1px solid rgba(220, 38, 38, 0.5) !important;
+            border-radius: 8px;
+            padding: 8px 12px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            min-height: 36px;
             margin-left: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
         }
         
         .delete-chat-btn:hover {
-            background-color: #dc2626;
+            background: rgba(220, 38, 38, 1) !important;
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
+        }
+        
+        .delete-chat-btn svg {
+            stroke: white !important;
         }
 
         .chat-input {
@@ -1202,6 +1397,8 @@
             border-radius: 24px;
             font-size: 14px;
             outline: none;
+            color: #000000;
+            background-color: #ffffff;
         }
 
         .chat-input:focus {
@@ -1211,25 +1408,35 @@
         .chat-send-btn {
             width: 44px;
             height: 44px;
-            background: #3B82F6;
-            border: none;
+            background: #ffffff;
+            border: 2px solid #3B82F6;
             border-radius: 50%;
-            color: white;
+            color: #3B82F6;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
         }
 
         .chat-send-btn:hover {
-            background: #2563EB;
+            background: #3B82F6;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .chat-send-btn svg {
+            stroke: currentColor !important;
+            fill: none !important;
+            width: 20px !important;
+            height: 20px !important;
         }
         
         .info-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
+            background: #ffffff;
+            color: #000000 !important;
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 12px 20px;
             font-weight: 500;
@@ -1245,12 +1452,17 @@
         
         .info-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: #f8f9fa;
+        }
+
+        .info-button * {
+            color: #000000 !important;
         }
         
         /* СТИЛИ ДЛЯ ПРЕВЬЮ ИЗОБРАЖЕНИЙ */
         .preview-image-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
             padding: 16px;
             border-radius: 12px;
             margin-bottom: 16px;
@@ -1281,35 +1493,44 @@
         .submodel-item .preview-image-container {
             background: none;
             padding: 0;
-            margin-bottom: 8px;
+                }
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);">
     <div id="app" class="max-w-md mx-auto">
         <!-- Header -->
-        <header class="bg-white shadow-sm p-4 sticky top-0 z-10">
-            <div class="flex justify-between items-center">
-                <button id="toggleMenu" class="menu-button">
-                    <i data-feather="menu"></i>
-                </button>
-                <div class="header-title">
-                    <h1 class="main-title tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
-                    <div class="sub-title">Скидка Сервис</div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
-                        <i data-feather="message-circle"></i>
-                        <span>Чаты</span>
-                    </button>
-                    <button id="installButton" class="install-button" title="Добавить на главный экран">
-                        <i data-feather="plus-square"></i>
-                    </button>
+        <header class="shadow-lg p-4 sticky top-0 z-10">
+            <!-- Фото и имя пользователя -->
+            <div id="userInfoHeader" class="flex items-center gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
+                <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
+                <div id="userNameHeader" class="text-white font-medium">
+                    <!-- Имя пользователя будет вставлено через JS -->
                 </div>
             </div>
             
-            <!-- Breadcrumbs -->
-            <div id="breadcrumbs" class="flex items-center text-sm mt-2 overflow-x-auto whitespace-nowrap"></div>
+            <div class="flex items-center justify-between">
+                <!-- Левая группа: Меню -->
+                <div class="flex items-center">
+                    <button id="toggleMenu" class="menu-button">
+                        <i data-feather="menu"></i>
+                    </button>
+                </div>
+                
+                <!-- Центральная группа: Название -->
+                <div class="header-title flex-1">
+                    <h1 class="main-title" id="pageTitle">Каталог товаров</h1>
+                    <div class="sub-title">Скидка Сервис</div>
+                </div>
+                
+                <!-- Правая группа: Чаты -->
+                <div class="flex items-center gap-2">
+                    <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
+                        <i data-feather="message-circle"></i>
+                        <span class="hidden sm:inline">Чаты</span>
+                    </button>
+                </div>
+            </div>
         </header>
 
         <!-- Loading -->
@@ -1390,6 +1611,12 @@
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
             </div>
+            <div style="padding: 16px; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                <button onclick="loadBrigades(); closeMyChatsModal();" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-green-600 transition">
+                    <i data-feather="users" class="w-5 h-5 mr-2"></i>
+                    БРИГАДЫ
+                </button>
+            </div>
             <div class="chat-messages" id="myChatsContent">
                 <div class="text-center p-4">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
@@ -1431,18 +1658,18 @@
             <div class="chat-modal-input">
                 <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input">
                 <button onclick="sendChatModalMessage()" class="chat-send-btn">
-                    <i data-feather="send"></i>
+                    <i data-feather="send" style="stroke: #3B82F6 !important;"></i>
                 </button>
             </div>
         </div>
 
         <!-- Side Menu -->
-        <div id="sideMenu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
-            <div class="absolute right-0 top-0 h-full w-80 bg-white transform translate-x-full transition-transform duration-300">
-                <div class="p-4">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-lg font-semibold text-contrast">Меню</h2>
-                        <button id="closeMenu" class="p-2 rounded-lg hover:bg-gray-100">
+        <div id="sideMenu" class="hidden fixed inset-0 bg-black bg-opacity-30" style="z-index: 1000;">
+            <div class="absolute right-0 top-0 h-full w-80 transform translate-x-full transition-transform duration-300" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border-left: 1px solid rgba(255, 255, 255, 0.2);">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-lg font-semibold text-white">Меню</h2>
+                        <button id="closeMenu" class="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-all duration-200" style="color: white;">
                             <i data-feather="x"></i>
                         </button>
                     </div>
@@ -1452,8 +1679,8 @@
                         <div class="menu-item" onclick="loadFavorites(); closeSideMenu();">
                             <i data-feather="heart"></i>
                             <div>
-                                <div class="font-medium">Избранное</div>
-                                <div class="text-sm text-gray-600">Сохраненные товары</div>
+                                <div class="font-medium text-white">Избранное</div>
+                                <div class="text-sm opacity-80">Сохраненные товары</div>
                             </div>
                         </div>
 
@@ -1463,8 +1690,8 @@
                         <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
                             <i data-feather="users"></i>
                             <div>
-                                <div class="font-medium">Бригады</div>
-                                <div class="text-sm text-gray-600">Наши строительные бригады</div>
+                                <div class="font-medium text-white">Бригады</div>
+                                <div class="text-sm opacity-80">Наши строительные бригады</div>
                             </div>
                         </div>
 
@@ -1474,16 +1701,16 @@
                         <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
                             <i data-feather="phone"></i>
                             <div>
-                                <div class="font-medium">Телефон</div>
-                                <div class="text-sm text-gray-600">60-01-60</div>
+                                <div class="font-medium text-white">Телефон</div>
+                                <div class="text-sm opacity-80">60-01-60</div>
                             </div>
                         </div>
                         
                         <div class="menu-item" onclick="open2GIS(); closeSideMenu();">
                             <i data-feather="map-pin"></i>
                             <div>
-                                <div class="font-medium">2GIS</div>
-                                <div class="text-sm text-gray-600">Наш адрес на карте</div>
+                                <div class="font-medium text-white">2GIS</div>
+                                <div class="text-sm opacity-80">Наш адрес на карте</div>
                             </div>
                         </div>
 
@@ -1491,7 +1718,7 @@
                         <div class="menu-item" onclick="openTaxiMenu(); closeSideMenu();">
                             <i data-feather="car"></i>
                             <div>
-                                <div class="font-medium">Вызвать такси</div>
+                                                               <div class="font-medium">Вызвать такси</div>
                                 <div class="text-sm text-gray-600">До нашего магазина</div>
                             </div>
                         </div>
@@ -1509,17 +1736,6 @@
 
                         <div class="menu-divider"></div>
 
-                        <!-- Добавить на главный экран -->
-                        <div class="menu-item" onclick="installPWA(); closeSideMenu();">
-                            <i data-feather="plus-square"></i>
-                            <div>
-                                <div class="font-medium">Добавить на главный экран</div>
-                                <div class="text-sm text-gray-600">Быстрый доступ к приложению</div>
-                            </div>
-                        </div>
-
-                        <div class="menu-divider"></div>
-
                         <!-- МЕНЮ -->
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
@@ -1532,6 +1748,8 @@
                 </div>
             </div>
         </div>
+        
+        <!-- ...existing code... -->
     </div>
 
     <script>
@@ -1572,7 +1790,6 @@
         // DOM элементы
         const elements = {
             content: document.getElementById('content'),
-            breadcrumbs: document.getElementById('breadcrumbs'),
             loading: document.getElementById('loading'),
             emptyState: document.getElementById('emptyState'),
             emptyMessage: document.getElementById('emptyMessage'),
@@ -1593,6 +1810,44 @@
         };
 
         // ========== УТИЛИТЫ ==========
+
+        function displayUserName() {
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userInfoHeader = document.getElementById('userInfoHeader');
+            const userNameHeader = document.getElementById('userNameHeader');
+            const userPhoto = document.getElementById('userPhoto');
+            
+            if (userInfoHeader && userNameHeader && userInfo.first_name) {
+                // Формируем отображаемое имя
+                const displayName = userInfo.username 
+                    ? `@${userInfo.username}` 
+                    : `${userInfo.first_name}${userInfo.last_name ? ' ' + userInfo.last_name : ''}`;
+                
+                userNameHeader.textContent = displayName;
+                userInfoHeader.style.display = 'flex';
+                
+                // Если есть фото профиля
+                if (userInfo.photo_url && userPhoto) {
+                    userPhoto.src = userInfo.photo_url;
+                    userPhoto.style.display = 'block';
+                } else if (userPhoto) {
+                    // Если нет фото, показываем инициалы в круге
+                    userPhoto.style.display = 'none';
+                    const initials = (userInfo.first_name?.[0] || '') + (userInfo.last_name?.[0] || '');
+                    if (initials) {
+                        userNameHeader.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid rgba(255,255,255,0.3);">
+                                    ${initials}
+                                </div>
+                                <span>${displayName}</span>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        }
 
         function fixMobileColors() {
             if (!window.Telegram?.WebApp) {
@@ -1685,12 +1940,8 @@
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
         function makePhoneCall() {
-            const phoneNumber = CONTACT_INFO.phone;
-            if (tg) {
-                tg.showAlert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
-            } else {
-                alert(`Телефон: ${phoneNumber}\n\nСкопируйте номер и позвоните нам!`);
-            }
+            const phoneNumber = CONTACT_INFO.phone.replace(/-/g, '');
+            window.location.href = `tel:${phoneNumber}`;
         }
 
         function open2GIS() {
@@ -1848,6 +2099,8 @@
 
         // ФУНКЦИИ ДЛЯ ИЗБРАННОГО
         function toggleFavorite(product, productIndex) {
+            console.log('toggleFavorite called with product:', product);
+            
             const productId = generateProductId(product);
             const isFavorite = favorites.some(fav => fav.id === productId);
             
@@ -1858,12 +2111,16 @@
                 }
             } else {
                 const navigation = getCurrentNavigation();
-                favorites.push({
+                const favoriteItem = {
                     id: productId,
                     product: product,
                     navigation: navigation,
                     timestamp: Date.now()
-                });
+                };
+                console.log('Adding to favorites:', favoriteItem);
+                console.log('Product photo_url:', product.photo_url);
+                
+                favorites.push(favoriteItem);
                 if (tg) {
                     tg.showAlert('Товар добавлен в избранное');
                 }
@@ -1915,8 +2172,13 @@
             let html = '<div class="product-list">';
             
             html += `
-                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
-                    <h2 class="text-lg font-semibold text-contrast">Избранные товары: ${favorites.length}</h2>
+                <div class="sticky-favorites-header">
+                    ${favorites.length > 0 ? `
+                        <button onclick="requestAllFavorites()" class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-blue-600 transition">
+                            <i data-feather="send" class="w-5 h-5 mr-2"></i>
+                            Запросить все товары
+                        </button>
+                    ` : ''}
                 </div>
             `;
 
@@ -1930,8 +2192,7 @@
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
-                const photoDescription = safeString(product.photo_description);
-                
+                console.log('DEBUG photo_url:', photoUrl);
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
@@ -1966,7 +2227,7 @@
                 }
 
                 if (navigation) {
-                    const breadcrumbs = [];
+                    const breadcrumbs = ['СКИДКА СЕРВИС']; // Всегда начинаем с "СКИДКА СЕРВИС"
                     
                     if (navigation.section) {
                         breadcrumbs.push(navigation.section.name);
@@ -1984,7 +2245,7 @@
                         breadcrumbs.push(navigation.submodel.name);
                     }
 
-                    if (breadcrumbs.length > 0) {
+                    if (breadcrumbs.length > 1) { // Изменяем условие, так как у нас всегда есть "СКИДКА СЕРВИС"
                         html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
                     }
                 }
@@ -1995,7 +2256,7 @@
                     <div class="mt-3">
                         <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                            ${CONTACT_INFO.phone}
+                            Позвонить
                         </button>
                     </div>
                 `;
@@ -2058,6 +2319,43 @@
             ].filter(Boolean).join(' → ');
 
             const message = `Здравствуйте! Интересует товар из избранного: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        }
+
+        function requestAllFavorites() {
+            if (favorites.length === 0) {
+                if (tg) {
+                    tg.showAlert('В избранном нет товаров');
+                } else {
+                    alert('В избранном нет товаров');
+                }
+                return;
+            }
+
+            let message = `Здравствуйте! Интересуют следующие товары из избранного:\n\n`;
+            
+            favorites.forEach((fav, index) => {
+                const product = fav.product;
+                const navigation = fav.navigation;
+                
+                const productInfo = [
+                    navigation.section?.name,
+                    navigation.category?.name,
+                    navigation.model?.name,
+                    navigation.submodel?.name,
+                    product?.color,
+                    product?.price && product.price !== 'Цена не указана' ? product.price : ''
+                ].filter(Boolean).join(' → ');
+                
+                message += `${index + 1}. ${productInfo}\n`;
+            });
+            
+            message += `\nПодскажите подробности по этим товарам.`;
             
             if (tg) {
                 tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
@@ -2266,7 +2564,7 @@
                 
                 html += `
                     <div class="brigade-group">
-                        <h2 class="brigade-group-title">${escapeHtml(group.group_name)}</h2>
+                        <h2 class="brigade-group-title" style="color: #ffffff !important;">${escapeHtml(group.group_name)}</h2>
                         <div class="brigade-grid">
                 `;
                 
@@ -2333,8 +2631,8 @@
             let html = `
                 <div class="space-y-6">
                     <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h2 class="text-2xl font-bold text-contrast mb-2">${escapeHtml(brigade.brigade_name)}</h2>
-                        <p class="text-gray-600 text-contrast">${escapeHtml(groupName)}</p>
+                        <h2 class="text-2xl font-bold mb-2" style="color: #000000 !important;">${escapeHtml(brigade.brigade_name)}</h2>
+                        <p style="color: #000000 !important;">${escapeHtml(groupName)}</p>
                     </div>
             `;
         
@@ -2395,7 +2693,7 @@
                         <div class="space-y-3">
                             <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
                                 <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                ${CONTACT_INFO.phone}
+                                Позвонить
                             </button>
                             
                             <button onclick="loadBrigades()" class="back-to-brigades">
@@ -2431,10 +2729,9 @@
         function renderObjectGalleryPage(groupName, brigade, object) {
             let html = `
                 <div class="space-y-6">
-                    <div class="object-gallery-container">
-                        <div class="object-gallery-header">
-                            <h2 class="object-gallery-title">${escapeHtml(object.object_name)}</h2>
-                            <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm mb-4">
+                        <h2 class="text-2xl font-bold mb-2" style="color: #000000 !important;">${escapeHtml(object.object_name)}</h2>
+                        <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
             `;
         
             // Экранируем описание для использования в атрибуте data
@@ -2452,7 +2749,8 @@
             }
         
             html += `
-                        </div>
+                    </div>
+                    <div class="object-gallery-container">
             `;
         
             if (!object.all_photos || object.all_photos.length === 0) {
@@ -2515,20 +2813,20 @@
             }
         
             html += `
-                        </div>
-                        
-                        <div class="space-y-3">
-                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
-                                <i data-feather="phone" class="w-5 h-5 mr-3"></i>
-                                ${CONTACT_INFO.phone}
-                            </button>
-                            
-                            <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
-                                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                                Назад к объектам
-                            </button>
-                        </div>
                     </div>
+                        
+                    <div class="space-y-3">
+                        <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                            <i data-feather="phone" class="w-5 h-5 mr-3"></i>
+                            Позвонить
+                        </button>
+                        
+                        <button onclick="openBrigade('${escapeHtml(groupName)}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')})" class="back-to-brigades">
+                            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                            Назад к объектам
+                        </button>
+                    </div>
+                </div>
             `;
             
             elements.content.innerHTML = html;
@@ -2737,8 +3035,10 @@
             
             if (Math.abs(diff) > swipeThreshold) {
                 if (diff > 0) {
+                    // Свайп влево - следующая карточка
                     nextGalleryImage();
                 } else {
+                    // Свайп вправо - предыдущая карточка
                     prevGalleryImage();
                 }
             }
@@ -2816,8 +3116,8 @@
                         
                         if (modelHash && modelHash !== 'null') {
                             // Открываем модель
-                            const models = await loadModels(sectionHash, categoryHash);
-                            const model = models.find(m => m.id === modelHash);
+                            const modelsData = await apiFetch(`/models/${sectionHash}/${categoryHash}`);
+                            const model = modelsData.models.find(m => m.id === modelHash);
                             if (model) {
                                 await openModel(sectionHash, categoryHash, model.id, model.name);
                                 
@@ -2942,26 +3242,41 @@
             }
         }
 
-        // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
-
-        async function loadSections() {
-            lastAction = { type: 'loadSections' };
-            
+        // ========== КАРУСЕЛЬ ТОВАРОВ ==========
+        
+        let carouselRefreshInterval = null;
+        
+        // Загрузка случайных товаров для карусели через API
+        async function loadRandomProducts() {
             try {
-                navigationStack = [];
-                updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
-                elements.pageTitle.textContent = 'Каталог товаров';
+                // Пробуем загрузить через API
+                const data = await apiFetch('/random_products?count=10');
                 
-                const data = await apiFetch('/sections');
-                
-                if (data?.error) {
-                    showEmptyState('Ошибка загрузки разделов');
-                    return;
+                if (data && Array.isArray(data.products) && data.products.length > 0) {
+                    return data.products;
                 }
                 
-                if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
-                    showEmptyState('Разделы не найдены');
-                    return;
+                // Если API не вернул товары, берем из текущих на странице
+                if (currentProducts && currentProducts.length > 0) {
+                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
+                    return shuffled.slice(0, Math.min(10, shuffled.length));
+                }
+                
+                return [];
+            } catch (error) {
+                // При ошибке API пробуем взять из currentProducts
+                if (currentProducts && currentProducts.length > 0) {
+                    const shuffled = [...currentProducts].sort(() => 0.5 - Math.random());
+                    return shuffled.slice(0, Math.min(10, shuffled.length));
+                }
+                return [];
+            }
+        }
+        
+        // Рендер карусели товаров
+        function renderProductCarousel(products) {
+            const carousel = document.getElementById('productsCarousel');
+            // ...existing code...
                 }
 
                 renderSections(data.sections);
@@ -3434,7 +3749,7 @@
                         <div class="preview-image-container mb-2 text-center">
                             <div class="inline-block" style="width: 100%;">
                                 <div class="preview-placeholder-${safeId}" 
-                                     style="width: 100%; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                     style="width: 100%; height: 150px; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); 
                                             border-radius: 8px; display: flex; align-items: center; justify-content: center; 
                                             color: white; font-size: 14px; font-weight: bold;">
                                     🖼️ Загрузка...
@@ -3606,12 +3921,6 @@
             const navigation = getCurrentNavigation();
             let html = '<div class="product-list">';
             
-            html += `
-                <div class="mb-4 p-4 bg-white rounded-xl shadow-sm">
-                    <h2 class="text-lg font-semibold text-contrast">Найдено товаров: ${currentProducts.length}</h2>
-                </div>
-            `;
-            
             html += renderProductBreadcrumbs(navigation);
 
             currentProducts.forEach((product, index) => {
@@ -3624,7 +3933,7 @@
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
-                
+                console.log('DEBUG photo_url:', photoUrl);
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
@@ -3663,7 +3972,7 @@
                     <div class="mt-3">
                         <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                            ${CONTACT_INFO.phone}
+                            Позвонить
                         </button>
                     </div>
                 `;
@@ -3692,6 +4001,14 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            
+            // Обновляем карусель если она уже инициализирована
+            if (carouselRefreshInterval) {
+                setTimeout(async () => {
+                    const products = await loadRandomProducts();
+                    renderProductCarousel(products);
+                }, 500);
+            }
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -3755,57 +4072,13 @@
         }
 
         function updateBreadcrumbsFromStack() {
-            const items = [{ name: 'МЕНЮ', action: 'loadSections' }];
-            
-            navigationStack.forEach(item => {
-                if (item && item.name) {
-                    items.push({
-                        name: item.name,
-                        action: null
-                    });
-                }
-            });
-            
-            updateBreadcrumbs(items);
+            // Заглушка - breadcrumbs в хедере удалены, остались только в карточках товаров
+            return;
         }
 
         function updateBreadcrumbs(items) {
-            elements.breadcrumbs.innerHTML = '';
-            
-            items.forEach((item, index) => {
-                if (!item || !item.name) return;
-                
-                const crumb = document.createElement('span');
-                crumb.className = 'flex items-center whitespace-nowrap';
-                
-                if (index > 0) {
-                    const separator = document.createElement('span');
-                    separator.className = 'mx-1 tg-theme-hint text-contrast';
-                    separator.innerHTML = '<i data-feather="chevron-right" class="w-3 h-3"></i>';
-                    elements.breadcrumbs.appendChild(separator);
-                }
-                
-                const link = document.createElement('span');
-                link.className = 'tg-theme-text text-sm truncate max-w-[120px] text-contrast';
-                link.textContent = item.name;
-                link.title = item.name;
-                
-                if (item.action && index === 0) {
-                    link.style.cursor = 'pointer';
-                    link.addEventListener('click', () => {
-                        if (item.action === 'loadSections') {
-                            loadSections();
-                        }
-                    });
-                } else {
-                    link.style.cursor = 'default';
-                }
-                
-                crumb.appendChild(link);
-                elements.breadcrumbs.appendChild(crumb);
-            });
-            
-            scheduleFeatherReplace();
+            // Заглушка - breadcrumbs в хедере удалены, остались только в карточках товаров
+            return;
         }
 
         function updateBackButton() {
@@ -3904,16 +4177,16 @@
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.innerHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-                    <h3 class="text-lg font-semibold mb-4 text-center">Выберите сервис такси</h3>
+                <div class="p-6 rounded-lg shadow-lg max-w-sm w-full mx-4" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.25);">
+                    <h3 class="text-lg font-semibold mb-4 text-center" style="color: #ffffff !important;">Выберите сервис такси</h3>
                     <div class="space-y-3">
-                        <button onclick="openYandexTaxi()" class="w-full p-3 rounded-lg font-medium text-black" style="background-color: #FFCC00;">
+                        <button onclick="openYandexTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #FFCC00; color: #000000 !important;">
                             🚕 Яндекс Такси
                         </button>
-                        <button onclick="openUberTaxi()" class="w-full p-3 rounded-lg font-medium text-white" style="background-color: #000000;">
+                        <button onclick="openUberTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #000000; color: #ffffff !important;">
                             🚗 Uber
                         </button>
-                        <button onclick="closeModal(this.closest('.fixed'))" class="w-full p-3 rounded-lg font-medium text-gray-600 bg-gray-100 hover:bg-gray-200">
+                        <button onclick="closeModal(this.closest('.fixed'))" class="w-full p-3 rounded-lg font-medium" style="background: rgba(255, 255, 255, 0.15); color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3);">
                             Отмена
                         </button>
                     </div>
@@ -4062,6 +4335,9 @@
                 fixMobileColors();
                 scheduleFeatherReplace();
                 
+                // Отображаем имя пользователя
+                displayUserName();
+                
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
                 const installButton = document.getElementById('installButton');
@@ -4101,6 +4377,10 @@
                 
                 setTimeout(() => {
                     loadSections();
+                    // Инициализация карусели через 1 секунду
+                    setTimeout(() => {
+                        initProductCarousel();
+                    }, 1000);
                 }, 100);
                 
             } catch (error) {
@@ -4115,11 +4395,13 @@
         let currentChatObject = null;
         let currentChatTelegramId = null;  // Telegram ID текущей бригады
         let chatMessages = [];
+        let chatRefreshInterval = null;
 
         // Получить или создать session_id для чата
         function getChatSessionKey(brigadeName, objectName) {
             const tg = window.Telegram?.WebApp;
-            const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id || 'web_user';
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
 
@@ -4227,6 +4509,14 @@
             // Загружаем историю сообщений с сервера
             await loadChatHistory();
             
+            // Запускаем автообновление чата каждые 2 секунды
+            if (chatRefreshInterval) {
+                clearInterval(chatRefreshInterval);
+            }
+            chatRefreshInterval = setInterval(async () => {
+                await loadChatHistory();
+            }, 2000);
+            
             // Фокус на input
             setTimeout(() => {
                 document.getElementById('chatModalInput').focus();
@@ -4260,6 +4550,12 @@
             const modal = document.getElementById('chatModal');
             modal.classList.add('hidden');
             document.getElementById('chatModalInput').value = '';
+            
+            // Останавливаем автообновление чата
+            if (chatRefreshInterval) {
+                clearInterval(chatRefreshInterval);
+                chatRefreshInterval = null;
+            }
         }
 
         function addChatMessage(type, senderName, text, timestamp) {
@@ -4513,8 +4809,8 @@
                             <div class="chat-session-item">
                                 <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
-                                        <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
-                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <h3 class="font-semibold text-white">Чат с ${session.user_name}</h3>
+                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
                                         <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
                                     </div>
                                     <span class="text-xs text-gray-400">
@@ -4532,8 +4828,8 @@
                             <div class="chat-session-item">
                                 <div class="flex justify-between items-start" onclick="openChatSessionAsCustomer('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
-                                        <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
-                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <h3 class="font-semibold text-white">${session.brigade_name}</h3>
+                                        <p class="text-sm text-gray-300">${session.object_name || 'Общий чат'}</p>
                                         <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
                                     </div>
                                     <span class="text-xs text-gray-400">
