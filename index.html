@@ -301,6 +301,31 @@
             background-color: #2563EB;
             transform: scale(1.05);
         }
+        
+        .chat-button {
+            background-color: #10B981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .chat-button:hover {
+            background-color: #059669;
+            transform: scale(1.05);
+        }
+        
+        .chat-button i {
+            width: 14px;
+            height: 14px;
+        }
 
         .menu-item {
             padding: 12px 16px;
@@ -1026,9 +1051,10 @@
 
         .chat-message-user {
             align-self: flex-end;
-            background: #3B82F6;
-            color: white;
+            background: #DBEAFE;
+            color: #1E40AF;
             border-bottom-right-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .chat-message-brigade {
@@ -1037,6 +1063,16 @@
             color: #1F2937;
             border-bottom-left-radius: 4px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .chat-message-system {
+            align-self: center;
+            background: #F3F4F6;
+            color: #6B7280;
+            font-size: 13px;
+            font-style: italic;
+            text-align: center;
+            max-width: 85%;
         }
 
         .chat-message-time {
@@ -1051,6 +1087,39 @@
             border-top: 1px solid #e5e7eb;
             display: flex;
             gap: 8px;
+        }
+        
+        .chat-session-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-session-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .chat-session-item:last-child {
+            border-bottom: none;
+        }
+        
+        .delete-chat-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-left: 8px;
+        }
+        
+        .delete-chat-btn:hover {
+            background-color: #dc2626;
         }
 
         .chat-input {
@@ -1119,9 +1188,15 @@
                     <h1 class="main-title tg-theme-text text-contrast" id="pageTitle">Каталог товаров</h1>
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
-                <button id="installButton" class="install-button" title="Добавить на главный экран">
-                    <i data-feather="plus-square"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
+                        <i data-feather="message-circle"></i>
+                        <span>Чаты</span>
+                    </button>
+                    <button id="installButton" class="install-button" title="Добавить на главный экран">
+                        <i data-feather="plus-square"></i>
+                    </button>
+                </div>
             </div>
             
             <!-- Breadcrumbs -->
@@ -1186,6 +1261,35 @@
         </div>
 
         <!-- Info Modal -->
+        <div id="infoModal" class="info-modal hidden">
+            <div class="info-modal-header">
+                <h2 class="info-modal-title">Информация по объекту</h2>
+                <button onclick="closeInfoModal()" class="info-modal-close">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="info-modal-content" id="infoModalContent">
+                <!-- Сюда вставляется описание -->
+            </div>
+        </div>
+
+        <!-- My Chats Modal -->
+        <div id="myChatsModal" class="chat-modal hidden">
+            <div class="chat-modal-header">
+                <h2 class="chat-modal-title">Мои чаты</h2>
+                <button onclick="closeMyChatsModal()" class="chat-modal-close">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="chat-messages" id="myChatsContent">
+                <div class="text-center p-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+                    <p class="mt-2 text-gray-600">Загружаю чаты...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Modal -->
         <div id="infoModal" class="info-modal hidden">
             <div class="info-modal-header">
                 <h2 class="info-modal-title">Информация по объекту</h2>
@@ -2274,7 +2378,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade('${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -3627,9 +3731,17 @@
         let currentChatSession = null;
         let currentChatBrigade = null;
         let currentChatObject = null;
+        let currentChatTelegramId = null;  // Telegram ID текущей бригады
         let chatMessages = [];
 
-        async function startChatWithBrigade(brigadeName, objectName = null) {
+        // Получить или создать session_id для чата
+        function getChatSessionKey(brigadeName, objectName) {
+            const tg = window.Telegram?.WebApp;
+            const userId = tg?.initDataUnsafe?.user?.id || 'web_user';
+            return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
+        }
+
+        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
@@ -3637,9 +3749,30 @@
                 const userId = userInfo.id || 'web_user_' + Date.now();
                 const userName = userInfo.first_name || 'Пользователь';
 
-                console.log('Начинаем чат с бригадой:', { brigadeName, objectName, userId, userName });
+                console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, userId, userName });
 
-                // Отправляем запрос на создание чата
+                // Сохраняем brigadeRow для возможного восстановления сессии
+                localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
+
+                // Проверяем, есть ли уже сохраненная сессия
+                const sessionKey = getChatSessionKey(brigadeRow, objectName);
+                const savedSession = localStorage.getItem(sessionKey);
+
+                if (savedSession) {
+                    console.log('Найдена существующая сессия:', savedSession);
+                    currentChatSession = savedSession;
+                    currentChatBrigade = brigadeName;
+                    currentChatObject = objectName;
+                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
+                    
+                    // Также обновляем сохраненный telegram_id
+                    localStorage.setItem('lastUsedTelegramId', telegramId);
+                    
+                    openChatModal(brigadeName, objectName);
+                    return;
+                }
+
+                // Создаем новую сессию через API
                 const response = await fetch(`${API_BASE}/chat/start`, {
                     method: 'POST',
                     headers: {
@@ -3648,6 +3781,8 @@
                     body: JSON.stringify({
                         user_id: userId,
                         user_name: userName,
+                        brigade_row: brigadeRow,
+                        telegram_id: telegramId,
                         brigade_name: brigadeName,
                         object_name: objectName
                     })
@@ -3661,15 +3796,29 @@
                     currentChatSession = data.session_id;
                     currentChatBrigade = brigadeName;
                     currentChatObject = objectName;
-                    chatMessages = [];
+                    currentChatTelegramId = telegramId;  // Сохраняем Telegram ID
 
-                    // Открываем модальное окно чата
+                    // Сохраняем session_id в localStorage
+                    localStorage.setItem(sessionKey, data.session_id);
+                    // Также сохраняем telegram_id для возможного восстановления
+                    localStorage.setItem('lastUsedTelegramId', telegramId);
+                    console.log('Session ID сохранен в localStorage');
+
+                    // Открываем модальное окно чата и загружаем историю
                     openChatModal(brigadeName, objectName);
-
-                    // Добавляем приветственное сообщение
-                    addChatMessage('brigade', 'Система', 'Ваш запрос получен. Бригада свяжется с вами в ближайшее время.', new Date());
                 } else {
-                    throw new Error(data.error || 'Не удалось создать чат');
+                    // Специальная обработка ошибок
+                    if (data.error === 'own_object') {
+                        const tg = window.Telegram?.WebApp;
+                        const errorMessage = 'Это ваш объект, вы не можете начать чат сами с собой';
+                        if (tg?.showAlert) {
+                            tg.showAlert(errorMessage);
+                        } else {
+                            alert(errorMessage);
+                        }
+                    } else {
+                        throw new Error(data.error || 'Не удалось создать чат');
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка при создании чата:', error);
@@ -3683,7 +3832,7 @@
             }
         }
 
-        function openChatModal(brigadeName, objectName) {
+        async function openChatModal(brigadeName, objectName) {
             const modal = document.getElementById('chatModal');
             const title = document.getElementById('chatModalTitle');
             const subtitle = document.getElementById('chatModalSubtitle');
@@ -3692,12 +3841,37 @@
             subtitle.textContent = objectName || 'Общий чат';
 
             modal.classList.remove('hidden');
-            renderChatMessages();
+            
+            // Загружаем историю сообщений с сервера
+            await loadChatHistory();
             
             // Фокус на input
             setTimeout(() => {
                 document.getElementById('chatModalInput').focus();
             }, 100);
+        }
+
+        async function loadChatHistory() {
+            if (!currentChatSession) {
+                renderChatMessages();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/history/${currentChatSession}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    chatMessages = data.messages || [];
+                    renderChatMessages();
+                } else {
+                    console.error('Ошибка загрузки истории:', data.error);
+                    renderChatMessages();
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки истории чата:', error);
+                renderChatMessages();
+            }
         }
 
         function closeChatModal() {
@@ -3730,19 +3904,79 @@
                 return;
             }
 
+            // Получаем информацию о текущем пользователе
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const currentUserId = userInfo.id ? String(userInfo.id) : null;
+            const currentUserName = userInfo.first_name || 'Вы';
+
             let html = '';
             chatMessages.forEach(msg => {
-                const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+                // Определяем время
+                let time;
+                if (msg.timestamp) {
+                    try {
+                        const date = new Date(msg.timestamp);
+                        time = date.toLocaleTimeString('ru-RU', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (e) {
+                        time = '';
+                    }
+                } else {
+                    time = '';
+                }
 
-                const messageClass = msg.type === 'user' ? 'chat-message-user' : 'chat-message-brigade';
+                // Определяем, является ли это сообщением текущего пользователя
+                let messageClass = 'chat-message-brigade';  // По умолчанию - чужое сообщение (слева, белое)
+                
+                if (msg.type === 'system') {
+                    messageClass = 'chat-message-system';
+                } else {
+                    let isMyMessage = false;
+                    
+                    // Получаем имя текущего пользователя
+                    const currentUserNameFromTelegram = userInfo.first_name || 'Пользователь';
+                    
+                    // Определяем по имени отправителя - самый надежный способ
+                    if (msg.sender_name === currentUserNameFromTelegram || msg.sender_name === 'Вы') {
+                        // Это сообщение от текущего пользователя
+                        isMyMessage = true;
+                    } else {
+                        // Это сообщение от собеседника
+                        isMyMessage = false;
+                        
+                        // Дополнительная проверка по типам для случаев, когда имена могут совпадать
+                        if (currentChatTelegramId === null) {
+                            // Покупатель: его сообщения типа 'user'
+                            isMyMessage = (msg.type === 'user');
+                        } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
+                            // Бригада: её сообщения типа 'brigade'
+                            isMyMessage = (msg.type === 'brigade');
+                        } else {
+                            // Fallback: покупатель
+                            isMyMessage = (msg.type === 'user');
+                        }
+                    }
+
+                    messageClass = isMyMessage ? 'chat-message-user' : 'chat-message-brigade';
+                }
+                
+                console.log('Message debug:', {
+                    text: (msg.text || '').substring(0, 20),
+                    type: msg.type,
+                    currentUserId: currentUserId,
+                    currentChatTelegramId: currentChatTelegramId,
+                    isCurrentUserBrigade: currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId),
+                    isMyMessage: messageClass === 'chat-message-user',
+                    messageClass: messageClass
+                });
                 
                 html += `
                     <div class="chat-message ${messageClass}">
                         <div>${escapeHtml(msg.text)}</div>
-                        <div class="chat-message-time">${time}</div>
+                        ${time ? `<div class="chat-message-time">${time}</div>` : ''}
                     </div>
                 `;
             });
@@ -3761,20 +3995,51 @@
             }
 
             if (!currentChatSession) {
-                alert('Чат не активен');
-                return;
+                console.error('Чат не активен - currentChatSession не установлен');
+                
+                // Попытаемся восстановить сессию из localStorage
+                if (currentChatBrigade && currentChatObject) {
+                    const tg = window.Telegram?.WebApp;
+                    const userInfo = tg?.initDataUnsafe?.user || {};
+                    const userId = userInfo.id || 'web_user_' + Date.now();
+                    
+                    // Попытаемся найти в localStorage
+                    const brigadeRow = localStorage.getItem('lastUsedBrigadeRow') || 'unknown';
+                    const sessionKey = getChatSessionKey(brigadeRow, currentChatObject);
+                    const savedSession = localStorage.getItem(sessionKey);
+                    
+                    if (savedSession) {
+                        currentChatSession = savedSession;
+                        console.log('Сессия восстановлена из localStorage:', savedSession);
+                    } else {
+                        // Создаем новый ID сессии
+                        currentChatSession = `${userId}_${brigadeRow}_${currentChatObject || 'general'}_${Date.now()}`;
+                        localStorage.setItem(sessionKey, currentChatSession);
+                        console.log('Создана новая сессия:', currentChatSession);
+                    }
+                    
+                    // Если не установлен telegram_id, пытаемся его найти
+                    if (!currentChatTelegramId) {
+                        const savedTelegramId = localStorage.getItem('lastUsedTelegramId');
+                        if (savedTelegramId) {
+                            currentChatTelegramId = savedTelegramId;
+                        }
+                    }
+                } else {
+                    alert('Чат не активен. Пожалуйста, откройте чат заново из карточки объекта.');
+                    return;
+                }
             }
 
-            // Добавляем сообщение в локальный массив
+            // Очищаем поле ввода сразу
+            input.value = '';
+
+            // Отправляем сообщение на сервер
             const tg = window.Telegram?.WebApp;
             const userInfo = tg?.initDataUnsafe?.user || {};
             const userId = userInfo.id || 'web_user_' + Date.now();
             const userName = userInfo.first_name || 'Вы';
 
-            addChatMessage('user', userName, message, new Date());
-            input.value = '';
-
-            // Отправляем сообщение на сервер
             sendMessageToServer(userId, userName, message);
         }
 
@@ -3789,6 +4054,7 @@
                         session_id: currentChatSession,
                         user_id: userId,
                         user_name: userName,
+                        telegram_id: currentChatTelegramId,
                         brigade_name: currentChatBrigade,
                         object_name: currentChatObject,
                         message_text: messageText
@@ -3798,11 +4064,16 @@
                 const data = await response.json();
                 console.log('Сообщение отправлено на сервер:', data);
 
-                if (!data.success) {
+                if (data.success) {
+                    // Перезагружаем историю чата после отправки
+                    await loadChatHistory();
+                } else {
                     console.error('Ошибка отправки сообщения:', data.error);
+                    alert('Не удалось отправить сообщение');
                 }
             } catch (error) {
                 console.error('Ошибка отправки сообщения на сервер:', error);
+                alert('Ошибка связи с сервером');
             }
         }
 
@@ -3817,6 +4088,221 @@
                 });
             }
         });
+
+        // ===== МОИ ЧАТЫ =====
+        async function showMyChats() {
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id || 'web_user_' + Date.now();
+
+            document.getElementById('myChatsModal').classList.remove('hidden');
+
+            try {
+                // Сначала проверяем, является ли пользователь бригадой
+                const brigadeCheckResponse = await fetch(`${API_BASE}/debug/brigades`);
+                const brigadeData = await brigadeCheckResponse.json();
+                
+                let isBrigade = false;
+                if (brigadeData.success) {
+                    // Ищем пользователя среди бригад по telegram_id
+                    isBrigade = brigadeData.brigades.some(brigade => 
+                        brigade.type === 'brigade' && 
+                        brigade.telegram_id === String(userId)
+                    );
+                }
+
+                // Используем соответствующий endpoint
+                let response;
+                if (isBrigade) {
+                    console.log('Пользователь является бригадой, загружаем чаты бригады');
+                    response = await fetch(`${API_BASE}/chat/brigade_sessions/${userId}`);
+                } else {
+                    console.log('Пользователь является покупателем, загружаем чаты пользователя');
+                    response = await fetch(`${API_BASE}/chat/user_sessions/${userId}`);
+                }
+
+                const data = await response.json();
+                const content = document.getElementById('myChatsContent');
+
+                if (data.success && data.sessions.length > 0) {
+                    if (isBrigade) {
+                        // Для бригады показываем чаты с покупателями
+                        content.innerHTML = data.sessions.map(session => `
+                            <div class="chat-session-item">
+                                <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
+                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
+                                    </div>
+                                    <span class="text-xs text-gray-400">
+                                        ${new Date(session.created_at).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <button class="delete-chat-btn" onclick="deleteChatSession('${session.session_id}', event)" title="Удалить чат">
+                                    <i data-feather="trash-2" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        `).join('');
+                    } else {
+                        // Для покупателя показываем чаты с бригадами
+                        content.innerHTML = data.sessions.map(session => `
+                            <div class="chat-session-item">
+                                <div class="flex justify-between items-start" onclick="openChatSessionAsCustomer('${session.session_id}', '${session.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-gray-800">${session.brigade_name}</h3>
+                                        <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
+                                        <p class="text-xs text-gray-400">${session.message_count} сообщений</p>
+                                    </div>
+                                    <span class="text-xs text-gray-400">
+                                        ${new Date(session.created_at).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <button class="delete-chat-btn" onclick="deleteChatSession('${session.session_id}', event)" title="Удалить чат">
+                                    <i data-feather="trash-2" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    const emptyMessage = isBrigade ? 
+                        'Нет сообщений от клиентов' : 
+                        'Нет активных чатов';
+                    const emptyDescription = isBrigade ?
+                        'Когда клиенты напишут вам, их сообщения появятся здесь' :
+                        'Начните диалог с бригадой, написав им сообщение';
+                        
+                    content.innerHTML = `
+                        <div class="text-center p-8">
+                            <i data-feather="message-circle" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">${emptyMessage}</h3>
+                            <p class="text-gray-500">${emptyDescription}</p>
+                        </div>
+                    `;
+                }
+
+                feather.replace();
+            } catch (error) {
+                console.error('Ошибка загрузки чатов:', error);
+                document.getElementById('myChatsContent').innerHTML = `
+                    <div class="text-center p-4 text-red-600">
+                        <p>Не удалось загрузить чаты</p>
+                    </div>
+                `;
+            }
+        }
+
+        function closeMyChatsModal() {
+            document.getElementById('myChatsModal').classList.add('hidden');
+        }
+
+        function openChatSessionAsBrigade(sessionId, brigadeName, objectName) {
+            currentChatSession = sessionId;
+            currentChatBrigade = brigadeName;
+            currentChatObject = objectName;
+            
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id;
+            
+            // Бригада открывает чат - currentChatTelegramId = её собственный ID
+            currentChatTelegramId = String(userId);
+            
+            console.log('Opening chat session as brigade:', {
+                sessionId, brigadeName, objectName,
+                currentUserId: userId,
+                currentChatTelegramId: currentChatTelegramId
+            });
+            
+            closeMyChatsModal();
+            openChatModal(brigadeName, objectName);
+        }
+
+        function openChatSessionAsCustomer(sessionId, brigadeName, objectName) {
+            currentChatSession = sessionId;
+            currentChatBrigade = brigadeName;
+            currentChatObject = objectName;
+            
+            // Покупатель открывает чат - currentChatTelegramId НЕ устанавливаем или ставим null
+            // Это позволит определить, что пользователь - покупатель
+            currentChatTelegramId = null;
+            
+            console.log('Opening chat session as customer:', {
+                sessionId, brigadeName, objectName,
+                currentChatTelegramId: currentChatTelegramId
+            });
+            
+            closeMyChatsModal();
+            openChatModal(brigadeName, objectName);
+        }
+
+        function openChatSession(sessionId, brigadeName, objectName) {
+            // Оставляем старую функцию для совместимости
+            currentChatSession = sessionId;
+            currentChatBrigade = brigadeName;
+            currentChatObject = objectName;
+            
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id;
+            
+            // По умолчанию считаем бригадой (для обратной совместимости)
+            currentChatTelegramId = String(userId);
+            
+            closeMyChatsModal();
+            openChatModal(brigadeName, objectName);
+        }
+
+        async function deleteChatSession(sessionId, event) {
+            // Предотвращаем срабатывание клика по элементу чата
+            event.stopPropagation();
+            
+            const confirmDelete = confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.');
+            
+            if (!confirmDelete) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/delete/${sessionId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Удаляем чат из localStorage если он там есть
+                    const keys = Object.keys(localStorage);
+                    for (const key of keys) {
+                        if (key.startsWith('chat_session_') && localStorage.getItem(key) === sessionId) {
+                            localStorage.removeItem(key);
+                            console.log(`Удален session_id из localStorage: ${key}`);
+                            break;
+                        }
+                    }
+
+                    // Закрываем чат если он открыт
+                    if (currentChatSession === sessionId) {
+                        closeChatModal();
+                        currentChatSession = null;
+                        currentChatBrigade = null;
+                        currentChatObject = null;
+                        currentChatTelegramId = null;
+                    }
+
+                    // Обновляем список чатов
+                    showMyChats();
+                    
+                    alert('Чат удален');
+                } else {
+                    console.error('Ошибка удаления чата:', data.error);
+                    alert('Не удалось удалить чат');
+                }
+            } catch (error) {
+                console.error('Ошибка при удалении чата:', error);
+                alert('Ошибка при удалении чата');
+            }
+        }
 
         // Глобальные функции
         // Глобальные функции
@@ -3864,6 +4350,12 @@
         window.startChatWithBrigade = startChatWithBrigade;
         window.closeChatModal = closeChatModal;
         window.sendChatModalMessage = sendChatModalMessage;
+        window.showMyChats = showMyChats;
+        window.closeMyChatsModal = closeMyChatsModal;
+        window.openChatSession = openChatSession;
+        window.openChatSessionAsBrigade = openChatSessionAsBrigade;
+        window.openChatSessionAsCustomer = openChatSessionAsCustomer;
+        window.deleteChatSession = deleteChatSession;
     </script>
 </body>
 </html>
