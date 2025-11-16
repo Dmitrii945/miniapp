@@ -1332,7 +1332,76 @@
             background: white;
             border-top: 1px solid #e5e7eb;
             display: flex;
+            flex-direction: column;
             gap: 8px;
+        }
+        
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .chat-attach-btn {
+            width: 44px;
+            height: 44px;
+            background: #10B981;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .chat-attach-btn:hover {
+            background: #059669;
+        }
+        
+        .chat-image-preview {
+            display: none;
+            position: relative;
+            max-width: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .chat-image-preview.visible {
+            display: block;
+        }
+        
+        .chat-image-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .chat-image-preview-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+        
+        .chat-message-image {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 8px;
+            cursor: pointer;
         }
         
         .chat-session-item {
@@ -1660,10 +1729,20 @@
                 </div>
             </div>
             <div class="chat-modal-input">
-                <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input">
-                <button onclick="sendChatModalMessage()" class="chat-send-btn">
-                    <i data-feather="send" style="stroke: #3B82F6 !important;"></i>
-                </button>
+                <div class="chat-image-preview" id="chatImagePreview">
+                    <img id="chatPreviewImage" src="" alt="Preview">
+                    <button class="chat-image-preview-remove" onclick="removeChatImage()">&times;</button>
+                </div>
+                <div class="chat-input-row">
+                    <input type="file" id="chatImageInput" accept="image/*" style="display: none;" onchange="handleChatImageSelect(event)">
+                    <button onclick="document.getElementById('chatImageInput').click()" class="chat-attach-btn" title="Прикрепить фото">
+                        <i data-feather="paperclip" style="width: 20px; height: 20px;"></i>
+                    </button>
+                    <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input">
+                    <button onclick="sendChatModalMessage()" class="chat-send-btn">
+                        <i data-feather="send" style="stroke: #3B82F6 !important;"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -4485,6 +4564,11 @@
 
             modal.classList.remove('hidden');
             
+            // Обновляем иконки Feather
+            setTimeout(() => {
+                feather.replace();
+            }, 50);
+            
             // Загружаем историю сообщений с сервера
             await loadChatHistory();
             
@@ -4529,6 +4613,9 @@
             const modal = document.getElementById('chatModal');
             modal.classList.add('hidden');
             document.getElementById('chatModalInput').value = '';
+            
+            // Очищаем превью изображения
+            removeChatImage();
             
             // Останавливаем автообновление чата
             if (chatRefreshInterval) {
@@ -4633,6 +4720,7 @@
                 html += `
                     <div class="chat-message ${messageClass}">
                         <div>${escapeHtml(msg.text)}</div>
+                        ${msg.image_url ? `<img src="${escapeHtml(msg.image_url)}" class="chat-message-image" onclick="window.open('${escapeHtml(msg.image_url)}', '_blank')" alt="Изображение">` : ''}
                         ${time ? `<div class="chat-message-time">${time}</div>` : ''}
                     </div>
                 `;
@@ -4643,11 +4731,53 @@
             feather.replace();
         }
 
+        let selectedChatImage = null;
+        
+        function handleChatImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Проверка размера файла (макс 5МБ)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Размер файла не должен превышать 5 МБ');
+                return;
+            }
+            
+            // Проверка типа файла
+            if (!file.type.startsWith('image/')) {
+                alert('Можно прикреплять только изображения');
+                return;
+            }
+            
+            selectedChatImage = file;
+            
+            // Показываем превью
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('chatImagePreview');
+                const previewImg = document.getElementById('chatPreviewImage');
+                previewImg.src = e.target.result;
+                preview.classList.add('visible');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeChatImage() {
+            selectedChatImage = null;
+            const preview = document.getElementById('chatImagePreview');
+            const previewImg = document.getElementById('chatPreviewImage');
+            const fileInput = document.getElementById('chatImageInput');
+            
+            preview.classList.remove('visible');
+            previewImg.src = '';
+            fileInput.value = '';
+        }
+        
         function sendChatModalMessage() {
             const input = document.getElementById('chatModalInput');
             const message = input.value.trim();
 
-            if (!message) {
+            if (!message && !selectedChatImage) {
                 return;
             }
 
@@ -4688,8 +4818,12 @@
                 }
             }
 
-            // Очищаем поле ввода сразу
+            // Сохраняем изображение если есть
+            const imageToSend = selectedChatImage;
+            
+            // Очищаем поле ввода и превью сразу
             input.value = '';
+            removeChatImage();
 
             // Отправляем сообщение на сервер
             const tg = window.Telegram?.WebApp;
@@ -4697,26 +4831,47 @@
             const userId = userInfo.id || 'web_user_' + Date.now();
             const userName = userInfo.first_name || 'Вы';
 
-            sendMessageToServer(userId, userName, message);
+            sendMessageToServer(userId, userName, message, imageToSend);
         }
 
-        async function sendMessageToServer(userId, userName, messageText) {
+        async function sendMessageToServer(userId, userName, messageText, imageFile = null) {
             try {
-                const response = await fetch(`${API_BASE}/chat/send_message`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        session_id: currentChatSession,
-                        user_id: userId,
-                        user_name: userName,
-                        telegram_id: currentChatTelegramId,
-                        brigade_name: currentChatBrigade,
-                        object_name: currentChatObject,
-                        message_text: messageText
-                    })
-                });
+                let response;
+                
+                if (imageFile) {
+                    // Отправляем с изображением через FormData
+                    const formData = new FormData();
+                    formData.append('session_id', currentChatSession);
+                    formData.append('user_id', userId);
+                    formData.append('user_name', userName);
+                    formData.append('telegram_id', currentChatTelegramId || '');
+                    formData.append('brigade_name', currentChatBrigade || '');
+                    formData.append('object_name', currentChatObject || '');
+                    formData.append('message_text', messageText || '');
+                    formData.append('image', imageFile);
+                    
+                    response = await fetch(`${API_BASE}/chat/send_message`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    // Отправляем только текст через JSON
+                    response = await fetch(`${API_BASE}/chat/send_message`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            session_id: currentChatSession,
+                            user_id: userId,
+                            user_name: userName,
+                            telegram_id: currentChatTelegramId,
+                            brigade_name: currentChatBrigade,
+                            object_name: currentChatObject,
+                            message_text: messageText
+                        })
+                    });
+                }
 
                 const data = await response.json();
                 console.log('Сообщение отправлено на сервер:', data);
@@ -5005,6 +5160,8 @@
         window.startChatWithBrigade = startChatWithBrigade;
         window.closeChatModal = closeChatModal;
         window.sendChatModalMessage = sendChatModalMessage;
+        window.handleChatImageSelect = handleChatImageSelect;
+        window.removeChatImage = removeChatImage;
         window.showMyChats = showMyChats;
         window.closeMyChatsModal = closeMyChatsModal;
         window.openChatSession = openChatSession;
