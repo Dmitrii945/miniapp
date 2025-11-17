@@ -3170,8 +3170,39 @@
                             if (data.success) {
                                 console.log('Данные чата получены:', data);
                                 
-                                // Открываем чат как бригада (так как уведомление приходит бригаде)
-                                openChatSessionAsBrigade(data.session_id, data.brigade_name, data.object_name || '');
+                                // Определяем, является ли текущий пользователь бригадой
+                                const tg = window.Telegram?.WebApp;
+                                const userInfo = tg?.initDataUnsafe?.user || {};
+                                const userId = userInfo.id || 'web_user_' + Date.now();
+                                
+                                // Проверяем, является ли пользователь бригадой
+                                let isBrigade = false;
+                                try {
+                                    const brigadesResponse = await fetch(`${API_BASE}/brigades_extended`);
+                                    const brigadesData = await brigadesResponse.json();
+                                    
+                                    if (brigadesData.brigades) {
+                                        // Проверяем, есть ли telegram_id текущего пользователя среди бригад
+                                        for (const brigade of brigadesData.brigades) {
+                                            if (brigade.telegram_id && String(brigade.telegram_id) === String(userId)) {
+                                                isBrigade = true;
+                                                console.log('✅ Пользователь является бригадой:', brigade.name);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Ошибка проверки статуса бригады:', error);
+                                }
+                                
+                                // Открываем чат в зависимости от того, кто открывает
+                                if (isBrigade) {
+                                    console.log('📱 Открываем чат как БРИГАДА');
+                                    openChatSessionAsBrigade(data.session_id, data.brigade_name, data.object_name || '');
+                                } else {
+                                    console.log('📱 Открываем чат как ПОКУПАТЕЛЬ');
+                                    openChatSessionAsCustomer(data.session_id, data.brigade_name, data.object_name || '');
+                                }
                             } else {
                                 console.error('Чат не найден:', data.error);
                             }
@@ -4574,28 +4605,16 @@
                 } else {
                     let isMyMessage = false;
                     
-                    // Получаем имя текущего пользователя
-                    const currentUserNameFromTelegram = userInfo.first_name || 'Пользователь';
-                    
-                    // Определяем по имени отправителя - самый надежный способ
-                    if (msg.sender_name === currentUserNameFromTelegram || msg.sender_name === 'Вы') {
-                        // Это сообщение от текущего пользователя
-                        isMyMessage = true;
+                    // Определяем по типам сообщений
+                    if (currentChatTelegramId === null) {
+                        // Покупатель открыл чат: его сообщения имеют тип 'user'
+                        isMyMessage = (msg.type === 'user');
+                    } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
+                        // Бригада открыла чат: её сообщения имеют тип 'brigade'
+                        isMyMessage = (msg.type === 'brigade');
                     } else {
-                        // Это сообщение от собеседника
-                        isMyMessage = false;
-                        
-                        // Дополнительная проверка по типам для случаев, когда имена могут совпадать
-                        if (currentChatTelegramId === null) {
-                            // Покупатель: его сообщения типа 'user'
-                            isMyMessage = (msg.type === 'user');
-                        } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
-                            // Бригада: её сообщения типа 'brigade'
-                            isMyMessage = (msg.type === 'brigade');
-                        } else {
-                            // Fallback: покупатель
-                            isMyMessage = (msg.type === 'user');
-                        }
+                        // Fallback: покупатель
+                        isMyMessage = (msg.type === 'user');
                     }
 
                     messageClass = isMyMessage ? 'chat-message-user' : 'chat-message-brigade';
