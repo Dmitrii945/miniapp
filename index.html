@@ -4464,6 +4464,42 @@
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
         
+        // Функция для получения стабильного user_id
+        function getStableUserId() {
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            
+            // Если есть Telegram ID, используем его
+            if (userInfo.id) {
+                return String(userInfo.id);
+            }
+            
+            // Иначе создаем/получаем стабильный ID из localStorage
+            let webUserId = localStorage.getItem('web_user_stable_id');
+            if (!webUserId) {
+                webUserId = 'web_user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('web_user_stable_id', webUserId);
+                console.log('🆔 Создан новый стабильный web_user_id:', webUserId);
+            } else {
+                console.log('🆔 Используется существующий web_user_id:', webUserId);
+            }
+            return webUserId;
+        }
+        
+        // Вспомогательная функция для очистки старых сессий (для отладки)
+        window.clearChatSessions = function() {
+            const keys = Object.keys(localStorage);
+            let cleared = 0;
+            keys.forEach(key => {
+                if (key.startsWith('chat_session_')) {
+                    localStorage.removeItem(key);
+                    cleared++;
+                }
+            });
+            console.log(`🧹 Очищено ${cleared} старых сессий`);
+            console.log('Перезагрузите страницу для создания новых сессий');
+        };
+        
         // Функция для генерации хеша session_id (должна совпадать с сервером)
         // На сервере используется MD5, но в браузере нет встроенного MD5
         // Поэтому используем SHA-256 и берем первые 32 символа
@@ -4487,7 +4523,7 @@
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
                 const userInfo = tg?.initDataUnsafe?.user || {};
-                const userId = userInfo.id || 'web_user_' + Date.now();
+                const userId = getStableUserId();
                 const userName = userInfo.first_name || 'Пользователь';
 
                 console.log('=== НАЧАЛО ЧАТА С БРИГАДОЙ ===');
@@ -4833,7 +4869,7 @@
                 if (currentChatBrigade && currentChatObject) {
                     const tg = window.Telegram?.WebApp;
                     const userInfo = tg?.initDataUnsafe?.user || {};
-                    const userId = userInfo.id || 'web_user_' + Date.now();
+                    const userId = getStableUserId();
                     
                     // Попытаемся найти в localStorage
                     const brigadeRow = localStorage.getItem('lastUsedBrigadeRow') || 'unknown';
@@ -4873,7 +4909,7 @@
             // Отправляем сообщение на сервер
             const tg = window.Telegram?.WebApp;
             const userInfo = tg?.initDataUnsafe?.user || {};
-            const userId = userInfo.id || 'web_user_' + Date.now();
+            const userId = getStableUserId();
             const userName = userInfo.first_name || 'Вы';
 
             sendMessageToServer(userId, userName, message, imageToSend);
@@ -4976,7 +5012,7 @@
         async function showMyChats() {
             const tg = window.Telegram?.WebApp;
             const userInfo = tg?.initDataUnsafe?.user || {};
-            const userId = userInfo.id || 'web_user_' + Date.now();
+            const userId = getStableUserId();
 
             document.getElementById('myChatsModal').classList.remove('hidden');
 
