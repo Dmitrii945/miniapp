@@ -1339,24 +1339,37 @@
         .chat-session-item {
             padding: 16px;
             margin-bottom: 12px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 16px;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
+            color: #ffffff !important;
         }
         
         .chat-session-item:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
         
         .chat-session-item:last-child {
             margin-bottom: 0;
+        }
+        
+        .chat-session-item * {
+            color: #ffffff !important;
+        }
+        
+        .chat-session-item .text-sm {
+            color: rgba(255, 255, 255, 0.7) !important;
         }
         
         .delete-chat-btn {
@@ -1398,19 +1411,22 @@
         .chat-send-btn {
             width: 44px;
             height: 44px;
-            background: #3B82F6;
+            background: #0088CC !important;
             border: none;
             border-radius: 50%;
-            color: white;
+            color: white !important;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4) !important;
         }
 
         .chat-send-btn:hover {
-            background: #2563EB;
+            background: #006699 !important;
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 136, 204, 0.5) !important;
         }
         
         .info-button {
@@ -4144,7 +4160,7 @@
                 <div class="p-6 rounded-lg shadow-lg max-w-sm w-full mx-4" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.25);">
                     <h3 class="text-lg font-semibold mb-4 text-center" style="color: #ffffff !important;">Выберите сервис такси</h3>
                     <div class="space-y-3">
-                        <button onclick="openYandexTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #FFCC00; color: #000000 !important;">
+                        <button onclick="openYandexTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #FFCC00; color: #000000 !important; font-weight: 700; text-shadow: none; box-shadow: 0 4px 12px rgba(255, 204, 0, 0.4);">
                             🚕 Яндекс Такси
                         </button>
                         <button onclick="openUberTaxi()" class="w-full p-3 rounded-lg font-medium" style="background-color: #000000; color: #ffffff !important;">
