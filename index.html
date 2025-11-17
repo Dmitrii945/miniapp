@@ -1297,28 +1297,40 @@
 
         .chat-message-user {
             align-self: flex-end;
-            background: #DBEAFE;
-            color: #1E40AF;
+            background: rgba(59, 130, 246, 0.2) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(59, 130, 246, 0.3) !important;
             border-bottom-right-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2) !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
         }
 
         .chat-message-brigade {
             align-self: flex-start;
-            background: white;
-            color: #000000;
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
         }
 
         .chat-message-system {
             align-self: center;
-            background: #F3F4F6;
-            color: #6B7280;
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: rgba(255, 255, 255, 0.7) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
             font-size: 13px;
             font-style: italic;
             text-align: center;
             max-width: 85%;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
         }
 
         .chat-message-time {
@@ -1657,8 +1669,8 @@
             </div>
             <div class="chat-modal-input">
                 <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input">
-                <button onclick="sendChatModalMessage()" class="chat-send-btn">
-                    <i data-feather="send"></i>
+                <button onclick="sendChatModalMessage()" class="chat-send-btn" style="background: #0088CC !important; color: white !important;">
+                    <i data-feather="send" style="color: white !important;"></i>
                 </button>
             </div>
         </div>
