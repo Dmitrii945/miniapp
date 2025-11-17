@@ -4453,38 +4453,6 @@
                 }
             }
         }
-                    localStorage.setItem('lastUsedTelegramId', telegramId);
-                    console.log('💾 Session ID сохранен в localStorage под ключом:', sessionKey);
-
-                    // Открываем модальное окно чата и загружаем историю
-                    openChatModal(brigadeName, objectName);
-                } else {
-                    // Специальная обработка ошибок
-                    console.error('❌ Ошибка от сервера:', data.error, data.message);
-                    if (data.error === 'own_object') {
-                        const tg = window.Telegram?.WebApp;
-                        const errorMessage = 'Это ваш объект, вы не можете начать чат сами с собой';
-                        if (tg?.showAlert) {
-                            tg.showAlert(errorMessage);
-                        } else {
-                            alert(errorMessage);
-                        }
-                    } else {
-                        throw new Error(data.error || data.message || 'Не удалось создать чат');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при создании чата:', error);
-                console.error('Stack trace:', error.stack);
-                const tg = window.Telegram?.WebApp;
-                const errorMessage = `Не удалось связаться с бригадой.\nОшибка: ${error.message}\n\nПопробуйте позже или позвоните по телефону.`;
-                if (tg?.showAlert) {
-                    tg.showAlert(errorMessage);
-                } else {
-                    alert(errorMessage);
-                }
-            }
-        }
 
         async function openChatModal(brigadeName, objectName) {
             const modal = document.getElementById('chatModal');
