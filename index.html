@@ -5270,7 +5270,7 @@
         window.deleteChatSession = deleteChatSession;
         window.handleFileSelect = handleFileSelect;
         
-        // Функция загрузки фото в чат
+        // Функция загрузки фото в чат (объявляем ДО использования)
         async function uploadPhotoToChat(file) {
             try {
                 const formData = new FormData();
@@ -5316,6 +5316,9 @@
                 throw error;
             }
         }
+        
+        // Экспортируем после объявления
+        window.uploadPhotoToChat = uploadPhotoToChat;
         
         // Глобальные переменные для автообновления
         let chatUpdateInterval = null;
