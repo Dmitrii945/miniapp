@@ -1257,6 +1257,24 @@
             font-size: 18px;
             font-weight: 600;
             margin: 0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .chat-modal-title:hover {
+            opacity: 0.8;
+        }
+        
+        .chat-modal-title-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .chat-modal-close {
@@ -1650,13 +1668,17 @@
                 </button>
             </div>
             <div class="chat-modal-messages" id="chatModalMessages">
-                <div class="text-center text-gray-500 py-8">
-                    <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                <div class="text-center py-8" style="color: #000000;">
+                    <i data-feather="message-circle" class="w-12 h-12 mx-auto mb-2" style="color: #666666;"></i>
                     <div>Начните общение</div>
                 </div>
             </div>
             <div class="chat-modal-input">
-                <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input">
+                <input type="file" id="chatFileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                <button onclick="document.getElementById('chatFileInput').click()" class="chat-attach-btn" title="Прикрепить фото" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px;">
+                    <i data-feather="paperclip" style="color: white !important; width: 20px; height: 20px;"></i>
+                </button>
+                <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input" style="flex: 1;">
                 <button onclick="sendChatModalMessage()" class="chat-send-btn" style="background: #0088CC !important; color: white !important;">
                     <i data-feather="send" style="color: white !important;"></i>
                 </button>
@@ -2677,7 +2699,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', '${imageUrl || ''}')" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -4400,7 +4422,9 @@
         let currentChatSession = null;
         let currentChatBrigade = null;
         let currentChatObject = null;
-        let currentChatTelegramId = null;  // Telegram ID текущей бригады
+        let currentChatTelegramId = null;
+        let currentChatObjectPhoto = null;  // Фото объекта для заголовка чата
+        let currentChatBrigadeRow = null;    // Номер строки бригады для навигации  // Telegram ID текущей бригады
         let chatMessages = [];
 
         // Получить или создать session_id для чата
@@ -4410,7 +4434,7 @@
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
         
-        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null) {
+        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null, objectPhoto = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
@@ -4418,7 +4442,11 @@
                 const userId = userInfo.id || 'web_user_' + Date.now();
                 const userName = userInfo.first_name || 'Пользователь';
 
-                console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, userId, userName });
+                console.log('Начинаем чат с бригадой:', { brigadeRow, telegramId, brigadeName, objectName, objectPhoto, userId, userName });
+
+                // Сохраняем информацию об объекте
+                currentChatObjectPhoto = objectPhoto;
+                currentChatBrigadeRow = brigadeRow;
 
                 // Сохраняем brigadeRow для возможного восстановления сессии
                 localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
@@ -4506,13 +4534,33 @@
             const title = document.getElementById('chatModalTitle');
             const subtitle = document.getElementById('chatModalSubtitle');
 
-            title.textContent = `Чат с ${brigadeName}`;
-            subtitle.textContent = objectName || 'Общий чат';
+            // Создаем кликабельный заголовок с фото
+            let titleHTML = '';
+            if (currentChatObjectPhoto) {
+                titleHTML += `<img src="${currentChatObjectPhoto}" class="chat-modal-title-photo" alt="Объект">`;
+            }
+            titleHTML += `<span>${objectName || 'Общий чат'}</span>`;
+            
+            // Делаем заголовок кликабельным для перехода к объекту
+            title.innerHTML = titleHTML;
+            title.style.cursor = 'pointer';
+            title.onclick = () => {
+                if (currentChatBrigadeRow) {
+                    // Открываем карточку объекта
+                    closeChatModal();
+                    renderObjectDetails(currentChatBrigadeRow - 2); // -2 потому что первые 2 строки - заголовки
+                }
+            };
+            
+            subtitle.textContent = `Бригада: ${brigadeName}`;
 
             modal.classList.remove('hidden');
             
             // Загружаем историю сообщений с сервера
             await loadChatHistory();
+            
+            // Запускаем автообновление
+            startChatAutoUpdate();
             
             // Фокус на input
             setTimeout(() => {
@@ -4547,6 +4595,10 @@
             const modal = document.getElementById('chatModal');
             modal.classList.add('hidden');
             document.getElementById('chatModalInput').value = '';
+            
+            // Останавливаем автообновление
+            stopChatAutoUpdate();
+            lastMessageCount = 0;
         }
 
         function addChatMessage(type, senderName, text, timestamp) {
@@ -4950,7 +5002,7 @@
                     // Обновляем список чатов
                     showMyChats();
                     
-                    alert('Чат удален');
+                    // Уведомление удалено - чат просто удаляется без alert
                 } else {
                     console.error('Ошибка удаления чата:', data.error);
                     alert('Не удалось удалить чат');
@@ -5011,6 +5063,62 @@
         window.openChatSessionAsBrigade = openChatSessionAsBrigade;
         window.openChatSessionAsCustomer = openChatSessionAsCustomer;
         window.deleteChatSession = deleteChatSession;
+        window.handleFileSelect = handleFileSelect;
+        
+        // Глобальные переменные для автообновления
+        let chatUpdateInterval = null;
+        let lastMessageCount = 0;
+        
+        // Функция для обработки выбора файла
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                alert('Пожалуйста, выберите изображение');
+                return;
+            }
+            
+            // Пока что просто уведомление (в будущем здесь будет загрузка)
+            console.log('Выбран файл:', file.name);
+            alert('Функция прикрепления фото будет доступна в следующем обновлении');
+            
+            // Очищаем input для повторного выбора того же файла
+            event.target.value = '';
+        }
+        
+        // Функция автообновления сообщений чата
+        async function startChatAutoUpdate() {
+            if (chatUpdateInterval) {
+                clearInterval(chatUpdateInterval);
+            }
+            
+            chatUpdateInterval = setInterval(async () => {
+                if (currentChatSession && !document.getElementById('chatModal').classList.contains('hidden')) {
+                    try {
+                        const response = await fetch(`${API_BASE}/chat/history/${currentChatSession}`);
+                        const data = await response.json();
+                        
+                        if (data.success && data.messages) {
+                            if (data.messages.length !== lastMessageCount) {
+                                lastMessageCount = data.messages.length;
+                                await loadChatHistory();
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Ошибка автообновления чата:', error);
+                    }
+                }
+            }, 3000); // Обновление каждые 3 секунды
+        }
+        
+        // Остановка автообновления
+        function stopChatAutoUpdate() {
+            if (chatUpdateInterval) {
+                clearInterval(chatUpdateInterval);
+                chatUpdateInterval = null;
+            }
+        }
     </script>
 </body>
 </html>
