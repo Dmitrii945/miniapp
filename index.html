@@ -1270,12 +1270,12 @@
         }
         
         .chat-modal-title-photo {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
+            width: 96px;
+            height: 96px;
+            border-radius: 12px;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.5);
-            margin-right: 10px;
+            margin-right: 12px;
             display: inline-block;
             vertical-align: middle;
             flex-shrink: 0;
@@ -4675,7 +4675,6 @@
                                       alt="Объект" 
                                       onerror="handleChatPhotoError(this, ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
                                       loading="lazy"
-                                      crossorigin="anonymous"
                                       data-tried-alternative="0">`;
                 }
             } else {
