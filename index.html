@@ -1275,6 +1275,34 @@
             border-radius: 12px;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.3);
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+
+        .back-to-chat-btn {
+            display: inline-flex;
+            align-items: center;
+            background: #0088CC;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 136, 204, 0.3);
+            transition: all 0.2s;
+        }
+        
+        .back-to-chat-btn:hover {
+            background: #006699;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+        }
+        
+        .back-to-chat-btn:active {
+            transform: translateY(0);
         }
 
         .chat-modal-close {
@@ -1659,8 +1687,10 @@
         <!-- Chat Modal -->
         <div id="chatModal" class="chat-modal hidden">
             <div class="chat-modal-header">
-                <div>
-                    <h2 class="chat-modal-title" id="chatModalTitle">Чат с бригадой</h2>
+                <div style="flex: 1;">
+                    <div class="chat-modal-title" id="chatModalTitle" style="display: flex; align-items: center;">
+                        <span>Чат с бригадой</span>
+                    </div>
                     <div class="text-sm opacity-90" id="chatModalSubtitle"></div>
                 </div>
                 <button onclick="closeChatModal()" class="chat-modal-close">
@@ -2755,6 +2785,18 @@
             
             updateBreadcrumbsFromStack();
             elements.pageTitle.textContent = object.object_name;
+            
+            // Если открыли из чата, добавляем кнопку возврата в чат
+            if (fromChat && currentChatSession) {
+                // Добавляем кнопку перед содержимым
+                const backToChatBtn = document.createElement('button');
+                backToChatBtn.className = 'back-to-chat-btn';
+                backToChatBtn.innerHTML = '<i data-feather="message-circle" class="w-4 h-4 mr-2"></i>Вернуться в чат';
+                backToChatBtn.onclick = () => {
+                    goBack();
+                };
+                elements.mainContent.insertBefore(backToChatBtn, elements.mainContent.firstChild);
+            }
             
             renderObjectGalleryPage(groupName, brigade, object);
         }
@@ -5155,9 +5197,15 @@
             formData.append('photo', file);
             formData.append('session_id', currentChatSession);
             
-            console.log('📤 Загружаем фото для сессии:', currentChatSession);
+            // Добавляем user_id отправителя
+            const tg = window.Telegram?.WebApp;
+            const userInfo = tg?.initDataUnsafe?.user || {};
+            const userId = userInfo.id || 'web_user';
+            formData.append('user_id', userId);
             
-            const response = await fetch(`${API_BASE_URL}/chat/upload_photo`, {
+            console.log('📤 Загружаем фото для сессии:', currentChatSession, 'От user_id:', userId);
+            
+            const response = await fetch(`${API_BASE}/chat/upload_photo`, {
                 method: 'POST',
                 body: formData
             });
