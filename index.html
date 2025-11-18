@@ -2699,8 +2699,17 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', '${imageUrl || ''}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, '${escapeHtml(groupName)}', ${index})" 
-                                        class="chat-object-btn">
+                                <button 
+                                    onclick="event.stopPropagation(); startChatWithBrigadeFromButton(this)" 
+                                    class="chat-object-btn"
+                                    data-brigade-row="${brigade.brigade_row}"
+                                    data-telegram-id="${escapeHtml(brigade.telegram_id || '')}"
+                                    data-brigade-name="${escapeHtml(brigade.brigade_name)}"
+                                    data-object-name="${escapeHtml(object.object_name)}"
+                                    data-object-photo="${imageUrl || ''}"
+                                    data-brigade-json="${encodeURIComponent(JSON.stringify(brigade))}"
+                                    data-group-name="${escapeHtml(groupName)}"
+                                    data-object-index="${index}">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
                                 </button>
@@ -4437,6 +4446,27 @@
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
         
+        // Новая функция для чтения данных из data-атрибутов кнопки
+        function startChatWithBrigadeFromButton(button) {
+            const brigadeRow = parseInt(button.dataset.brigadeRow);
+            const telegramId = button.dataset.telegramId;
+            const brigadeName = button.dataset.brigadeName;
+            const objectName = button.dataset.objectName;
+            const objectPhoto = button.dataset.objectPhoto;
+            const brigadeJson = button.dataset.brigadeJson;
+            const groupName = button.dataset.groupName;
+            const objectIndex = parseInt(button.dataset.objectIndex);
+            
+            let brigadeData = null;
+            try {
+                brigadeData = JSON.parse(decodeURIComponent(brigadeJson));
+            } catch (e) {
+                console.error('Ошибка парсинга данных бригады:', e);
+            }
+            
+            startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName, objectPhoto, brigadeData, groupName, objectIndex);
+        }
+        
         async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null, objectPhoto = null, brigadeData = null, groupName = null, objectIndex = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
@@ -5074,6 +5104,7 @@
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
         window.startChatWithBrigade = startChatWithBrigade;
+        window.startChatWithBrigadeFromButton = startChatWithBrigadeFromButton;
         window.closeChatModal = closeChatModal;
         window.sendChatModalMessage = sendChatModalMessage;
         window.showMyChats = showMyChats;
@@ -5098,8 +5129,24 @@
                 return;
             }
             
-            // Пока что просто логируем (в будущем здесь будет загрузка)
-            console.log('Выбран файл:', file.name);
+            console.log('✅ Файл выбран:', file.name, 'Размер:', (file.size / 1024).toFixed(2), 'KB');
+            
+            // Визуальная индикация - меняем иконку скрепки на галочку
+            const attachBtn = document.querySelector('.chat-attach-btn');
+            if (attachBtn) {
+                const icon = attachBtn.querySelector('i');
+                if (icon) {
+                    icon.setAttribute('data-feather', 'check-circle');
+                    feather.replace();
+                    
+                    // Возвращаем иконку через 2 секунды
+                    setTimeout(() => {
+                        icon.setAttribute('data-feather', 'paperclip');
+                        feather.replace();
+                    }, 2000);
+                }
+            }
+            
             // TODO: Здесь будет загрузка фото на сервер
             
             // Очищаем input для повторного выбора того же файла
