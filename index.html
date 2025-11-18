@@ -4650,23 +4650,36 @@
             
             // Делаем заголовок кликабельным для перехода к объекту
             title.innerHTML = titleHTML;
+            
+            // Удаляем старые обработчики
+            const newTitle = title.cloneNode(true);
+            title.parentNode.replaceChild(newTitle, title);
+            
             if (currentChatBrigadeData && currentChatGroupName !== null && currentChatObjectIndex !== null) {
                 console.log('✅ Заголовок чата будет кликабельным');
-                title.style.cursor = 'pointer';
-                title.onclick = () => {
-                    // Открываем карточку объекта
+                newTitle.style.cursor = 'pointer';
+                
+                // Используем addEventListener вместо onclick
+                newTitle.addEventListener('click', () => {
                     console.log('👆 Клик по заголовку чата, открываем объект:', { groupName: currentChatGroupName, brigade: currentChatBrigadeData, objectIndex: currentChatObjectIndex });
                     closeChatModal();
                     openObjectGalleryPage(currentChatGroupName, currentChatBrigadeData, currentChatObjectIndex, true);
-                };
+                });
+                
+                // Добавляем визуальный фидбек при наведении
+                newTitle.addEventListener('touchstart', () => {
+                    newTitle.style.opacity = '0.7';
+                });
+                newTitle.addEventListener('touchend', () => {
+                    newTitle.style.opacity = '1';
+                });
             } else {
                 console.log('❌ Заголовок НЕ кликабельный. Данные:', { 
                     hasBrigadeData: !!currentChatBrigadeData, 
                     groupName: currentChatGroupName, 
                     objectIndex: currentChatObjectIndex 
                 });
-                title.style.cursor = 'default';
-                title.onclick = null;
+                newTitle.style.cursor = 'default';
             }
             
             // Определяем, кто открыл чат
@@ -5222,38 +5235,49 @@
         
         // Функция загрузки фото в чат
         async function uploadPhotoToChat(file) {
-            const formData = new FormData();
-            formData.append('photo', file);
-            formData.append('session_id', currentChatSession);
-            
-            // Добавляем user_id отправителя
-            const tg = window.Telegram?.WebApp;
-            const userInfo = tg?.initDataUnsafe?.user || {};
-            const userId = userInfo.id || 'web_user';
-            formData.append('user_id', userId);
-            
-            console.log('📤 Загружаем фото для сессии:', currentChatSession, 'От user_id:', userId);
-            
-            const response = await fetch(`${API_BASE}/chat/upload_photo`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) {
-                throw new Error('Ошибка загрузки фото');
+            try {
+                const formData = new FormData();
+                formData.append('photo', file);
+                formData.append('session_id', currentChatSession);
+                
+                // Добавляем user_id отправителя
+                const tg = window.Telegram?.WebApp;
+                const userInfo = tg?.initDataUnsafe?.user || {};
+                const userId = userInfo.id || 'web_user';
+                formData.append('user_id', userId);
+                
+                console.log('📤 Загружаем фото для сессии:', currentChatSession, 'От user_id:', userId);
+                
+                const response = await fetch(`${API_BASE}/chat/upload_photo`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('📥 Ответ сервера (status):', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Ошибка HTTP:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📥 Ответ сервера (data):', data);
+                
+                if (data.success && data.photo_url) {
+                    console.log('✅ Фото успешно загружено, обновляем чат');
+                    // Обновляем чат через 0.5 секунды
+                    setTimeout(() => {
+                        loadChatHistory();
+                    }, 500);
+                } else {
+                    throw new Error(data.error || 'Неизвестная ошибка');
+                }
+                return data;
+            } catch (error) {
+                console.error('🚫 Ошибка в uploadPhotoToChat:', error);
+                throw error;
             }
-            
-            const data = await response.json();
-            console.log('📥 Ответ сервера:', data);
-            
-            if (data.success && data.photo_url) {
-                console.log('✅ Фото успешно загружено, обновляем чат');
-                // Обновляем чат через 0.5 секунды
-                setTimeout(() => {
-                    loadChatHistory();
-                }, 500);
-            }
-            return data;
         }
         
         // Глобальные переменные для автообновления
@@ -5281,11 +5305,14 @@
                     feather.replace();
                     
                     // Загружаем фото на сервер
-                    uploadPhotoToChat(file).then(() => {
-                        console.log('✅ Фото загружено на сервер');
-                    }).catch(err => {
-                        console.error('❌ Ошибка загрузки фото:', err);
-                    });
+                    uploadPhotoToChat(file)
+                        .then(() => {
+                            console.log('✅ Фото загружено на сервер');
+                        })
+                        .catch(err => {
+                            console.error('❌ Ошибка загрузки фото:', err);
+                            alert('Ошибка загрузки фото: ' + err.message);
+                        });
                     
                     // Возвращаем иконку через 2 секунды
                     setTimeout(() => {
