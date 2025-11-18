@@ -1270,9 +1270,9 @@
         }
         
         .chat-modal-title-photo {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
@@ -1675,7 +1675,7 @@
             </div>
             <div class="chat-modal-input">
                 <input type="file" id="chatFileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
-                <button onclick="document.getElementById('chatFileInput').click()" class="chat-attach-btn" title="Прикрепить фото" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px;">
+                <button onclick="document.getElementById('chatFileInput').click()" class="chat-attach-btn" title="Прикрепить фото" style="background: #0088CC !important; border: none; color: white; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px; box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);">
                     <i data-feather="paperclip" style="color: white !important; width: 20px; height: 20px;"></i>
                 </button>
                 <input type="text" id="chatModalInput" placeholder="Введите сообщение..." class="chat-input" style="flex: 1;">
@@ -4529,7 +4529,7 @@
             }
         }
 
-        async function openChatModal(brigadeName, objectName) {
+        async function openChatModal(displayName, objectName) {
             const modal = document.getElementById('chatModal');
             const title = document.getElementById('chatModalTitle');
             const subtitle = document.getElementById('chatModalSubtitle');
@@ -4537,22 +4537,33 @@
             // Создаем кликабельный заголовок с фото
             let titleHTML = '';
             if (currentChatObjectPhoto) {
-                titleHTML += `<img src="${currentChatObjectPhoto}" class="chat-modal-title-photo" alt="Объект">`;
+                titleHTML += `<img src="${currentChatObjectPhoto}" class="chat-modal-title-photo" alt="Объект" onerror="this.style.display='none'">`;
             }
             titleHTML += `<span>${objectName || 'Общий чат'}</span>`;
             
-            // Делаем заголовок кликабельным для перехода к объекту
+            // Делаем заголовок кликабельным для перехода к объекту только если есть currentChatBrigadeRow
             title.innerHTML = titleHTML;
-            title.style.cursor = 'pointer';
-            title.onclick = () => {
-                if (currentChatBrigadeRow) {
+            if (currentChatBrigadeRow) {
+                title.style.cursor = 'pointer';
+                title.onclick = () => {
                     // Открываем карточку объекта
                     closeChatModal();
                     renderObjectDetails(currentChatBrigadeRow - 2); // -2 потому что первые 2 строки - заголовки
-                }
-            };
+                };
+            } else {
+                title.style.cursor = 'default';
+                title.onclick = null;
+            }
             
-            subtitle.textContent = `Бригада: ${brigadeName}`;
+            // Определяем, кто открыл чат
+            const isCurrentUserBrigade = currentChatTelegramId !== null;
+            if (isCurrentUserBrigade) {
+                // Бригада видит имя клиента
+                subtitle.textContent = `Клиент: ${displayName}`;
+            } else {
+                // Клиент видит название бригады
+                subtitle.textContent = `Бригада: ${displayName}`;
+            }
 
             modal.classList.remove('hidden');
             
@@ -4838,7 +4849,7 @@
                         // Для бригады показываем чаты с покупателями
                         content.innerHTML = data.sessions.map(session => `
                             <div class="chat-session-item">
-                                <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${data.brigade_name}', '${session.object_name}')" style="flex: 1; cursor: pointer;">
+                                <div class="flex justify-between items-start" onclick="openChatSessionAsBrigade('${session.session_id}', '${session.brigade_name || data.brigade_names?.[0] || 'Бригада'}', '${session.object_name || ''}', '${session.user_name || 'Клиент'}')" style="flex: 1; cursor: pointer;">
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-gray-800">Чат с ${session.user_name}</h3>
                                         <p class="text-sm text-gray-600">${session.object_name || 'Общий чат'}</p>
@@ -4905,7 +4916,7 @@
             document.getElementById('myChatsModal').classList.add('hidden');
         }
 
-        function openChatSessionAsBrigade(sessionId, brigadeName, objectName) {
+        function openChatSessionAsBrigade(sessionId, brigadeName, objectName, userName) {
             currentChatSession = sessionId;
             currentChatBrigade = brigadeName;
             currentChatObject = objectName;
@@ -4918,13 +4929,14 @@
             currentChatTelegramId = String(userId);
             
             console.log('Opening chat session as brigade:', {
-                sessionId, brigadeName, objectName,
+                sessionId, brigadeName, objectName, userName,
                 currentUserId: userId,
                 currentChatTelegramId: currentChatTelegramId
             });
             
             closeMyChatsModal();
-            openChatModal(brigadeName, objectName);
+            // Для бригады показываем имя пользователя вместо названия бригады
+            openChatModal(userName || 'Клиент', objectName);
         }
 
         function openChatSessionAsCustomer(sessionId, brigadeName, objectName) {
@@ -4966,7 +4978,7 @@
             // Предотвращаем срабатывание клика по элементу чата
             event.stopPropagation();
             
-            const confirmDelete = confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.');
+            const confirmDelete = window.confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.');
             
             if (!confirmDelete) {
                 return;
