@@ -2740,7 +2740,7 @@
             scheduleFeatherReplace();
         }
 
-        function openObjectGalleryPage(groupName, brigade, objectIndex) {
+        function openObjectGalleryPage(groupName, brigade, objectIndex, fromChat = false) {
             const object = brigade.objects[objectIndex];
             if (!object) return;
             
@@ -2749,7 +2749,8 @@
             navigationStack.push({ 
                 type: 'object', 
                 id: object.object_name, 
-                name: object.object_name 
+                name: object.object_name,
+                fromChat: fromChat
             });
             
             updateBreadcrumbsFromStack();
@@ -4146,6 +4147,13 @@
             if (navigationStack.length > 0) {
                 const currentItem = navigationStack.pop();
                 
+                // Если открыли объект из чата, возвращаемся в чат
+                if (currentItem.fromChat && currentChatSession && currentChatBrigade) {
+                    console.log('⬅️ Возврат в чат из объекта');
+                    openChatModal(currentChatBrigade, currentChatObject);
+                    return;
+                }
+                
                 if (navigationStack.length === 0) {
                     loadSections();
                 } else {
@@ -4599,7 +4607,7 @@
                     // Открываем карточку объекта
                     console.log('👆 Клик по заголовку чата, открываем объект:', { groupName: currentChatGroupName, brigade: currentChatBrigadeData, objectIndex: currentChatObjectIndex });
                     closeChatModal();
-                    openObjectGalleryPage(currentChatGroupName, currentChatBrigadeData, currentChatObjectIndex);
+                    openObjectGalleryPage(currentChatGroupName, currentChatBrigadeData, currentChatObjectIndex, true);
                 };
             } else {
                 console.log('❌ Заголовок НЕ кликабельный. Данные:', { 
@@ -4972,10 +4980,17 @@
             document.getElementById('myChatsModal').classList.add('hidden');
         }
 
-        function openChatSessionAsBrigade(sessionId, brigadeName, objectName, userName) {
+        function openChatSessionAsBrigade(sessionId, brigadeName, objectName, userName, brigadeData = null, groupName = null, objectIndex = null) {
             currentChatSession = sessionId;
             currentChatBrigade = brigadeName;
             currentChatObject = objectName;
+            
+            // Сохраняем данные для кликабельности
+            currentChatBrigadeData = brigadeData;
+            currentChatGroupName = groupName;
+            currentChatObjectIndex = objectIndex;
+            
+            console.log('🔍 openChatSessionAsBrigade с данными:', { brigadeData, groupName, objectIndex });
             
             const tg = window.Telegram?.WebApp;
             const userInfo = tg?.initDataUnsafe?.user || {};
@@ -5138,7 +5153,9 @@
         async function uploadPhotoToChat(file) {
             const formData = new FormData();
             formData.append('photo', file);
-            formData.append('session_id', currentChatSessionId);
+            formData.append('session_id', currentChatSession);
+            
+            console.log('📤 Загружаем фото для сессии:', currentChatSession);
             
             const response = await fetch(`${API_BASE_URL}/chat/upload_photo`, {
                 method: 'POST',
@@ -5150,11 +5167,11 @@
             }
             
             const data = await response.json();
+            console.log('📥 Ответ сервера:', data);
+            
             if (data.success && data.photo_url) {
-                // Отправляем сообщение с фото
-                await sendChatMessage(`[Фото: ${data.photo_url}]`);
                 // Обновляем чат
-                await loadChatHistory(currentChatSessionId);
+                await loadChatHistory();
             }
             return data;
         }
