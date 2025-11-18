@@ -2576,6 +2576,25 @@
             }
         }
 
+        // Функция для обработки ошибок загрузки фото в заголовке чата
+        function handleChatPhotoError(imgElement, alternativeUrls = []) {
+            const triedAlternative = parseInt(imgElement.dataset.triedAlternative || '0');
+            
+            console.log(`⚠️ Ошибка загрузки фото ${triedAlternative + 1}:`, imgElement.src);
+            
+            if (alternativeUrls.length > triedAlternative) {
+                // Пробуем следующую альтернативную ссылку
+                imgElement.dataset.triedAlternative = (triedAlternative + 1).toString();
+                imgElement.src = alternativeUrls[triedAlternative];
+                console.log(`🔄 Пробуем альтернативный URL ${triedAlternative + 1}:`, alternativeUrls[triedAlternative]);
+                return;
+            }
+            
+            // Все альтернативы исчерпаны - скрываем фото
+            console.log('❌ Все альтернативные URL исчерпаны, скрываем фото');
+            imgElement.style.display = 'none';
+        }
+
         // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
 
         async function loadBrigades() {
@@ -4640,7 +4659,25 @@
             let titleHTML = '';
             if (currentChatObjectPhoto) {
                 console.log('📷 Добавляем фото в заголовок:', currentChatObjectPhoto);
-                titleHTML += `<img src="${currentChatObjectPhoto}" class="chat-modal-title-photo" alt="Объект" onerror="console.error('Ошибка загрузки фото:', this.src); this.style.display='none';">`;
+                
+                // Используем те же функции что и для фото объектов
+                const imageUrl = extractPhotoFilenameFromUrl(currentChatObjectPhoto);
+                const alternativeUrls = getAlternativeImageUrls(currentChatObjectPhoto);
+                
+                console.log('🔄 Обработанные URL:', { imageUrl, alternativeUrls });
+                
+                // Используем первый альтернативный URL если основной не работает
+                const finalUrl = imageUrl || (alternativeUrls.length > 0 ? alternativeUrls[0] : null);
+                
+                if (finalUrl) {
+                    titleHTML += `<img src="${escapeHtml(finalUrl)}" 
+                                      class="chat-modal-title-photo" 
+                                      alt="Объект" 
+                                      onerror="handleChatPhotoError(this, ${JSON.stringify(alternativeUrls).replace(/"/g, '&quot;')})"
+                                      loading="lazy"
+                                      crossorigin="anonymous"
+                                      data-tried-alternative="0">`;
+                }
             } else {
                 console.log('⚠️ Фото объекта отсутствует (currentChatObjectPhoto is null/undefined)');
             }
@@ -5219,6 +5256,7 @@
         window.retryLastAction = retryLastAction;
         window.handleUniversalImageError = handleUniversalImageError;
         window.handleUniversalImageLoad = handleUniversalImageLoad;
+        window.handleChatPhotoError = handleChatPhotoError;
         window.handleGalleryImageError = handleGalleryImageError;
         window.handleGalleryImageLoad = handleGalleryImageLoad;
         window.startChatWithBrigade = startChatWithBrigade;
