@@ -5341,11 +5341,22 @@
             const attachBtn = document.querySelector('.chat-attach-btn');
             console.log('🔍 attachBtn найдена?', !!attachBtn);
             if (attachBtn) {
-                const icon = attachBtn.querySelector('i');
+                // Feather заменяет <i> на <svg>, поэтому ищем svg или i
+                const icon = attachBtn.querySelector('svg') || attachBtn.querySelector('i');
                 console.log('🔍 icon найдена?', !!icon);
                 if (icon) {
-                    icon.setAttribute('data-feather', 'check-circle');
-                    feather.replace();
+                    // Для SVG меняем атрибут, для <i> тоже меняем
+                    if (icon.tagName === 'I') {
+                        icon.setAttribute('data-feather', 'check-circle');
+                        feather.replace();
+                    } else {
+                        // Для SVG создаём новый <i> и заменяем
+                        const newIcon = document.createElement('i');
+                        newIcon.setAttribute('data-feather', 'check-circle');
+                        newIcon.style.cssText = 'color: white !important; width: 20px; height: 20px;';
+                        icon.replaceWith(newIcon);
+                        feather.replace();
+                    }
                     
                     // Загружаем фото на сервер
                     console.log('🎯 ВЫЗЫВАЕМ uploadPhotoToChat');
@@ -5360,8 +5371,20 @@
                     
                     // Возвращаем иконку через 2 секунды
                     setTimeout(() => {
-                        icon.setAttribute('data-feather', 'paperclip');
-                        feather.replace();
+                        // Для SVG создаём новый <i>, для <i> меняем атрибут
+                        const currentIcon = attachBtn.querySelector('svg') || attachBtn.querySelector('i');
+                        if (currentIcon) {
+                            if (currentIcon.tagName === 'I') {
+                                currentIcon.setAttribute('data-feather', 'paperclip');
+                                feather.replace();
+                            } else {
+                                const resetIcon = document.createElement('i');
+                                resetIcon.setAttribute('data-feather', 'paperclip');
+                                resetIcon.style.cssText = 'color: white !important; width: 20px; height: 20px;';
+                                currentIcon.replaceWith(resetIcon);
+                                feather.replace();
+                            }
+                        }
                     }, 2000);
                 }
             }
