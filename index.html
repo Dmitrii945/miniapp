@@ -4835,17 +4835,22 @@
         }
 
         async function loadChatHistory() {
+            console.log('📜 loadChatHistory ВЫЗВАНА, currentChatSession:', currentChatSession);
             if (!currentChatSession) {
+                console.log('⚠️ currentChatSession пустая, пропускаем загрузку');
                 renderChatMessages();
                 return;
             }
 
             try {
+                console.log('🌐 Запрашиваем историю с сервера:', `${API_BASE}/chat/history/${currentChatSession}`);
                 const response = await fetch(`${API_BASE}/chat/history/${currentChatSession}`);
                 const data = await response.json();
+                console.log('📦 Получены данные истории:', data);
 
                 if (data.success) {
                     chatMessages = data.messages || [];
+                    console.log('✅ Загружено сообщений:', chatMessages.length);
                     renderChatMessages();
                 } else {
                     console.error('Ошибка загрузки истории:', data.error);
@@ -5409,6 +5414,10 @@
                 formData.append('user_id', userId);
                 
                 console.log('📤 Загружаем фото для сессии:', currentChatSession, 'От user_id:', userId);
+                console.log('🌍 Окружение:', window.Telegram?.WebApp ? 'Telegram WebApp' : 'Обычный браузер');
+                console.log('📋 FormData содержит:', Array.from(formData.keys()));
+                
+                console.log('🔗 Отправляем запрос на:', `${API_BASE}/chat/upload_photo`);
                 
                 const response = await fetch(`${API_BASE}/chat/upload_photo`, {
                     method: 'POST',
@@ -5428,8 +5437,10 @@
                 
                 if (data.success && data.photo_url) {
                     console.log('✅ Фото успешно загружено, обновляем чат');
+                    console.log('🔄 Вызываем loadChatHistory через 0.5 сек...');
                     // Обновляем чат через 0.5 секунды
                     setTimeout(() => {
+                        console.log('⏰ Прошло 0.5 сек, вызываем loadChatHistory()');
                         loadChatHistory();
                     }, 500);
                 } else {
