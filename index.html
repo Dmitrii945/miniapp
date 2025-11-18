@@ -2699,7 +2699,7 @@
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', '${imageUrl || ''}')" 
+                                <button onclick="event.stopPropagation(); startChatWithBrigade(${brigade.brigade_row}, '${escapeHtml(brigade.telegram_id || '')}', '${escapeHtml(brigade.brigade_name)}', '${escapeHtml(object.object_name)}', '${imageUrl || ''}', ${JSON.stringify(brigade).replace(/"/g, '&quot;')}, '${escapeHtml(groupName)}', ${index})" 
                                         class="chat-object-btn">
                                     <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
                                     Написать бригаде
@@ -4424,7 +4424,10 @@
         let currentChatObject = null;
         let currentChatTelegramId = null;
         let currentChatObjectPhoto = null;  // Фото объекта для заголовка чата
-        let currentChatBrigadeRow = null;    // Номер строки бригады для навигации  // Telegram ID текущей бригады
+        let currentChatBrigadeRow = null;    // Номер строки бригады для навигации
+        let currentChatBrigadeData = null;   // Полные данные бригады
+        let currentChatGroupName = null;     // Название группы
+        let currentChatObjectIndex = null;   // Индекс объекта
         let chatMessages = [];
 
         // Получить или создать session_id для чата
@@ -4434,7 +4437,7 @@
             return `chat_session_${userId}_${brigadeName}_${objectName || 'general'}`;
         }
         
-        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null, objectPhoto = null) {
+        async function startChatWithBrigade(brigadeRow, telegramId, brigadeName, objectName = null, objectPhoto = null, brigadeData = null, groupName = null, objectIndex = null) {
             try {
                 // Получаем информацию о пользователе из Telegram
                 const tg = window.Telegram?.WebApp;
@@ -4447,6 +4450,9 @@
                 // Сохраняем информацию об объекте
                 currentChatObjectPhoto = objectPhoto;
                 currentChatBrigadeRow = brigadeRow;
+                currentChatBrigadeData = brigadeData;
+                currentChatGroupName = groupName;
+                currentChatObjectIndex = objectIndex;
 
                 // Сохраняем brigadeRow для возможного восстановления сессии
                 localStorage.setItem('lastUsedBrigadeRow', brigadeRow);
@@ -4541,14 +4547,15 @@
             }
             titleHTML += `<span>${objectName || 'Общий чат'}</span>`;
             
-            // Делаем заголовок кликабельным для перехода к объекту только если есть currentChatBrigadeRow
+            // Делаем заголовок кликабельным для перехода к объекту
             title.innerHTML = titleHTML;
-            if (currentChatBrigadeRow) {
+            if (currentChatBrigadeData && currentChatGroupName !== null && currentChatObjectIndex !== null) {
                 title.style.cursor = 'pointer';
                 title.onclick = () => {
                     // Открываем карточку объекта
+                    console.log('Открываем объект:', { groupName: currentChatGroupName, brigade: currentChatBrigadeData, objectIndex: currentChatObjectIndex });
                     closeChatModal();
-                    renderObjectDetails(currentChatBrigadeRow - 2); // -2 потому что первые 2 строки - заголовки
+                    openObjectGalleryPage(currentChatGroupName, currentChatBrigadeData, currentChatObjectIndex);
                 };
             } else {
                 title.style.cursor = 'default';
@@ -5087,13 +5094,13 @@
             if (!file) return;
             
             if (!file.type.startsWith('image/')) {
-                alert('Пожалуйста, выберите изображение');
+                console.warn('Выбран не изображение');
                 return;
             }
             
-            // Пока что просто уведомление (в будущем здесь будет загрузка)
+            // Пока что просто логируем (в будущем здесь будет загрузка)
             console.log('Выбран файл:', file.name);
-            alert('Функция прикрепления фото будет доступна в следующем обновлении');
+            // TODO: Здесь будет загрузка фото на сервер
             
             // Очищаем input для повторного выбора того же файла
             event.target.value = '';
