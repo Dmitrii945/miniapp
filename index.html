@@ -5339,13 +5339,16 @@
             
             // Визуальная индикация - меняем иконку скрепки на галочку
             const attachBtn = document.querySelector('.chat-attach-btn');
+            console.log('🔍 attachBtn найдена?', !!attachBtn);
             if (attachBtn) {
                 const icon = attachBtn.querySelector('i');
+                console.log('🔍 icon найдена?', !!icon);
                 if (icon) {
                     icon.setAttribute('data-feather', 'check-circle');
                     feather.replace();
                     
                     // Загружаем фото на сервер
+                    console.log('🎯 ВЫЗЫВАЕМ uploadPhotoToChat');
                     uploadPhotoToChat(file)
                         .then(() => {
                             console.log('✅ Фото загружено на сервер');
