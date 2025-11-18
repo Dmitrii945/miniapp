@@ -1270,13 +1270,15 @@
         }
         
         .chat-modal-title-photo {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
             object-fit: cover;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            margin-right: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            margin-right: 10px;
+            display: inline-block;
             vertical-align: middle;
+            flex-shrink: 0;
         }
 
         .back-to-chat-btn {
@@ -2786,24 +2788,25 @@
             updateBreadcrumbsFromStack();
             elements.pageTitle.textContent = object.object_name;
             
-            // Если открыли из чата, добавляем кнопку возврата в чат
-            if (fromChat && currentChatSession) {
-                // Добавляем кнопку перед содержимым
-                const backToChatBtn = document.createElement('button');
-                backToChatBtn.className = 'back-to-chat-btn';
-                backToChatBtn.innerHTML = '<i data-feather="message-circle" class="w-4 h-4 mr-2"></i>Вернуться в чат';
-                backToChatBtn.onclick = () => {
-                    goBack();
-                };
-                elements.mainContent.insertBefore(backToChatBtn, elements.mainContent.firstChild);
-            }
-            
-            renderObjectGalleryPage(groupName, brigade, object);
+            renderObjectGalleryPage(groupName, brigade, object, fromChat);
         }
 
-        function renderObjectGalleryPage(groupName, brigade, object) {
+        function renderObjectGalleryPage(groupName, brigade, object, fromChat = false) {
             let html = `
                 <div class="space-y-6">
+            `;
+            
+            // Если открыли из чата, добавляем кнопку возврата
+            if (fromChat && currentChatSession) {
+                html += `
+                    <button onclick="goBack()" class="back-to-chat-btn">
+                        <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                        Вернуться в чат
+                    </button>
+                `;
+            }
+            
+            html += `
                     <div class="bg-white rounded-xl p-6 shadow-sm mb-4">
                         <h2 class="text-2xl font-bold mb-2" style="color: #000000 !important;">${escapeHtml(object.object_name)}</h2>
                         <div class="gallery-status ${getStatusClass(object.status)} mt-2">${getStatusText(object.status)}</div>
@@ -4636,9 +4639,14 @@
             // Создаем кликабельный заголовок с фото
             let titleHTML = '';
             if (currentChatObjectPhoto) {
-                titleHTML += `<img src="${currentChatObjectPhoto}" class="chat-modal-title-photo" alt="Объект" onerror="this.style.display='none'">`;
+                console.log('📷 Добавляем фото в заголовок:', currentChatObjectPhoto);
+                titleHTML += `<img src="${currentChatObjectPhoto}" class="chat-modal-title-photo" alt="Объект" onerror="console.error('Ошибка загрузки фото:', this.src); this.style.display='none';">`;
+            } else {
+                console.log('⚠️ Фото объекта отсутствует (currentChatObjectPhoto is null/undefined)');
             }
             titleHTML += `<span>${objectName || 'Общий чат'}</span>`;
+            
+            console.log('🎨 HTML заголовка чата:', titleHTML);
             
             // Делаем заголовок кликабельным для перехода к объекту
             title.innerHTML = titleHTML;
@@ -4799,9 +4807,30 @@
                     messageClass: messageClass
                 });
                 
+                // Проверяем, есть ли фото в сообщении
+                let messageContent = '';
+                const photoMatch = (msg.text || '').match(/📷 \[Фото\]\(([^)]+)\)/);
+                
+                if (photoMatch && photoMatch[1]) {
+                    // Есть фото
+                    const photoUrl = photoMatch[1];
+                    messageContent = `
+                        <div>
+                            <div style="margin-bottom: 8px;">📷 Фото</div>
+                            <img src="${photoUrl}" 
+                                 style="max-width: 200px; max-height: 200px; border-radius: 8px; cursor: pointer;" 
+                                 onclick="window.open('${photoUrl}', '_blank')" 
+                                 onerror="this.style.display='none'; this.parentElement.innerHTML='<div>⚠️ Ошибка загрузки фото</div>';">
+                        </div>
+                    `;
+                } else {
+                    // Обычное текстовое сообщение
+                    messageContent = `<div>${escapeHtml(msg.text)}</div>`;
+                }
+                
                 html += `
                     <div class="chat-message ${messageClass}">
-                        <div>${escapeHtml(msg.text)}</div>
+                        ${messageContent}
                         ${time ? `<div class="chat-message-time">${time}</div>` : ''}
                     </div>
                 `;
@@ -5218,8 +5247,11 @@
             console.log('📥 Ответ сервера:', data);
             
             if (data.success && data.photo_url) {
-                // Обновляем чат
-                await loadChatHistory();
+                console.log('✅ Фото успешно загружено, обновляем чат');
+                // Обновляем чат через 0.5 секунды
+                setTimeout(() => {
+                    loadChatHistory();
+                }, 500);
             }
             return data;
         }
