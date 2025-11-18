@@ -1543,6 +1543,98 @@
         /* Стили для карусели товаров удалены */
         
         /* CSS стили карусели удалены */
+        
+        /* Confirm Dialog Styles */
+        .confirm-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .confirm-dialog.hidden {
+            display: none;
+        }
+        
+        .confirm-dialog-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .confirm-dialog-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .confirm-dialog-icon {
+            width: 48px;
+            height: 48px;
+            background: #FEE2E2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+        }
+        
+        .confirm-dialog-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+        
+        .confirm-dialog-text {
+            font-size: 16px;
+            color: #6B7280;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .confirm-dialog-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .confirm-dialog-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .confirm-dialog-btn-cancel {
+            background: #F3F4F6;
+            color: #374151;
+        }
+        
+        .confirm-dialog-btn-cancel:hover {
+            background: #E5E7EB;
+        }
+        
+        .confirm-dialog-btn-delete {
+            background: #EF4444;
+            color: white;
+        }
+        
+        .confirm-dialog-btn-delete:hover {
+            background: #DC2626;
+        }
     </style>
 </head>
 <body class="min-h-screen" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);">
@@ -4831,16 +4923,27 @@
                 } else {
                     let isMyMessage = false;
                     
+                    console.log('🔍 Анализ сообщения:', {
+                        msgType: msg.type,
+                        msgSender: msg.sender,
+                        currentUserId: currentUserId,
+                        currentChatTelegramId: currentChatTelegramId,
+                        isBrigade: currentChatTelegramId !== null
+                    });
+                    
                     // Определяем по типам сообщений
                     if (currentChatTelegramId === null) {
                         // Покупатель открыл чат: его сообщения имеют тип 'user'
                         isMyMessage = (msg.type === 'user');
+                        console.log('👤 Режим покупателя: msg.type=' + msg.type + ', isMyMessage=' + isMyMessage);
                     } else if (currentUserId && currentChatTelegramId && String(currentUserId) === String(currentChatTelegramId)) {
                         // Бригада открыла чат: её сообщения имеют тип 'brigade'
                         isMyMessage = (msg.type === 'brigade');
+                        console.log('👷 Режим бригады: msg.type=' + msg.type + ', isMyMessage=' + isMyMessage);
                     } else {
                         // Fallback: покупатель
                         isMyMessage = (msg.type === 'user');
+                        console.log('❓ Fallback режим: msg.type=' + msg.type + ', isMyMessage=' + isMyMessage);
                     }
 
                     messageClass = isMyMessage ? 'chat-message-user' : 'chat-message-brigade';
@@ -5165,11 +5268,31 @@
             openChatModal(brigadeName, objectName);
         }
 
+        let confirmDialogResolve = null;
+        let pendingDeleteSessionId = null;
+        
+        function showConfirmDialog(text) {
+            return new Promise((resolve) => {
+                confirmDialogResolve = resolve;
+                document.getElementById('confirmDialogText').textContent = text;
+                document.getElementById('confirmDialog').classList.remove('hidden');
+                feather.replace();
+            });
+        }
+        
+        function closeConfirmDialog(confirmed) {
+            document.getElementById('confirmDialog').classList.add('hidden');
+            if (confirmDialogResolve) {
+                confirmDialogResolve(confirmed);
+                confirmDialogResolve = null;
+            }
+        }
+
         async function deleteChatSession(sessionId, event) {
             // Предотвращаем срабатывание клика по элементу чата
             event.stopPropagation();
             
-            const confirmDelete = window.confirm('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.');
+            const confirmDelete = await showConfirmDialog('Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.');
             
             if (!confirmDelete) {
                 return;
@@ -5268,6 +5391,7 @@
         window.openChatSessionAsBrigade = openChatSessionAsBrigade;
         window.openChatSessionAsCustomer = openChatSessionAsCustomer;
         window.deleteChatSession = deleteChatSession;
+        window.closeConfirmDialog = closeConfirmDialog;
         window.handleFileSelect = handleFileSelect;
         
         // Функция загрузки фото в чат (объявляем ДО использования)
@@ -5428,5 +5552,28 @@
             }
         }
     </script>
+    
+    <!-- Confirm Dialog -->
+    <div id="confirmDialog" class="confirm-dialog hidden">
+        <div class="confirm-dialog-content">
+            <div class="confirm-dialog-header">
+                <div class="confirm-dialog-icon">
+                    <i data-feather="alert-circle" style="color: #EF4444; width: 24px; height: 24px;"></i>
+                </div>
+                <div class="confirm-dialog-title">Скидка Сервис</div>
+            </div>
+            <div class="confirm-dialog-text" id="confirmDialogText">
+                Вы уверены, что хотите удалить этот чат? Все сообщения будут потеряны.
+            </div>
+            <div class="confirm-dialog-buttons">
+                <button class="confirm-dialog-btn confirm-dialog-btn-cancel" onclick="closeConfirmDialog(false)">
+                    Отмена
+                </button>
+                <button class="confirm-dialog-btn confirm-dialog-btn-delete" onclick="closeConfirmDialog(true)">
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
