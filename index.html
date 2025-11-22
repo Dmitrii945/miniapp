@@ -5648,19 +5648,24 @@
                 return;
             }
 
+            console.log('🔍 Результаты поиска:', products);
+
             let html = `<div class="mb-4 text-center"><h3 class="text-lg font-semibold">Найдено совпадений: ${totalMatches}</h3></div>`;
             html += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">';
 
-            products.forEach(product => {
+            products.forEach((product, index) => {
                 // Если photo_url начинается с http - используем как есть (Google Drive)
                 // Иначе добавляем префикс для локальных файлов
                 let photoUrl;
                 if (product.photo_url && product.photo_url.startsWith('http')) {
                     photoUrl = product.photo_url; // Google Drive или внешняя ссылка
+                    console.log(`✅ Товар ${index + 1}: Google Drive URL -`, photoUrl);
                 } else if (product.photo_url) {
                     photoUrl = `https://dmitrii2613.pythonanywhere.com/uploads/${product.photo_url}`; // Локальный файл
+                    console.log(`📁 Товар ${index + 1}: Локальный файл -`, photoUrl);
                 } else {
                     photoUrl = 'https://via.placeholder.com/300x300?text=Нет+фото'; // Заглушка
+                    console.log(`⚠️ Товар ${index + 1}: НЕТ ФОТО`);
                 }
 
                 const confidence = product.confidence || 0;
