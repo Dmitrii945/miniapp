@@ -5652,9 +5652,16 @@
             html += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">';
 
             products.forEach(product => {
-                const photoUrl = product.photo_url 
-                    ? `https://dmitrii2613.pythonanywhere.com/uploads/${product.photo_url}`
-                    : 'https://via.placeholder.com/300x300?text=Нет+фото';
+                // Если photo_url начинается с http - используем как есть (Google Drive)
+                // Иначе добавляем префикс для локальных файлов
+                let photoUrl;
+                if (product.photo_url && product.photo_url.startsWith('http')) {
+                    photoUrl = product.photo_url; // Google Drive или внешняя ссылка
+                } else if (product.photo_url) {
+                    photoUrl = `https://dmitrii2613.pythonanywhere.com/uploads/${product.photo_url}`; // Локальный файл
+                } else {
+                    photoUrl = 'https://via.placeholder.com/300x300?text=Нет+фото'; // Заглушка
+                }
 
                 const confidence = product.confidence || 0;
                 const reason = product.match_reason || '';
@@ -5662,7 +5669,11 @@
                 html += `
                     <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
                         <div class="relative">
-                            <img src="${photoUrl}" alt="${product.model}" class="w-full h-48 object-cover" onerror="this.src='https://via.placeholder.com/300x300?text=Нет+фото'">
+                            <img src="${photoUrl}" 
+                                 alt="${product.model}" 
+                                 class="w-full h-48 object-cover" 
+                                 onerror="this.src='https://via.placeholder.com/300x300?text=Нет+фото'; this.onerror=null;"
+                                 loading="lazy">
                             <div class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                                 ${confidence}%
                             </div>
