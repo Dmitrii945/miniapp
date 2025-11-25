@@ -278,6 +278,124 @@
             font-weight: 600 !important;
         }
         
+        /* Эффект хаотичного разлетания элементов при неактивности */
+        .idle-scatter {
+            animation: scatterAway 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes scatterAway {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--scatter-x, 0), var(--scatter-y, 0)) rotate(var(--scatter-rotate, 0deg));
+                opacity: 0.3;
+            }
+        }
+        
+        .idle-return {
+            animation: returnToPlace 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes returnToPlace {
+            0% {
+                transform: translate(var(--scatter-x, 0), var(--scatter-y, 0)) rotate(var(--scatter-rotate, 0deg));
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        /* Кран */
+        .crane-overlay {
+            position: fixed;
+            top: 10px;
+            z-index: 10000;
+            pointer-events: none;
+            font-size: 48px;
+            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+        }
+        
+        .crane-overlay.show {
+            opacity: 1;
+        }
+        
+        .crane-hook {
+            position: absolute;
+            width: 2px;
+            background: linear-gradient(180deg, #666 0%, #333 100%);
+            transform-origin: top;
+            animation: hookSwing 2s ease-in-out infinite;
+        }
+        
+        @keyframes hookSwing {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+        
+        /* Строитель с часами */
+        .builder-overlay {
+            position: absolute;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .builder-overlay.show {
+            opacity: 1;
+        }
+        
+        .builder-character {
+            font-size: 64px;
+            animation: builderBounce 1s ease-in-out infinite;
+        }
+        
+        .builder-character img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes builderBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .builder-clock {
+            font-size: 48px;
+            animation: clockTap 0.8s ease-in-out infinite;
+            transform-origin: center;
+        }
+        
+        @keyframes clockTap {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .builder-message {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
         .phone-button:hover, .gis-button:hover, .taxi-button:hover {
             background: rgba(255, 255, 255, 0.08) !important;
             border-color: rgba(255, 255, 255, 0.3) !important;
@@ -4960,11 +5078,116 @@
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
+        // Система неактивности
+        let idleTimer = null;
+        let isIdle = false;
+        const IDLE_TIMEOUT = 10000; // 10 секунд - оптимально для мобильных приложений
+        
+        // Отслеживание встряски телефона
+        let lastShakeTime = Date.now();
+        let shakeThreshold = 15; // Порог чувствительности
+        
+        function scatterElements() {
+            if (isIdle) return;
+            isIdle = true;
+            
+            const scatterableElements = document.querySelectorAll('.category-card, .product-card, button:not(.no-glass), .glass-btn');
+            
+            scatterableElements.forEach((element) => {
+                // Генерируем случайное смещение
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 150;
+                const scatterX = Math.cos(angle) * distance;
+                const scatterY = Math.sin(angle) * distance;
+                const scatterRotate = -30 + Math.random() * 60;
+                
+                element.style.setProperty('--scatter-x', `${scatterX}px`);
+                element.style.setProperty('--scatter-y', `${scatterY}px`);
+                element.style.setProperty('--scatter-rotate', `${scatterRotate}deg`);
+                
+                element.classList.remove('idle-return');
+                element.classList.add('idle-scatter');
+            });
+            
+            console.log('💥 Элементы разлетелись - потряси телефон!');
+        }
+        
+        function returnElements() {
+            if (!isIdle) return;
+            isIdle = false;
+            
+            const scatterableElements = document.querySelectorAll('.idle-scatter');
+            
+            scatterableElements.forEach((element) => {
+                element.classList.remove('idle-scatter');
+                element.classList.add('idle-return');
+                
+                // Удаляем класс после завершения анимации
+                setTimeout(() => {
+                    element.classList.remove('idle-return');
+                }, 800);
+            });
+            
+            console.log('✨ Элементы вернулись на место!');
+        }
+        
+        function resetIdleTimer() {
+            if (isIdle) {
+                returnElements();
+            }
+            
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(scatterElements, IDLE_TIMEOUT);
+        }
+        
+        // Отслеживание активности пользователя
+        function initIdleDetection() {
+            // События активности
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+                document.addEventListener(event, resetIdleTimer, true);
+            });
+            
+            // Запускаем таймер
+            resetIdleTimer();
+        }
+        
+        // Отслеживание встряски
+        function initShakeDetection() {
+            if (!window.DeviceMotionEvent) {
+                console.warn('⚠️ DeviceMotionEvent не поддерживается');
+                return;
+            }
+            
+            window.addEventListener('devicemotion', (event) => {
+                const acceleration = event.accelerationIncludingGravity;
+                
+                if (!acceleration || !acceleration.x || !acceleration.y || !acceleration.z) {
+                    return;
+                }
+                
+                const current = Date.now();
+                if (current - lastShakeTime < 500) return; // Дебаунс 500мс
+                
+                // Вычисляем общее ускорение
+                const totalAcceleration = Math.abs(acceleration.x) + Math.abs(acceleration.y) + Math.abs(acceleration.z);
+                
+                if (totalAcceleration > shakeThreshold && isIdle) {
+                    lastShakeTime = current;
+                    returnElements();
+                    console.log('💥 Встряска обнаружена! Acceleration:', totalAcceleration.toFixed(2));
+                }
+            }, true);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initTelegramApp();
                 fixMobileColors();
                 scheduleFeatherReplace();
+                
+                // Инициализируем систему неактивности
+                initIdleDetection();
+                initShakeDetection();
                 
                 // Отображаем имя пользователя
                 displayUserName();
