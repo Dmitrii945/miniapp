@@ -3954,6 +3954,46 @@
 
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
+        // Функция для анимированного перехода вперед
+        function animateForward(renderCallback) {
+            const mainContent = elements.mainContent;
+            
+            // Добавляем класс для анимации выхода
+            mainContent.classList.add('slide-forward');
+            
+            // После завершения анимации рендерим новый контент
+            setTimeout(() => {
+                renderCallback();
+                mainContent.classList.remove('slide-forward');
+                mainContent.classList.add('slide-backward');
+                
+                // Убираем класс после анимации входа
+                setTimeout(() => {
+                    mainContent.classList.remove('slide-backward');
+                }, 400);
+            }, 400);
+        }
+
+        // Функция для анимированного перехода назад
+        function animateBackward(renderCallback) {
+            const mainContent = elements.mainContent;
+            
+            // Добавляем класс для анимации выхода
+            mainContent.classList.add('slide-back-out');
+            
+            // После завершения анимации рендерим новый контент
+            setTimeout(() => {
+                renderCallback();
+                mainContent.classList.remove('slide-back-out');
+                mainContent.classList.add('slide-back-in');
+                
+                // Убираем класс после анимации входа
+                setTimeout(() => {
+                    mainContent.classList.remove('slide-back-in');
+                }, 400);
+            }, 400);
+        }
+
         async function loadSections() {
             lastAction = { type: 'loadSections' };
             
@@ -4168,46 +4208,6 @@
         }
 
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
-
-        // Функция для анимированного перехода вперед
-        function animateForward(renderCallback) {
-            const mainContent = elements.mainContent;
-            
-            // Добавляем класс для анимации выхода
-            mainContent.classList.add('slide-forward');
-            
-            // После завершения анимации рендерим новый контент
-            setTimeout(() => {
-                renderCallback();
-                mainContent.classList.remove('slide-forward');
-                mainContent.classList.add('slide-backward');
-                
-                // Убираем класс после анимации входа
-                setTimeout(() => {
-                    mainContent.classList.remove('slide-backward');
-                }, 400);
-            }, 400);
-        }
-
-        // Функция для анимированного перехода назад
-        function animateBackward(renderCallback) {
-            const mainContent = elements.mainContent;
-            
-            // Добавляем класс для анимации выхода
-            mainContent.classList.add('slide-back-out');
-            
-            // После завершения анимации рендерим новый контент
-            setTimeout(() => {
-                renderCallback();
-                mainContent.classList.remove('slide-back-out');
-                mainContent.classList.add('slide-back-in');
-                
-                // Убираем класс после анимации входа
-                setTimeout(() => {
-                    mainContent.classList.remove('slide-back-in');
-                }, 400);
-            }, 400);
-        }
 
         function renderSections(sections) {
             let html = '<div class="space-y-3">';
