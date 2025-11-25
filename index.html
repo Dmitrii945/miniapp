@@ -334,10 +334,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             animation: photoPulse 2s ease-in-out infinite;
-            /* Убираем белый фон - усиленная версия */
-            mix-blend-mode: multiply;
             background: transparent;
-            filter: contrast(1.1) brightness(0.95);
         }
         
         @keyframes photoPulse {
@@ -5146,7 +5143,7 @@
                 photoOverlay.className = 'photo-overlay';
                 
                 // Пробуем разные способы загрузки из Google Drive
-                const googleDriveId = '1ITwrEjjrkR93wcfQKf4oubAQd5NI7_R8';
+                const googleDriveId = '1Z1q8qZ-lrvkDunvuPlQ-U6z9ByFY3agQ';
                 const urls = [
                     `https://drive.google.com/uc?export=download&id=${googleDriveId}`,
                     `https://drive.google.com/thumbnail?id=${googleDriveId}&sz=w1000`,
