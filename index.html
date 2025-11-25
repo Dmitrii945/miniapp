@@ -5144,18 +5144,39 @@
                 photoOverlay = document.createElement('div');
                 photoOverlay.id = 'photoOverlay';
                 photoOverlay.className = 'photo-overlay';
-                // Прямая ссылка на Google Drive фото
+                
+                // Пробуем разные способы загрузки из Google Drive
                 const googleDriveId = '1ITwrEjjrkR93wcfQKf4oubAQd5NI7_R8';
-                const directUrl = `https://drive.google.com/uc?export=view&id=${googleDriveId}`;
+                const urls = [
+                    `https://drive.google.com/uc?export=download&id=${googleDriveId}`,
+                    `https://drive.google.com/thumbnail?id=${googleDriveId}&sz=w1000`,
+                    `https://lh3.googleusercontent.com/d/${googleDriveId}=w1000`
+                ];
+                
+                let currentUrlIndex = 0;
                 
                 photoOverlay.innerHTML = `
                     <img class="photo-image" 
-                         src="${directUrl}" 
+                         src="${urls[0]}" 
                          alt="Photo"
-                         onerror="this.style.mixBlendMode='normal'; this.style.filter='brightness(1.2) contrast(1.1)';">
+                         id="photoImg">
                     <div class="photo-message">Ты куда там делся?</div>
                 `;
                 document.body.appendChild(photoOverlay);
+                
+                // Обработчик ошибки загрузки - пробуем следующий URL
+                const img = photoOverlay.querySelector('#photoImg');
+                img.onerror = function() {
+                    currentUrlIndex++;
+                    if (currentUrlIndex < urls.length) {
+                        console.log(`Пробуем загрузить фото через URL ${currentUrlIndex + 1}`);
+                        this.src = urls[currentUrlIndex];
+                    } else {
+                        console.error('Не удалось загрузить фото ни одним способом');
+                        this.style.display = 'none';
+                        photoOverlay.querySelector('.photo-message').textContent = '📸 Фото не загрузилось. Ты куда там делся?';
+                    }
+                };
             }
             
             setTimeout(() => {
