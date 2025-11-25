@@ -100,42 +100,97 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 3D эффект проваливания вглубь */
+        /* 3D тоннель навигации */
         #content {
-            perspective: 1000px;
+            perspective: 1500px;
             position: relative;
-            min-height: 300px;
+            min-height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 70%, #020617 100%);
         }
 
-        .content-wrapper {
+        .tunnel-container {
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 3s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        /* Анимация "полета" вглубь к кнопке */
-        .fly-to-button {
-            animation: flyToButton 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        /* Эффект тоннеля - стены уходят в глубину */
+        .tunnel-walls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        @keyframes flyToButton {
+        .tunnel-walls::before,
+        .tunnel-walls::after {
+            content: '';
+            position: absolute;
+            background: linear-gradient(90deg, 
+                rgba(30, 41, 59, 0.8) 0%, 
+                transparent 20%, 
+                transparent 80%, 
+                rgba(30, 41, 59, 0.8) 100%);
+            width: 100%;
+            height: 100%;
+            animation: tunnelPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes tunnelPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Кнопки в тоннеле с разной глубиной */
+        .category-card {
+            transform-style: preserve-3d;
+            transition: all 3s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        /* Начальное состояние - кнопки в глубине на разных уровнях */
+        .tunnel-mode .category-card {
+            transform: translateZ(var(--depth, 0px)) scale(var(--scale, 1));
+            opacity: var(--opacity, 1);
+        }
+
+        /* Анимация пролета через тоннель */
+        .flying-through .category-card {
+            animation: flyPast 3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        @keyframes flyPast {
             0% {
-                transform: translateZ(0) scale(1);
-                opacity: 1;
+                transform: translateZ(var(--depth, 0px)) scale(var(--scale, 1));
+                opacity: var(--opacity, 1);
+            }
+            50% {
+                opacity: 0.5;
             }
             100% {
-                transform: translateZ(-1000px) scale(0.3);
+                transform: translateZ(2000px) scale(4);
                 opacity: 0;
             }
         }
 
-        /* Анимация появления новых кнопок из глубины */
-        .fly-from-depth {
-            animation: flyFromDepth 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        /* Новые кнопки появляются из глубины */
+        .emerging-from-depth .category-card {
+            animation: emergeFromDepth 3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
         }
 
-        @keyframes flyFromDepth {
+        @keyframes emergeFromDepth {
             0% {
-                transform: translateZ(1000px) scale(3);
+                transform: translateZ(-3000px) scale(0.1);
+                opacity: 0;
+            }
+            30% {
                 opacity: 0;
             }
             100% {
@@ -144,30 +199,52 @@
             }
         }
 
-        /* Анимация "отлета" назад */
-        .fly-back-away {
-            animation: flyBackAway 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        /* Кнопки исчезают при выборе другой */
+        .fading-away .category-card {
+            animation: fadeToSides 1.5s ease-out forwards;
         }
 
-        @keyframes flyBackAway {
+        @keyframes fadeToSides {
             0% {
-                transform: translateZ(0) scale(1);
-                opacity: 1;
+                transform: translateZ(var(--depth, 0px)) scale(var(--scale, 1));
+                opacity: var(--opacity, 1);
             }
             100% {
-                transform: translateZ(1000px) scale(3);
+                transform: translateZ(var(--depth, 0px)) translateX(var(--side-offset, 0)) scale(0.5);
                 opacity: 0;
             }
         }
 
-        /* Анимация появления при возврате назад */
-        .fly-back-from-depth {
-            animation: flyBackFromDepth 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        /* Возврат назад - пролет в обратную сторону */
+        .flying-back .category-card {
+            animation: flyBackPast 3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
         }
 
-        @keyframes flyBackFromDepth {
+        @keyframes flyBackPast {
             0% {
-                transform: translateZ(-1000px) scale(0.3);
+                transform: translateZ(0) scale(1);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateZ(-3000px) scale(0.1);
+                opacity: 0;
+            }
+        }
+
+        /* Появление при возврате */
+        .returning-from-distance .category-card {
+            animation: returnFromDistance 3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        @keyframes returnFromDistance {
+            0% {
+                transform: translateZ(2000px) scale(4);
+                opacity: 0;
+            }
+            30% {
                 opacity: 0;
             }
             100% {
@@ -176,36 +253,21 @@
             }
         }
 
-        /* Карточки товаров разбросаны в глубине */
+        /* Карточки товаров собираются из тоннеля */
         .product-card {
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        .products-scattered {
+        .products-in-tunnel .product-card {
+            transform: translateZ(var(--product-depth, -2000px)) scale(0.3);
             opacity: 0;
         }
 
-        .products-scattered .product-card {
-            transform: translateZ(800px) scale(2) translateX(var(--scatter-x, 0)) translateY(var(--scatter-y, 0));
-            opacity: 0;
-        }
-
-        .products-gathering .product-card {
-            transform: translateZ(0) scale(1) translateX(0) translateY(0);
+        .products-gathering-from-tunnel .product-card {
+            transform: translateZ(0) scale(1);
             opacity: 1;
+            transition-delay: calc(var(--card-index, 0) * 0.1s);
         }
-
-        /* Задержки для каждой карточки при сборе */
-        .products-gathering .product-card:nth-child(1) { transition-delay: 0.05s; }
-        .products-gathering .product-card:nth-child(2) { transition-delay: 0.1s; }
-        .products-gathering .product-card:nth-child(3) { transition-delay: 0.15s; }
-        .products-gathering .product-card:nth-child(4) { transition-delay: 0.2s; }
-        .products-gathering .product-card:nth-child(5) { transition-delay: 0.25s; }
-        .products-gathering .product-card:nth-child(6) { transition-delay: 0.3s; }
-        .products-gathering .product-card:nth-child(7) { transition-delay: 0.35s; }
-        .products-gathering .product-card:nth-child(8) { transition-delay: 0.4s; }
-        .products-gathering .product-card:nth-child(9) { transition-delay: 0.45s; }
-        .products-gathering .product-card:nth-child(10) { transition-delay: 0.5s; }
         
         .external-link {
             color: #3B82F6;
@@ -3990,7 +4052,7 @@
 
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
-        // Функция для анимации "полета" вглубь к кнопке
+        // Функция для анимации пролета через тоннель
         function animateForward(renderCallback) {
             const mainContent = elements.content;
             
@@ -3999,25 +4061,43 @@
                 return;
             }
             
-            // Запускаем анимацию "полета" к кнопке
-            mainContent.classList.add('fly-to-button');
-            
-            // Параллельно загружаем данные
-            renderCallback();
-            
-            // После анимации показываем новый контент из глубины
-            setTimeout(() => {
-                mainContent.classList.remove('fly-to-button');
-                mainContent.classList.add('fly-from-depth');
+            // Получаем все кнопки и задаем им глубину в тоннеле
+            const cards = mainContent.querySelectorAll('.category-card');
+            cards.forEach((card, index) => {
+                // Расставляем кнопки на разных уровнях глубины
+                const depth = -500 - (index * 800); // Каждая кнопка глубже предыдущей
+                const scale = Math.max(0.3, 1 - (index * 0.15));
+                const opacity = Math.max(0.3, 1 - (index * 0.2));
                 
-                // Убираем класс после завершения
+                card.style.setProperty('--depth', `${depth}px`);
+                card.style.setProperty('--scale', scale);
+                card.style.setProperty('--opacity', opacity);
+            });
+            
+            // Добавляем режим тоннеля
+            mainContent.classList.add('tunnel-mode');
+            
+            // Запускаем пролет через тоннель
+            setTimeout(() => {
+                mainContent.classList.add('flying-through');
+                
+                // Загружаем новые данные параллельно с анимацией
+                renderCallback();
+                
+                // После пролета показываем новые кнопки из глубины
                 setTimeout(() => {
-                    mainContent.classList.remove('fly-from-depth');
-                }, 600);
-            }, 600);
+                    mainContent.classList.remove('tunnel-mode', 'flying-through');
+                    mainContent.classList.add('emerging-from-depth');
+                    
+                    // Очищаем классы после завершения
+                    setTimeout(() => {
+                        mainContent.classList.remove('emerging-from-depth');
+                    }, 3000);
+                }, 3000);
+            }, 50);
         }
 
-        // Функция для анимации возврата назад
+        // Функция для анимации возврата назад через тоннель
         function animateBackward(renderCallback) {
             const mainContent = elements.content;
             
@@ -4026,50 +4106,49 @@
                 return;
             }
             
-            // Запускаем анимацию "отлета" назад
-            mainContent.classList.add('fly-back-away');
+            // Запускаем обратный пролет
+            mainContent.classList.add('flying-back');
             
-            // Параллельно загружаем данные
+            // Загружаем данные параллельно
             renderCallback();
             
-            // После анимации показываем контент возвращаясь из глубины
+            // После обратного пролета появляются старые кнопки
             setTimeout(() => {
-                mainContent.classList.remove('fly-back-away');
-                mainContent.classList.add('fly-back-from-depth');
+                mainContent.classList.remove('flying-back');
+                mainContent.classList.add('returning-from-distance');
                 
-                // Убираем класс после завершения
+                // Очищаем классы
                 setTimeout(() => {
-                    mainContent.classList.remove('fly-back-from-depth');
-                }, 600);
-            }, 600);
+                    mainContent.classList.remove('returning-from-distance');
+                }, 3000);
+            }, 3000);
         }
 
-        // Функция для анимации сбора карточек товаров
+        // Функция для анимации сбора карточек товаров из тоннеля
         function animateProductsGathering() {
             const mainContent = elements.content;
             if (!mainContent) return;
             
-            // Сначала карточки разбросаны
-            mainContent.classList.add('products-scattered');
-            
-            // Добавляем случайные смещения для каждой карточки
+            // Карточки изначально в глубине тоннеля
             const productCards = mainContent.querySelectorAll('.product-card');
+            
             productCards.forEach((card, index) => {
-                const randomX = (Math.random() - 0.5) * 400;
-                const randomY = (Math.random() - 0.5) * 400;
-                card.style.setProperty('--scatter-x', `${randomX}px`);
-                card.style.setProperty('--scatter-y', `${randomY}px`);
+                const depth = -2000 - (index * 200);
+                card.style.setProperty('--product-depth', `${depth}px`);
+                card.style.setProperty('--card-index', index);
             });
             
-            // Через короткую задержку начинаем собирать
+            mainContent.classList.add('products-in-tunnel');
+            
+            // Начинаем собирать карточки из тоннеля
             setTimeout(() => {
-                mainContent.classList.remove('products-scattered');
-                mainContent.classList.add('products-gathering');
+                mainContent.classList.remove('products-in-tunnel');
+                mainContent.classList.add('products-gathering-from-tunnel');
                 
-                // Убираем класс после завершения анимации
+                // Очищаем после завершения
                 setTimeout(() => {
-                    mainContent.classList.remove('products-gathering');
-                }, 1500);
+                    mainContent.classList.remove('products-gathering-from-tunnel');
+                }, 2000);
             }, 100);
         }
 
