@@ -99,6 +99,77 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* 3D эффект проваливания вглубь */
+        .slide-forward {
+            animation: slideForward 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .slide-backward {
+            animation: slideBackward 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideForward {
+            0% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                transform-origin: center center;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-30%) scale(0.9);
+                transform-origin: center center;
+            }
+        }
+
+        @keyframes slideBackward {
+            0% {
+                opacity: 0;
+                transform: translateX(30%) scale(1.1);
+                transform-origin: center center;
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                transform-origin: center center;
+            }
+        }
+
+        .slide-back-out {
+            animation: slideBackOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .slide-back-in {
+            animation: slideBackIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideBackOut {
+            0% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(30%) scale(1.1);
+            }
+        }
+
+        @keyframes slideBackIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-30%) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        /* Контейнер для анимации */
+        #mainContent {
+            position: relative;
+            min-height: 300px;
+        }
         
         .external-link {
             color: #3B82F6;
@@ -3903,7 +3974,9 @@
                     return;
                 }
 
-                renderSections(data.sections);
+                animateForward(() => {
+                    renderSections(data.sections);
+                });
                 updateBackButton();
             } catch (error) {
                 showError('Не удалось загрузить разделы');
@@ -3943,7 +4016,9 @@
                     }
                 }
 
-                renderCategories(data.categories, sectionId, sectionName);
+                animateForward(() => {
+                    renderCategories(data.categories, sectionId, sectionName);
+                });
                 updateBackButton();
             } catch (error) {
                 await loadProductsDirect(sectionId, null, null, null, sectionName);
@@ -3984,7 +4059,9 @@
                     return;
                 }
 
-                renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
+                animateForward(() => {
+                    renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
+                });
                 updateBackButton();
             } catch (error) {
                 await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
@@ -4025,7 +4102,9 @@
                     return;
                 }
 
-                renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                animateForward(() => {
+                    renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
+                });
                 updateBackButton();
             } catch (error) {
                 await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
@@ -4082,11 +4161,53 @@
                 return;
             }
 
-            renderAllProducts();
+            animateForward(() => {
+                renderAllProducts();
+            });
             updateBackButton();
         }
 
         // ========== РЕНДЕРИНГ ИНТЕРФЕЙСА ==========
+
+        // Функция для анимированного перехода вперед
+        function animateForward(renderCallback) {
+            const mainContent = elements.mainContent;
+            
+            // Добавляем класс для анимации выхода
+            mainContent.classList.add('slide-forward');
+            
+            // После завершения анимации рендерим новый контент
+            setTimeout(() => {
+                renderCallback();
+                mainContent.classList.remove('slide-forward');
+                mainContent.classList.add('slide-backward');
+                
+                // Убираем класс после анимации входа
+                setTimeout(() => {
+                    mainContent.classList.remove('slide-backward');
+                }, 400);
+            }, 400);
+        }
+
+        // Функция для анимированного перехода назад
+        function animateBackward(renderCallback) {
+            const mainContent = elements.mainContent;
+            
+            // Добавляем класс для анимации выхода
+            mainContent.classList.add('slide-back-out');
+            
+            // После завершения анимации рендерим новый контент
+            setTimeout(() => {
+                renderCallback();
+                mainContent.classList.remove('slide-back-out');
+                mainContent.classList.add('slide-back-in');
+                
+                // Убираем класс после анимации входа
+                setTimeout(() => {
+                    mainContent.classList.remove('slide-back-in');
+                }, 400);
+            }, 400);
+        }
 
         function renderSections(sections) {
             let html = '<div class="space-y-3">';
@@ -4736,10 +4857,14 @@
                 }
                 
                 if (navigationStack.length === 0) {
-                    loadSections();
+                    animateBackward(() => {
+                        loadSections();
+                    });
                 } else {
                     const previousItem = navigationStack[navigationStack.length - 1];
-                    handleBackNavigation(previousItem.type);
+                    animateBackward(() => {
+                        handleBackNavigation(previousItem.type);
+                    });
                 }
             } else if (tg) {
                 tg.close();
