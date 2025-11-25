@@ -101,75 +101,111 @@
         }
 
         /* 3D эффект проваливания вглубь */
-        .slide-forward {
-            animation: slideForward 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .slide-backward {
-            animation: slideBackward 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes slideForward {
-            0% {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-                transform-origin: center center;
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(-30%) scale(0.9);
-                transform-origin: center center;
-            }
-        }
-
-        @keyframes slideBackward {
-            0% {
-                opacity: 0;
-                transform: translateX(30%) scale(1.1);
-                transform-origin: center center;
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-                transform-origin: center center;
-            }
-        }
-
-        .slide-back-out {
-            animation: slideBackOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .slide-back-in {
-            animation: slideBackIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes slideBackOut {
-            0% {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(30%) scale(1.1);
-            }
-        }
-
-        @keyframes slideBackIn {
-            0% {
-                opacity: 0;
-                transform: translateX(-30%) scale(0.9);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        /* Контейнер для анимации */
         #content {
+            perspective: 1000px;
             position: relative;
             min-height: 300px;
         }
+
+        .content-wrapper {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Анимация "полета" вглубь к кнопке */
+        .fly-to-button {
+            animation: flyToButton 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes flyToButton {
+            0% {
+                transform: translateZ(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateZ(-1000px) scale(0.3);
+                opacity: 0;
+            }
+        }
+
+        /* Анимация появления новых кнопок из глубины */
+        .fly-from-depth {
+            animation: flyFromDepth 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes flyFromDepth {
+            0% {
+                transform: translateZ(1000px) scale(3);
+                opacity: 0;
+            }
+            100% {
+                transform: translateZ(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Анимация "отлета" назад */
+        .fly-back-away {
+            animation: flyBackAway 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes flyBackAway {
+            0% {
+                transform: translateZ(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateZ(1000px) scale(3);
+                opacity: 0;
+            }
+        }
+
+        /* Анимация появления при возврате назад */
+        .fly-back-from-depth {
+            animation: flyBackFromDepth 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes flyBackFromDepth {
+            0% {
+                transform: translateZ(-1000px) scale(0.3);
+                opacity: 0;
+            }
+            100% {
+                transform: translateZ(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Карточки товаров разбросаны в глубине */
+        .product-card {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .products-scattered {
+            opacity: 0;
+        }
+
+        .products-scattered .product-card {
+            transform: translateZ(800px) scale(2) translateX(var(--scatter-x, 0)) translateY(var(--scatter-y, 0));
+            opacity: 0;
+        }
+
+        .products-gathering .product-card {
+            transform: translateZ(0) scale(1) translateX(0) translateY(0);
+            opacity: 1;
+        }
+
+        /* Задержки для каждой карточки при сборе */
+        .products-gathering .product-card:nth-child(1) { transition-delay: 0.05s; }
+        .products-gathering .product-card:nth-child(2) { transition-delay: 0.1s; }
+        .products-gathering .product-card:nth-child(3) { transition-delay: 0.15s; }
+        .products-gathering .product-card:nth-child(4) { transition-delay: 0.2s; }
+        .products-gathering .product-card:nth-child(5) { transition-delay: 0.25s; }
+        .products-gathering .product-card:nth-child(6) { transition-delay: 0.3s; }
+        .products-gathering .product-card:nth-child(7) { transition-delay: 0.35s; }
+        .products-gathering .product-card:nth-child(8) { transition-delay: 0.4s; }
+        .products-gathering .product-card:nth-child(9) { transition-delay: 0.45s; }
+        .products-gathering .product-card:nth-child(10) { transition-delay: 0.5s; }
         
         .external-link {
             color: #3B82F6;
@@ -3954,7 +3990,7 @@
 
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
-        // Функция для анимированного перехода вперед
+        // Функция для анимации "полета" вглубь к кнопке
         function animateForward(renderCallback) {
             const mainContent = elements.content;
             
@@ -3963,25 +3999,25 @@
                 return;
             }
             
-            // Сразу запускаем анимацию выхода (старый контент уходит)
-            mainContent.classList.add('slide-forward');
+            // Запускаем анимацию "полета" к кнопке
+            mainContent.classList.add('fly-to-button');
             
-            // Параллельно вызываем callback (загрузка данных)
+            // Параллельно загружаем данные
             renderCallback();
             
-            // Через время анимации убираем классы и показываем новый контент
+            // После анимации показываем новый контент из глубины
             setTimeout(() => {
-                mainContent.classList.remove('slide-forward');
-                mainContent.classList.add('slide-backward');
+                mainContent.classList.remove('fly-to-button');
+                mainContent.classList.add('fly-from-depth');
                 
-                // Убираем класс после анимации входа
+                // Убираем класс после завершения
                 setTimeout(() => {
-                    mainContent.classList.remove('slide-backward');
-                }, 400);
-            }, 400);
+                    mainContent.classList.remove('fly-from-depth');
+                }, 600);
+            }, 600);
         }
 
-        // Функция для анимированного перехода назад
+        // Функция для анимации возврата назад
         function animateBackward(renderCallback) {
             const mainContent = elements.content;
             
@@ -3990,22 +4026,51 @@
                 return;
             }
             
-            // Сразу запускаем анимацию выхода
-            mainContent.classList.add('slide-back-out');
+            // Запускаем анимацию "отлета" назад
+            mainContent.classList.add('fly-back-away');
             
-            // Параллельно вызываем callback
+            // Параллельно загружаем данные
             renderCallback();
             
-            // Через время анимации убираем классы
+            // После анимации показываем контент возвращаясь из глубины
             setTimeout(() => {
-                mainContent.classList.remove('slide-back-out');
-                mainContent.classList.add('slide-back-in');
+                mainContent.classList.remove('fly-back-away');
+                mainContent.classList.add('fly-back-from-depth');
                 
-                // Убираем класс после анимации входа
+                // Убираем класс после завершения
                 setTimeout(() => {
-                    mainContent.classList.remove('slide-back-in');
-                }, 400);
-            }, 400);
+                    mainContent.classList.remove('fly-back-from-depth');
+                }, 600);
+            }, 600);
+        }
+
+        // Функция для анимации сбора карточек товаров
+        function animateProductsGathering() {
+            const mainContent = elements.content;
+            if (!mainContent) return;
+            
+            // Сначала карточки разбросаны
+            mainContent.classList.add('products-scattered');
+            
+            // Добавляем случайные смещения для каждой карточки
+            const productCards = mainContent.querySelectorAll('.product-card');
+            productCards.forEach((card, index) => {
+                const randomX = (Math.random() - 0.5) * 400;
+                const randomY = (Math.random() - 0.5) * 400;
+                card.style.setProperty('--scatter-x', `${randomX}px`);
+                card.style.setProperty('--scatter-y', `${randomY}px`);
+            });
+            
+            // Через короткую задержку начинаем собирать
+            setTimeout(() => {
+                mainContent.classList.remove('products-scattered');
+                mainContent.classList.add('products-gathering');
+                
+                // Убираем класс после завершения анимации
+                setTimeout(() => {
+                    mainContent.classList.remove('products-gathering');
+                }, 1500);
+            }, 100);
         }
 
         async function loadSections() {
@@ -4038,41 +4103,44 @@
         async function loadCategories(sectionId, sectionName) {
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
-            try {
-                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
-                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
-                
-                updateBreadcrumbsFromStack();
-                elements.pageTitle.textContent = sectionName;
-                
-                const data = await apiFetch(`/categories/${sectionId}`);
-                
-                if (data?.error) {
-                    await loadProductsDirect(sectionId, null, null, null, sectionName);
-                    return;
-                }
-                
-                if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
-                    await loadProductsDirect(sectionId, null, null, null, sectionName);
-                    return;
-                }
-
-                if (data.categories.length === 1) {
-                    const category = data.categories[0];
-                    const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+            // Запускаем анимацию "полета" вглубь
+            animateForward(async () => {
+                try {
+                    navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
+                    navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
                     
-                    if (modelsData?.models && modelsData.models.length === 1 && 
-                        modelsData.models[0].name === "Без модели") {
-                        await loadProductsDirect(sectionId, category.id, null, null, category.name);
+                    updateBreadcrumbsFromStack();
+                    elements.pageTitle.textContent = sectionName;
+                    
+                    const data = await apiFetch(`/categories/${sectionId}`);
+                    
+                    if (data?.error) {
+                        await loadProductsDirect(sectionId, null, null, null, sectionName);
                         return;
                     }
-                }
+                    
+                    if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+                        await loadProductsDirect(sectionId, null, null, null, sectionName);
+                        return;
+                    }
 
-                renderCategories(data.categories, sectionId, sectionName);
-                updateBackButton();
-            } catch (error) {
-                await loadProductsDirect(sectionId, null, null, null, sectionName);
-            }
+                    if (data.categories.length === 1) {
+                        const category = data.categories[0];
+                        const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+                        
+                        if (modelsData?.models && modelsData.models.length === 1 && 
+                            modelsData.models[0].name === "Без модели") {
+                            await loadProductsDirect(sectionId, category.id, null, null, category.name);
+                            return;
+                        }
+                    }
+
+                    renderCategories(data.categories, sectionId, sectionName);
+                    updateBackButton();
+                } catch (error) {
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                }
+            });
         }
 
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
@@ -4225,7 +4293,7 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
@@ -4758,6 +4826,9 @@
             
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
+            
+            // Запускаем анимацию сбора карточек из глубины
+            animateProductsGathering();
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
