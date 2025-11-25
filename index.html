@@ -99,176 +99,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* 3D тоннель навигации */
-        #content {
-            perspective: 1500px;
-            position: relative;
-            min-height: 100vh;
-            overflow: hidden;
-            background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 70%, #020617 100%);
-        }
-
-        .tunnel-container {
-            transform-style: preserve-3d;
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 3s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        /* Эффект тоннеля - стены уходят в глубину */
-        .tunnel-walls {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .tunnel-walls::before,
-        .tunnel-walls::after {
-            content: '';
-            position: absolute;
-            background: linear-gradient(90deg, 
-                rgba(30, 41, 59, 0.8) 0%, 
-                transparent 20%, 
-                transparent 80%, 
-                rgba(30, 41, 59, 0.8) 100%);
-            width: 100%;
-            height: 100%;
-            animation: tunnelPulse 3s ease-in-out infinite;
-        }
-
-        @keyframes tunnelPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Кнопки в тоннеле с разной глубиной */
-        .category-card {
-            transform-style: preserve-3d;
-            transition: all 3s cubic-bezier(0.19, 1, 0.22, 1);
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        /* Начальное состояние - кнопки в глубине на разных уровнях */
-        .tunnel-mode .category-card {
-            transform: translateZ(var(--depth, 0px)) scale(var(--scale, 1));
-            opacity: var(--opacity, 1);
-        }
-
-        /* Анимация пролета через тоннель */
-        .flying-through .category-card {
-            animation: flyPast 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-        }
-
-        @keyframes flyPast {
-            0% {
-                transform: translateZ(var(--depth, 0px)) scale(var(--scale, 1));
-                opacity: var(--opacity, 1);
-            }
-            50% {
-                opacity: 0.5;
-            }
-            100% {
-                transform: translateZ(5000px) scale(4);
-                opacity: 0;
-            }
-        }
-
-        /* Новые кнопки появляются из глубины */
-        .emerging-from-depth .category-card {
-            animation: emergeFromDepth 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-        }
-
-        @keyframes emergeFromDepth {
-            0% {
-                transform: translateZ(-3000px) scale(0.1);
-                opacity: 0;
-            }
-            30% {
-                opacity: 0;
-            }
-            100% {
-                transform: translateZ(0) scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* Кнопки исчезают при выборе другой */
-        .fading-away .category-card {
-            animation: fadeToSides 1.5s ease-out forwards;
-        }
-
-        @keyframes fadeToSides {
-            0% {
-                transform: translateZ(var(--depth, 0px)) scale(var(--scale, 1));
-                opacity: var(--opacity, 1);
-            }
-            100% {
-                transform: translateZ(var(--depth, 0px)) translateX(var(--side-offset, 0)) scale(0.5);
-                opacity: 0;
-            }
-        }
-
-        /* Возврат назад - пролет в обратную сторону */
-        .flying-back .category-card {
-            animation: flyBackPast 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-        }
-
-        @keyframes flyBackPast {
-            0% {
-                transform: translateZ(0) scale(1);
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-            100% {
-                transform: translateZ(-5000px) scale(0.1);
-                opacity: 0;
-            }
-        }
-
-        /* Появление при возврате */
-        .returning-from-distance .category-card {
-            animation: returnFromDistance 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-        }
-
-        @keyframes returnFromDistance {
-            0% {
-                transform: translateZ(3000px) scale(4);
-                opacity: 0;
-            }
-            30% {
-                opacity: 0;
-            }
-            100% {
-                transform: translateZ(0) scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* Карточки товаров собираются из тоннеля */
-        .product-card {
-            transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        .products-in-tunnel .product-card {
-            transform: translateZ(var(--product-depth, -3000px)) scale(0.3);
-            opacity: 0;
-        }
-
-        .products-gathering-from-tunnel .product-card {
-            transform: translateZ(0) scale(1);
-            opacity: 1;
-            transition: all 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transition-delay: calc(var(--card-index, 0) * 0.08s);
-        }
         
         .external-link {
             color: #3B82F6;
@@ -446,6 +276,37 @@
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
             font-weight: 600 !important;
+        }
+        
+        /* Эффект разбегания элементов при неактивности */
+        .idle-scatter {
+            animation: scatterAway 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes scatterAway {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--scatter-x, 0), var(--scatter-y, 0)) rotate(var(--scatter-rotate, 0deg));
+                opacity: 0.3;
+            }
+        }
+        
+        .idle-return {
+            animation: returnToPlace 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes returnToPlace {
+            0% {
+                transform: translate(var(--scatter-x, 0), var(--scatter-y, 0)) rotate(var(--scatter-rotate, 0deg));
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
         }
         
         .phone-button:hover, .gis-button:hover, .taxi-button:hover {
@@ -4053,107 +3914,6 @@
 
         // ========== ИНТЕЛЛЕКТУАЛЬНАЯ НАВИГАЦИЯ ==========
 
-        // Функция для анимации пролета через тоннель
-        function animateForward(renderCallback) {
-            const mainContent = elements.content;
-            
-            if (!mainContent) {
-                renderCallback();
-                return;
-            }
-            
-            // Получаем все кнопки и задаем им глубину в тоннеле
-            const cards = mainContent.querySelectorAll('.category-card');
-            cards.forEach((card, index) => {
-                // Расставляем кнопки ближе друг к другу для более яркого эффекта пролета
-                const depth = -300 - (index * 500); // Кнопки расположены плотнее
-                const scale = Math.max(0.4, 1 - (index * 0.12));
-                const opacity = Math.max(0.5, 1 - (index * 0.15));
-                
-                card.style.setProperty('--depth', `${depth}px`);
-                card.style.setProperty('--scale', scale);
-                card.style.setProperty('--opacity', opacity);
-                card.style.setProperty('--card-index', index);
-            });
-            
-            // Добавляем режим тоннеля
-            mainContent.classList.add('tunnel-mode');
-            
-            // Запускаем пролет через тоннель
-            setTimeout(() => {
-                mainContent.classList.add('flying-through');
-                
-                // Загружаем новые данные параллельно с анимацией
-                renderCallback();
-                
-                // После пролета показываем новые кнопки из глубины
-                setTimeout(() => {
-                    mainContent.classList.remove('tunnel-mode', 'flying-through');
-                    mainContent.classList.add('emerging-from-depth');
-                    
-                    // Очищаем классы после завершения
-                    setTimeout(() => {
-                        mainContent.classList.remove('emerging-from-depth');
-                    }, 2000);
-                }, 2000);
-            }, 50);
-        }
-
-        // Функция для анимации возврата назад через тоннель
-        function animateBackward(renderCallback) {
-            const mainContent = elements.content;
-            
-            if (!mainContent) {
-                renderCallback();
-                return;
-            }
-            
-            // Запускаем обратный пролет
-            mainContent.classList.add('flying-back');
-            
-            // Загружаем данные параллельно
-            renderCallback();
-            
-            // После обратного пролета появляются старые кнопки
-            setTimeout(() => {
-                mainContent.classList.remove('flying-back');
-                mainContent.classList.add('returning-from-distance');
-                
-                // Очищаем классы
-                setTimeout(() => {
-                    mainContent.classList.remove('returning-from-distance');
-                }, 2000);
-            }, 2000);
-        }
-
-        // Функция для анимации сбора карточек товаров из тоннеля
-        function animateProductsGathering() {
-            const mainContent = elements.content;
-            if (!mainContent) return;
-            
-            // Карточки изначально в глубине тоннеля
-            const productCards = mainContent.querySelectorAll('.product-card');
-            
-            productCards.forEach((card, index) => {
-                const depth = -3000 - (index * 300);
-                card.style.setProperty('--product-depth', `${depth}px`);
-                card.style.setProperty('--card-index', index);
-            });
-            
-            mainContent.classList.add('products-in-tunnel');
-            
-            // Начинаем собирать карточки из тоннеля
-            setTimeout(() => {
-                mainContent.classList.remove('products-in-tunnel');
-                mainContent.classList.add('products-gathering-from-tunnel');
-                
-                // Очищаем после завершения
-                setTimeout(() => {
-                    mainContent.classList.remove('products-gathering-from-tunnel');
-                }, 2000);
-            }, 100);
-        }
-
         async function loadSections() {
             lastAction = { type: 'loadSections' };
             
@@ -4184,44 +3944,41 @@
         async function loadCategories(sectionId, sectionName) {
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
-            // Запускаем анимацию "полета" вглубь
-            animateForward(async () => {
-                try {
-                    navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
-                    navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
-                    
-                    updateBreadcrumbsFromStack();
-                    elements.pageTitle.textContent = sectionName;
-                    
-                    const data = await apiFetch(`/categories/${sectionId}`);
-                    
-                    if (data?.error) {
-                        await loadProductsDirect(sectionId, null, null, null, sectionName);
-                        return;
-                    }
-                    
-                    if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
-                        await loadProductsDirect(sectionId, null, null, null, sectionName);
-                        return;
-                    }
-
-                    if (data.categories.length === 1) {
-                        const category = data.categories[0];
-                        const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
-                        
-                        if (modelsData?.models && modelsData.models.length === 1 && 
-                            modelsData.models[0].name === "Без модели") {
-                            await loadProductsDirect(sectionId, category.id, null, null, category.name);
-                            return;
-                        }
-                    }
-
-                    renderCategories(data.categories, sectionId, sectionName);
-                    updateBackButton();
-                } catch (error) {
+            try {
+                navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
+                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                
+                updateBreadcrumbsFromStack();
+                elements.pageTitle.textContent = sectionName;
+                
+                const data = await apiFetch(`/categories/${sectionId}`);
+                
+                if (data?.error) {
                     await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
                 }
-            });
+                
+                if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+                    await loadProductsDirect(sectionId, null, null, null, sectionName);
+                    return;
+                }
+
+                if (data.categories.length === 1) {
+                    const category = data.categories[0];
+                    const modelsData = await apiFetch(`/models/${sectionId}/${category.id}`);
+                    
+                    if (modelsData?.models && modelsData.models.length === 1 && 
+                        modelsData.models[0].name === "Без модели") {
+                        await loadProductsDirect(sectionId, category.id, null, null, category.name);
+                        return;
+                    }
+                }
+
+                renderCategories(data.categories, sectionId, sectionName);
+                updateBackButton();
+            } catch (error) {
+                await loadProductsDirect(sectionId, null, null, null, sectionName);
+            }
         }
 
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
@@ -4458,7 +4215,7 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
@@ -4536,7 +4293,7 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
@@ -4664,7 +4421,7 @@
                         </div>
                         
                         <!-- Кнопка подмодели -->
-                        <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                             <div class="p-4">
                                 <div class="flex justify-between items-center">
                                     <div class="flex items-center">
@@ -4908,9 +4665,6 @@
             elements.content.innerHTML = html;
             scheduleFeatherReplace();
             
-            // Запускаем анимацию сбора карточек из глубины
-            animateProductsGathering();
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -5013,14 +4767,10 @@
                 }
                 
                 if (navigationStack.length === 0) {
-                    animateBackward(() => {
-                        loadSections();
-                    });
+                    loadSections();
                 } else {
                     const previousItem = navigationStack[navigationStack.length - 1];
-                    animateBackward(() => {
-                        handleBackNavigation(previousItem.type);
-                    });
+                    handleBackNavigation(previousItem.type);
                 }
             } else if (tg) {
                 tg.close();
@@ -5241,11 +4991,116 @@
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
+        // Система неактивности
+        let idleTimer = null;
+        let isIdle = false;
+        const IDLE_TIMEOUT = 5000; // 5 секунд
+        
+        // Отслеживание встряски телефона
+        let lastShakeTime = Date.now();
+        let shakeThreshold = 15; // Порог чувствительности
+        
+        function scatterElements() {
+            if (isIdle) return;
+            isIdle = true;
+            
+            const scatterableElements = document.querySelectorAll('.category-card, .product-card, button:not(.no-glass), .glass-btn');
+            
+            scatterableElements.forEach((element) => {
+                // Генерируем случайное смещение
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 150;
+                const scatterX = Math.cos(angle) * distance;
+                const scatterY = Math.sin(angle) * distance;
+                const scatterRotate = -30 + Math.random() * 60;
+                
+                element.style.setProperty('--scatter-x', `${scatterX}px`);
+                element.style.setProperty('--scatter-y', `${scatterY}px`);
+                element.style.setProperty('--scatter-rotate', `${scatterRotate}deg`);
+                
+                element.classList.remove('idle-return');
+                element.classList.add('idle-scatter');
+            });
+            
+            console.log('😴 Элементы разбежались - потряси телефон!');
+        }
+        
+        function returnElements() {
+            if (!isIdle) return;
+            isIdle = false;
+            
+            const scatterableElements = document.querySelectorAll('.idle-scatter');
+            
+            scatterableElements.forEach((element) => {
+                element.classList.remove('idle-scatter');
+                element.classList.add('idle-return');
+                
+                // Удаляем класс после завершения анимации
+                setTimeout(() => {
+                    element.classList.remove('idle-return');
+                }, 800);
+            });
+            
+            console.log('✨ Элементы вернулись на место!');
+        }
+        
+        function resetIdleTimer() {
+            if (isIdle) {
+                returnElements();
+            }
+            
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(scatterElements, IDLE_TIMEOUT);
+        }
+        
+        // Отслеживание активности пользователя
+        function initIdleDetection() {
+            // События активности
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+                document.addEventListener(event, resetIdleTimer, true);
+            });
+            
+            // Запускаем таймер
+            resetIdleTimer();
+        }
+        
+        // Отслеживание встряски
+        function initShakeDetection() {
+            if (!window.DeviceMotionEvent) {
+                console.warn('⚠️ DeviceMotionEvent не поддерживается');
+                return;
+            }
+            
+            window.addEventListener('devicemotion', (event) => {
+                const acceleration = event.accelerationIncludingGravity;
+                
+                if (!acceleration || !acceleration.x || !acceleration.y || !acceleration.z) {
+                    return;
+                }
+                
+                const current = Date.now();
+                if (current - lastShakeTime < 500) return; // Дебаунс 500мс
+                
+                // Вычисляем общее ускорение
+                const totalAcceleration = Math.abs(acceleration.x) + Math.abs(acceleration.y) + Math.abs(acceleration.z);
+                
+                if (totalAcceleration > shakeThreshold && isIdle) {
+                    lastShakeTime = current;
+                    returnElements();
+                    console.log('💥 Встряска обнаружена! Acceleration:', totalAcceleration.toFixed(2));
+                }
+            }, true);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initTelegramApp();
                 fixMobileColors();
                 scheduleFeatherReplace();
+                
+                // Инициализируем систему неактивности
+                initIdleDetection();
+                initShakeDetection();
                 
                 // Отображаем имя пользователя
                 displayUserName();
