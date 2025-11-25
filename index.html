@@ -309,55 +309,53 @@
             }
         }
         
-        /* Джейсон Стэйтем при разлетании */
-        .statham-overlay {
+        /* Фото при разлетании */
+        .photo-overlay {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0) rotate(0deg);
+            transform: translate(-50%, -50%) scale(0);
             z-index: 10000;
             opacity: 0;
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
         }
         
-        .statham-overlay.show {
+        .photo-overlay.show {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1) rotate(360deg);
+            transform: translate(-50%, -50%) scale(1);
         }
         
-        .statham-image {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid #ffffff;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-            animation: stathamPulse 2s ease-in-out infinite;
+        .photo-image {
+            width: 250px;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: photoPulse 2s ease-in-out infinite;
+            /* Убираем белый фон */
+            mix-blend-mode: multiply;
+            background: transparent;
         }
         
-        @keyframes stathamPulse {
+        @keyframes photoPulse {
             0%, 100% { 
                 transform: scale(1);
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
             }
             50% { 
-                transform: scale(1.05);
-                box-shadow: 0 25px 80px rgba(59, 130, 246, 0.8);
+                transform: scale(1.03);
             }
         }
         
-        .statham-message {
-            position: absolute;
-            bottom: -60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
+        .photo-message {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.85);
             color: #ffffff;
-            padding: 12px 24px;
+            padding: 15px 30px;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
-            white-space: nowrap;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
         
@@ -5139,32 +5137,36 @@
         let lastShakeTime = Date.now();
         let shakeThreshold = 15; // Порог чувствительности
         
-        function showStatham() {
-            let stathamOverlay = document.getElementById('stathamOverlay');
+        function showPhoto() {
+            let photoOverlay = document.getElementById('photoOverlay');
             
-            if (!stathamOverlay) {
-                stathamOverlay = document.createElement('div');
-                stathamOverlay.id = 'stathamOverlay';
-                stathamOverlay.className = 'statham-overlay';
-                stathamOverlay.innerHTML = `
-                    <img class="statham-image" 
-                         src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Jason_Statham_2018.jpg/440px-Jason_Statham_2018.jpg" 
-                         alt="Jason Statham"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 font-size=%2780%27%3E🕶️%3C/text%3E%3C/svg%3E';">
-                    <div class="statham-message">Встряхни телефон, чувак!</div>
+            if (!photoOverlay) {
+                photoOverlay = document.createElement('div');
+                photoOverlay.id = 'photoOverlay';
+                photoOverlay.className = 'photo-overlay';
+                // Прямая ссылка на Google Drive фото
+                const googleDriveId = '1ITwrEjjrkR93wcfQKf4oubAQd5NI7_R8';
+                const directUrl = `https://drive.google.com/uc?export=view&id=${googleDriveId}`;
+                
+                photoOverlay.innerHTML = `
+                    <img class="photo-image" 
+                         src="${directUrl}" 
+                         alt="Photo"
+                         onerror="this.style.mixBlendMode='normal'; this.style.filter='brightness(1.2) contrast(1.1)';">
+                    <div class="photo-message">Ты куда там делся?</div>
                 `;
-                document.body.appendChild(stathamOverlay);
+                document.body.appendChild(photoOverlay);
             }
             
             setTimeout(() => {
-                stathamOverlay.classList.add('show');
+                photoOverlay.classList.add('show');
             }, 100);
         }
         
-        function hideStatham() {
-            const stathamOverlay = document.getElementById('stathamOverlay');
-            if (stathamOverlay) {
-                stathamOverlay.classList.remove('show');
+        function hidePhoto() {
+            const photoOverlay = document.getElementById('photoOverlay');
+            if (photoOverlay) {
+                photoOverlay.classList.remove('show');
             }
         }
         
@@ -5190,8 +5192,8 @@
                 element.classList.add('idle-scatter');
             });
             
-            // Показываем Джейсона Стэйтема
-            showStatham();
+            // Показываем фото
+            showPhoto();
             
             console.log('💥 Элементы разлетелись - потряси телефон!');
         }
@@ -5200,8 +5202,8 @@
             if (!isIdle) return;
             isIdle = false;
             
-            // Прячем Стэйтема
-            hideStatham();
+            // Прячем фото
+            hidePhoto();
             
             const scatterableElements = document.querySelectorAll('.idle-scatter');
             
