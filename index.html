@@ -327,16 +327,17 @@
         }
         
         .photo-image {
-            width: 250px;
+            width: 500px;
             height: auto;
-            max-height: 400px;
+            max-height: 800px;
             object-fit: contain;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             animation: photoPulse 2s ease-in-out infinite;
-            /* Убираем белый фон */
+            /* Убираем белый фон - усиленная версия */
             mix-blend-mode: multiply;
             background: transparent;
+            filter: contrast(1.1) brightness(0.95);
         }
         
         @keyframes photoPulse {
@@ -349,14 +350,13 @@
         }
         
         .photo-message {
-            margin-top: 20px;
-            background: rgba(0, 0, 0, 0.85);
+            margin-top: 30px;
             color: #ffffff;
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-size: 18px;
+            padding: 0;
+            font-size: 36px;
             font-weight: 700;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6);
+            background: transparent;
         }
         
         /* Кран */
