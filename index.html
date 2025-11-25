@@ -309,6 +309,59 @@
             }
         }
         
+        /* Строитель с часами */
+        .builder-overlay {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .builder-overlay.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .builder-character {
+            font-size: 64px;
+            animation: builderBounce 1s ease-in-out infinite;
+        }
+        
+        @keyframes builderBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .builder-clock {
+            font-size: 48px;
+            animation: clockTap 0.8s ease-in-out infinite;
+            transform-origin: center;
+        }
+        
+        @keyframes clockTap {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .builder-message {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
         .phone-button:hover, .gis-button:hover, .taxi-button:hover {
             background: rgba(255, 255, 255, 0.08) !important;
             border-color: rgba(255, 255, 255, 0.3) !important;
@@ -4994,7 +5047,7 @@
         // Система неактивности
         let idleTimer = null;
         let isIdle = false;
-        const IDLE_TIMEOUT = 5000; // 5 секунд
+        const IDLE_TIMEOUT = 10000; // 10 секунд - оптимально для мобильных приложений
         
         // Отслеживание встряски телефона
         let lastShakeTime = Date.now();
@@ -5022,7 +5075,37 @@
                 element.classList.add('idle-scatter');
             });
             
+            // Показываем строителя с часами
+            showBuilder();
+            
             console.log('😴 Элементы разбежались - потряси телефон!');
+        }
+        
+        function showBuilder() {
+            let builderOverlay = document.getElementById('builderOverlay');
+            
+            if (!builderOverlay) {
+                builderOverlay = document.createElement('div');
+                builderOverlay.id = 'builderOverlay';
+                builderOverlay.className = 'builder-overlay';
+                builderOverlay.innerHTML = `
+                    <div class="builder-character">👷</div>
+                    <div class="builder-clock">⏰</div>
+                    <div class="builder-message">Потряси телефон!</div>
+                `;
+                document.body.appendChild(builderOverlay);
+            }
+            
+            setTimeout(() => {
+                builderOverlay.classList.add('show');
+            }, 100);
+        }
+        
+        function hideBuilder() {
+            const builderOverlay = document.getElementById('builderOverlay');
+            if (builderOverlay) {
+                builderOverlay.classList.remove('show');
+            }
         }
         
         function returnElements() {
@@ -5040,6 +5123,9 @@
                     element.classList.remove('idle-return');
                 }, 800);
             });
+            
+            // Прячем строителя
+            hideBuilder();
             
             console.log('✨ Элементы вернулись на место!');
         }
