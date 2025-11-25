@@ -334,6 +334,15 @@
             animation: builderBounce 1s ease-in-out infinite;
         }
         
+        .builder-character img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
         @keyframes builderBounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
@@ -5089,7 +5098,11 @@
                 builderOverlay.id = 'builderOverlay';
                 builderOverlay.className = 'builder-overlay';
                 builderOverlay.innerHTML = `
-                    <div class="builder-character">🧔🕶️</div>
+                    <div class="builder-character">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Jason_Statham_2018.jpg/440px-Jason_Statham_2018.jpg" 
+                             alt="Jason Statham" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='🧔🕶️';">
+                    </div>
                     <div class="builder-clock">⏰</div>
                     <div class="builder-message">Встряхни телефон, чувак!</div>
                 `;
