@@ -3963,12 +3963,14 @@
                 return;
             }
             
-            // Добавляем класс для анимации выхода
+            // Сразу запускаем анимацию выхода (старый контент уходит)
             mainContent.classList.add('slide-forward');
             
-            // После завершения анимации рендерим новый контент
+            // Параллельно вызываем callback (загрузка данных)
+            renderCallback();
+            
+            // Через время анимации убираем классы и показываем новый контент
             setTimeout(() => {
-                renderCallback();
                 mainContent.classList.remove('slide-forward');
                 mainContent.classList.add('slide-backward');
                 
@@ -3988,12 +3990,14 @@
                 return;
             }
             
-            // Добавляем класс для анимации выхода
+            // Сразу запускаем анимацию выхода
             mainContent.classList.add('slide-back-out');
             
-            // После завершения анимации рендерим новый контент
+            // Параллельно вызываем callback
+            renderCallback();
+            
+            // Через время анимации убираем классы
             setTimeout(() => {
-                renderCallback();
                 mainContent.classList.remove('slide-back-out');
                 mainContent.classList.add('slide-back-in');
                 
@@ -4024,9 +4028,7 @@
                     return;
                 }
 
-                animateForward(() => {
-                    renderSections(data.sections);
-                });
+                renderSections(data.sections);
                 updateBackButton();
             } catch (error) {
                 showError('Не удалось загрузить разделы');
@@ -4066,9 +4068,7 @@
                     }
                 }
 
-                animateForward(() => {
-                    renderCategories(data.categories, sectionId, sectionName);
-                });
+                renderCategories(data.categories, sectionId, sectionName);
                 updateBackButton();
             } catch (error) {
                 await loadProductsDirect(sectionId, null, null, null, sectionName);
@@ -4109,9 +4109,7 @@
                     return;
                 }
 
-                animateForward(() => {
-                    renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
-                });
+                renderModels(filteredModels, sectionId, sectionName, categoryId, categoryName);
                 updateBackButton();
             } catch (error) {
                 await loadProductsDirect(sectionId, categoryId, null, null, categoryName);
@@ -4152,9 +4150,7 @@
                     return;
                 }
 
-                animateForward(() => {
-                    renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
-                });
+                renderSubmodels(filteredSubmodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName);
                 updateBackButton();
             } catch (error) {
                 await loadProductsDirect(sectionId, categoryId, modelId, null, modelName);
@@ -4211,9 +4207,7 @@
                 return;
             }
 
-            animateForward(() => {
-                renderAllProducts();
-            });
+            renderAllProducts();
             updateBackButton();
         }
 
@@ -4231,7 +4225,7 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadCategories('${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
@@ -4315,7 +4309,7 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadModels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
@@ -4393,7 +4387,7 @@
                 const priceText = formatPriceText(minPrice);
                 
                 html += `
-                    <div class="category-card fade-in" onclick="loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                    <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadSubmodels('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                         <div class="p-4">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center">
@@ -4521,7 +4515,7 @@
                         </div>
                         
                         <!-- Кнопка подмодели -->
-                        <div class="category-card fade-in" onclick="loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
+                        <div class="category-card fade-in" onclick="event.stopPropagation(); animateForward(() => {}); loadProducts('${escapeHtml(sectionId)}', '${escapeHtml(sectionName).replace(/'/g, "\\'")}', '${escapeHtml(categoryId)}', '${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(modelId)}', '${escapeHtml(modelName).replace(/'/g, "\\'")}', '${safeId}', '${safeName.replace(/'/g, "\\'")}')">
                             <div class="p-4">
                                 <div class="flex justify-between items-center">
                                     <div class="flex items-center">
