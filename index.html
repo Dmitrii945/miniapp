@@ -5081,81 +5081,7 @@
                 element.classList.add('idle-scatter');
             });
             
-            // Показываем строителя с часами
-            showBuilder();
-            
             console.log('😴 Элементы разбежались - потряси телефон!');
-        }
-        
-        let builderInterval = null;
-        
-        function showBuilder() {
-            let builderOverlay = document.getElementById('builderOverlay');
-            
-            if (!builderOverlay) {
-                builderOverlay = document.createElement('div');
-                builderOverlay.id = 'builderOverlay';
-                builderOverlay.className = 'builder-overlay';
-                builderOverlay.innerHTML = `
-                    <div class="builder-character">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Jason_Statham_2018.jpg/440px-Jason_Statham_2018.jpg" 
-                             alt="Jason Statham" 
-                             onerror="this.style.display='none'; this.parentElement.innerHTML='🧔🕶️';">
-                    </div>
-                    <div class="builder-message">Встряхни телефон!</div>
-                `;
-                document.body.appendChild(builderOverlay);
-            }
-            
-            builderOverlay.classList.add('show');
-            
-            // Запускаем движение строителя между кнопками
-            moveBuilderBetweenButtons();
-        }
-        
-        function moveBuilderBetweenButtons() {
-            const builderOverlay = document.getElementById('builderOverlay');
-            if (!builderOverlay) return;
-            
-            const scatteredElements = document.querySelectorAll('.idle-scatter');
-            if (scatteredElements.length === 0) return;
-            
-            let currentIndex = 0;
-            
-            function moveToNextButton() {
-                if (currentIndex >= scatteredElements.length) {
-                    currentIndex = 0;
-                }
-                
-                const targetElement = scatteredElements[currentIndex];
-                const rect = targetElement.getBoundingClientRect();
-                
-                // Позиционируем строителя рядом с кнопкой
-                builderOverlay.style.left = `${rect.left + rect.width / 2 - 40}px`;
-                builderOverlay.style.top = `${rect.top - 120}px`;
-                
-                currentIndex++;
-            }
-            
-            // Сразу перемещаем к первой кнопке
-            moveToNextButton();
-            
-            // Перемещаемся к следующей кнопке каждые 800мс
-            if (builderInterval) clearInterval(builderInterval);
-            builderInterval = setInterval(moveToNextButton, 800);
-        }
-        
-        function hideBuilder() {
-            const builderOverlay = document.getElementById('builderOverlay');
-            if (builderOverlay) {
-                builderOverlay.classList.remove('show');
-            }
-            
-            // Останавливаем движение
-            if (builderInterval) {
-                clearInterval(builderInterval);
-                builderInterval = null;
-            }
         }
         
         function returnElements() {
@@ -5173,9 +5099,6 @@
                     element.classList.remove('idle-return');
                 }, 800);
             });
-            
-            // Прячем строителя
-            hideBuilder();
             
             console.log('✨ Элементы вернулись на место!');
         }
