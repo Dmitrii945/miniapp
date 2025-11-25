@@ -5134,6 +5134,18 @@
         let lastShakeTime = Date.now();
         let shakeThreshold = 15; // Порог чувствительности
         
+        // Массив случайных фраз под фото
+        const photoQuotes = [
+            'Бетон сам себя не зальёт (C)Джейсон',
+            'Губа не дура, рука как арматура (С)Джейсон',
+            // Добавляй новые фразы здесь:
+            // 'Твоя новая фраза здесь (С)Джейсон',
+        ];
+        
+        function getRandomQuote() {
+            return photoQuotes[Math.floor(Math.random() * photoQuotes.length)];
+        }
+        
         function showPhoto() {
             let photoOverlay = document.getElementById('photoOverlay');
             
@@ -5157,7 +5169,7 @@
                          src="${urls[0]}" 
                          alt="Photo"
                          id="photoImg">
-                    <div class="photo-message">Ты куда там делся?</div>
+                    <div class="photo-message">${getRandomQuote()}</div>
                 `;
                 document.body.appendChild(photoOverlay);
                 
