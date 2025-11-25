@@ -166,7 +166,7 @@
         }
 
         /* Контейнер для анимации */
-        #mainContent {
+        #content {
             position: relative;
             min-height: 300px;
         }
@@ -3956,7 +3956,12 @@
 
         // Функция для анимированного перехода вперед
         function animateForward(renderCallback) {
-            const mainContent = elements.mainContent;
+            const mainContent = elements.content;
+            
+            if (!mainContent) {
+                renderCallback();
+                return;
+            }
             
             // Добавляем класс для анимации выхода
             mainContent.classList.add('slide-forward');
@@ -3976,7 +3981,12 @@
 
         // Функция для анимированного перехода назад
         function animateBackward(renderCallback) {
-            const mainContent = elements.mainContent;
+            const mainContent = elements.content;
+            
+            if (!mainContent) {
+                renderCallback();
+                return;
+            }
             
             // Добавляем класс для анимации выхода
             mainContent.classList.add('slide-back-out');
