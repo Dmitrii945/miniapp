@@ -665,7 +665,7 @@
         }
 
         /* Скрываем десктопные элементы на мобильных */
-        .desktop-sidebar {
+        .desktop-bottom-bar {
             display: none;
         }
 
@@ -682,10 +682,10 @@
                 padding-bottom: 80px;
             }
 
-            .desktop-sidebar {
+            .desktop-bottom-bar {
                 display: flex;
-                height: 80px;
-                width: 50%;
+                height: 70px;
+                width: 100%;
                 flex-direction: row;
                 justify-content: center;
                 align-items: flex-end;
@@ -693,21 +693,15 @@
                 padding: 0;
                 position: fixed;
                 bottom: 0;
+                left: 0;
+                right: 0;
                 z-index: 100;
                 background: transparent;
             }
 
-            .desktop-sidebar-left {
-                left: 0;
-            }
-
-            .desktop-sidebar-right {
-                right: 0;
-                left: 50%;
-            }
-
             .desktop-action-btn {
-                width: 80px;
+                flex: 1;
+                max-width: 120px;
                 height: 70px;
                 border-radius: 0;
                 border: none !important;
@@ -731,10 +725,11 @@
             }
 
             .desktop-action-btn:hover {
-                background: rgba(59, 130, 246, 0.2) !important;
+                background: rgba(59, 130, 246, 0.3) !important;
                 border-top-color: rgba(59, 130, 246, 0.8) !important;
                 transform: translateY(-42px);
                 box-shadow: 0 -8px 32px rgba(59, 130, 246, 0.3);
+                z-index: 10;
             }
 
             .desktop-action-btn svg,
@@ -748,6 +743,10 @@
             .desktop-action-btn:hover svg,
             .desktop-action-btn:hover i {
                 transform: scale(1.2);
+            }
+
+            .desktop-action-btn span {
+                transition: opacity 0.3s ease;
             }
 
             .desktop-main-wrapper {
@@ -2347,8 +2346,8 @@
     </div>
 
     <div id="app" class="max-w-md mx-auto">
-        <!-- Desktop Sidebars (only visible on desktop) -->
-        <div class="desktop-sidebar desktop-sidebar-left">
+        <!-- Desktop Bottom Bar (only visible on desktop) -->
+        <div class="desktop-bottom-bar">
             <button class="desktop-action-btn" onclick="loadFavorites()">
                 <i data-feather="heart"></i>
                 <span>Избранное</span>
@@ -2365,9 +2364,6 @@
                 <i data-feather="map-pin"></i>
                 <span>2GIS</span>
             </button>
-        </div>
-
-        <div class="desktop-sidebar desktop-sidebar-right">
             <button class="desktop-action-btn" onclick="showMyChats()">
                 <i data-feather="message-circle"></i>
                 <span>Чаты</span>
