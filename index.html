@@ -689,8 +689,8 @@
                 flex-direction: row;
                 justify-content: center;
                 align-items: flex-end;
-                gap: 0;
-                padding: 0;
+                gap: 8px;
+                padding: 0 8px;
                 position: fixed;
                 bottom: 0;
                 left: 0;
@@ -703,7 +703,7 @@
                 flex: 1;
                 max-width: 120px;
                 height: 70px;
-                border-radius: 0;
+                border-radius: 12px;
                 border: none !important;
                 border-top: 3px solid rgba(255, 255, 255, 0.1) !important;
                 background: rgba(30, 41, 59, 0.55) !important;
@@ -727,7 +727,7 @@
             .desktop-action-btn:hover {
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: translateY(-42px) scale(1.25);
+                transform: translateY(-42px) scale(3);
                 box-shadow: 0 -12px 48px rgba(59, 130, 246, 0.5);
                 z-index: 10;
             }
@@ -737,12 +737,12 @@
                 width: 24px;
                 height: 24px;
                 margin-bottom: 2px;
-                transition: transform 0.3s ease;
+                transition: none;
             }
 
             .desktop-action-btn:hover svg,
             .desktop-action-btn:hover i {
-                transform: scale(3);
+                transform: none;
             }
 
             .desktop-action-btn span {
