@@ -1502,6 +1502,117 @@
             word-wrap: break-word;
         }
 
+        /* МОДАЛЬНОЕ ОКНО ТОВАРА */
+        .product-detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .product-detail-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .product-detail-title {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .product-detail-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .product-detail-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .product-detail-image {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .product-detail-content {
+            padding: 24px;
+            color: white;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%);
+        }
+
+        .product-detail-price {
+            display: inline-block;
+            background: #10B981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .product-detail-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #e5e7eb;
+            margin-bottom: 24px;
+            white-space: pre-line;
+        }
+
+        .product-detail-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .product-detail-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .product-detail-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
         /* Chat Modal Styles */
         .chat-modal {
             position: fixed;
@@ -2376,6 +2487,31 @@
             </div>
         </div>
 
+        <!-- Product Detail Modal -->
+        <div id="productDetailModal" class="product-detail-modal hidden">
+            <div class="product-detail-header">
+                <h2 class="product-detail-title" id="productDetailTitle">Товар</h2>
+                <button onclick="closeProductDetail()" class="product-detail-close">
+                    <i data-feather="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
+            <div class="product-detail-content">
+                <div id="productDetailPrice" class="product-detail-price"></div>
+                <div id="productDetailDescription" class="product-detail-description"></div>
+                <div class="product-detail-buttons">
+                    <button onclick="makePhoneCall()" class="product-detail-btn">
+                        <i data-feather="phone" class="w-5 h-5"></i>
+                        Позвонить
+                    </button>
+                    <button onclick="contactAboutCurrentProduct()" class="product-detail-btn">
+                        <i data-feather="message-circle" class="w-5 h-5"></i>
+                        Узнать подробнее
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- My Chats Modal -->
         <div id="myChatsModal" class="chat-modal hidden">
             <div class="chat-modal-header">
@@ -3026,9 +3162,9 @@
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
                 html += `
-                    <div class="product-card fade-in" data-product-index="${index}">
+                    <div class="product-card fade-in" data-product-index="${index}" onclick="openProductDetailFromFavorites(${index})">
                         <div class="favorite-label">В избранном</div>
-                        <div class="favorite-button active" onclick="toggleFavoriteFromFavorites('${fav.id}')">
+                        <div class="favorite-button active" onclick="event.stopPropagation(); toggleFavoriteFromFavorites('${fav.id}')">
                             <i data-feather="heart"></i>
                         </div>
                 `;
@@ -3784,6 +3920,133 @@
             // Останавливаем распространение события
             if (window.event) {
                 window.event.stopPropagation();
+            }
+        }
+
+        // Модальное окно товара
+        let currentProductDetail = null;
+
+        function openProductDetail(productIndex) {
+            const product = currentProducts[productIndex];
+            if (!product) return;
+
+            currentProductDetail = product;
+            
+            const modal = document.getElementById('productDetailModal');
+            const title = document.getElementById('productDetailTitle');
+            const image = document.getElementById('productDetailImage');
+            const price = document.getElementById('productDetailPrice');
+            const description = document.getElementById('productDetailDescription');
+
+            // Заголовок
+            title.textContent = product.color || 'Товар';
+
+            // Изображение
+            let imageUrl = extractPhotoFilenameFromUrl(product.photo_url);
+            if (imageUrl) {
+                image.src = imageUrl;
+                image.style.display = 'block';
+            } else {
+                image.style.display = 'none';
+            }
+
+            // Цена
+            if (product.price && product.price !== 'Цена не указана') {
+                price.textContent = formatPriceForBadge(product.price);
+                price.style.display = 'inline-block';
+            } else {
+                price.style.display = 'none';
+            }
+
+            // Описание из столбца I (description)
+            if (product.description) {
+                description.textContent = product.description;
+                description.style.display = 'block';
+            } else {
+                description.style.display = 'none';
+            }
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                feather.replace();
+            }, 100);
+        }
+
+        function openProductDetailFromFavorites(favIndex) {
+            const fav = currentFavorites[favIndex];
+            if (!fav || !fav.product) return;
+            
+            currentProductDetail = fav.product;
+            
+            const modal = document.getElementById('productDetailModal');
+            const title = document.getElementById('productDetailTitle');
+            const image = document.getElementById('productDetailImage');
+            const price = document.getElementById('productDetailPrice');
+            const description = document.getElementById('productDetailDescription');
+
+            const product = fav.product;
+
+            title.textContent = product.color || 'Товар';
+
+            let imageUrl = extractPhotoFilenameFromUrl(product.photo_url);
+            if (imageUrl) {
+                image.src = imageUrl;
+                image.style.display = 'block';
+            } else {
+                image.style.display = 'none';
+            }
+
+            if (product.price && product.price !== 'Цена не указана') {
+                price.textContent = formatPriceForBadge(product.price);
+                price.style.display = 'inline-block';
+            } else {
+                price.style.display = 'none';
+            }
+
+            if (product.description) {
+                description.textContent = product.description;
+                description.style.display = 'block';
+            } else {
+                description.style.display = 'none';
+            }
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                feather.replace();
+            }, 100);
+        }
+
+        function closeProductDetail() {
+            const modal = document.getElementById('productDetailModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            currentProductDetail = null;
+        }
+
+        function contactAboutCurrentProduct() {
+            if (!currentProductDetail) return;
+            
+            const navigation = getCurrentNavigation();
+            
+            const productInfo = [
+                navigation.section?.name,
+                navigation.category?.name,
+                navigation.model?.name,
+                navigation.submodel?.name,
+                currentProductDetail.color,
+                currentProductDetail.price && currentProductDetail.price !== 'Цена не указана' ? currentProductDetail.price : ''
+            ].filter(Boolean).join(' → ');
+
+            const message = `Здравствуйте! Интересует товар: ${productInfo}. Подскажите подробности.`;
+            
+            if (tg) {
+                tg.openTelegramLink(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`);
+            } else {
+                window.open(`https://t.me/SkidkaService01?text=${encodeURIComponent(message)}`, '_blank');
             }
         }
         
@@ -4929,8 +5192,8 @@
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
 
                 html += `
-                    <div class="product-card fade-in" data-product-index="${index}">
-                        <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                    <div class="product-card fade-in" data-product-index="${index}" onclick="openProductDetail(${index})">
+                        <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
                             <i data-feather="heart"></i>
                         </div>
                 `;
