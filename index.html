@@ -4004,7 +4004,9 @@
         // ========== API ФУНКЦИИ ==========
 
         async function apiFetch(endpoint) {
-            const url = `${API_BASE}${endpoint}`;
+            // Добавляем timestamp чтобы избежать кеша
+            const separator = endpoint.includes('?') ? '&' : '?';
+            const url = `${API_BASE}${endpoint}${separator}_t=${Date.now()}`;
             
             showLoading();
             
@@ -4016,9 +4018,12 @@
             try {
                 const response = await fetch(url, { 
                     signal: controller.signal,
+                    cache: 'no-cache',
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
                     }
                 });
                 
