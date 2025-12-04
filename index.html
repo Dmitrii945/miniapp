@@ -4047,6 +4047,7 @@
                 }
                 
                 hideLoading();
+                console.error('API Error:', errorMessage, 'URL:', url);
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
             }
@@ -4086,6 +4087,12 @@
         }
 
         async function loadCategories(sectionId, sectionName) {
+            if (!sectionId || !sectionName) {
+                console.error('loadCategories: missing parameters', { sectionId, sectionName });
+                showError('Ошибка: отсутствуют параметры раздела');
+                return;
+            }
+            
             lastAction = { type: 'loadCategories', sectionId, sectionName };
             
             try {
@@ -4132,6 +4139,12 @@
         }
 
         async function loadModels(sectionId, sectionName, categoryId, categoryName) {
+            if (!sectionId || !categoryId) {
+                console.error('loadModels: missing parameters', { sectionId, categoryId });
+                showError('Ошибка: отсутствуют параметры категории');
+                return;
+            }
+            
             lastAction = { type: 'loadModels', sectionId, sectionName, categoryId, categoryName };
             
             try {
