@@ -4090,7 +4090,13 @@
             
             try {
                 navigationStack = navigationStack.filter(item => item.type !== 'categories' && item.type !== 'models' && item.type !== 'submodels');
-                navigationStack.push({ type: 'sections', id: sectionId, name: sectionName });
+                navigationStack.push({ 
+                    type: 'sections', 
+                    id: sectionId, 
+                    name: sectionName,
+                    sectionId: sectionId,
+                    sectionName: sectionName
+                });
                 
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = sectionName;
@@ -4130,7 +4136,15 @@
             
             try {
                 navigationStack = navigationStack.filter(item => item.type !== 'models' && item.type !== 'submodels');
-                navigationStack.push({ type: 'categories', id: categoryId, name: categoryName });
+                navigationStack.push({ 
+                    type: 'categories', 
+                    id: categoryId, 
+                    name: categoryName,
+                    sectionId: sectionId,
+                    sectionName: sectionName,
+                    categoryId: categoryId,
+                    categoryName: categoryName
+                });
                 
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = categoryName;
@@ -4171,7 +4185,17 @@
             
             try {
                 navigationStack = navigationStack.filter(item => item.type !== 'submodels');
-                navigationStack.push({ type: 'models', id: modelId, name: modelName });
+                navigationStack.push({ 
+                    type: 'models', 
+                    id: modelId, 
+                    name: modelName,
+                    sectionId: sectionId,
+                    sectionName: sectionName,
+                    categoryId: categoryId,
+                    categoryName: categoryName,
+                    modelId: modelId,
+                    modelName: modelName
+                });
                 
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = modelName;
@@ -4211,7 +4235,19 @@
             lastAction = { type: 'loadProducts', sectionId, sectionName, categoryId, categoryName, modelId, modelName, submodelId, submodelName };
             
             try {
-                navigationStack.push({ type: 'submodels', id: submodelId, name: submodelName });
+                navigationStack.push({ 
+                    type: 'submodels', 
+                    id: submodelId, 
+                    name: submodelName,
+                    sectionId: sectionId,
+                    sectionName: sectionName,
+                    categoryId: categoryId,
+                    categoryName: categoryName,
+                    modelId: modelId,
+                    modelName: modelName,
+                    submodelId: submodelId,
+                    submodelName: submodelName
+                });
                 updateBreadcrumbsFromStack();
                 elements.pageTitle.textContent = submodelName;
                 
@@ -4914,10 +4950,40 @@
                     loadSections();
                 } else {
                     const previousItem = navigationStack[navigationStack.length - 1];
-                    handleBackNavigation(previousItem.type);
+                    // Загружаем предыдущий уровень напрямую по сохранённым параметрам
+                    loadPreviousLevel(previousItem);
                 }
             } else if (tg) {
                 tg.close();
+            }
+        }
+
+        function loadPreviousLevel(item) {
+            switch (item.type) {
+                case 'sections':
+                    loadSections();
+                    break;
+                case 'categories':
+                    loadCategories(item.sectionId, item.sectionName);
+                    break;
+                case 'models':
+                    loadModels(item.sectionId, item.sectionName, item.categoryId, item.categoryName);
+                    break;
+                case 'submodels':
+                    loadSubmodels(item.sectionId, item.sectionName, item.categoryId, item.categoryName, item.modelId, item.modelName);
+                    break;
+                case 'brigade':
+                    loadBrigades();
+                    break;
+                case 'object':
+                    if (currentBrigadeData) {
+                        openBrigade(currentBrigadeData.groupName, currentBrigadeData.brigade);
+                    } else {
+                        loadBrigades();
+                    }
+                    break;
+                default:
+                    loadSections();
             }
         }
 
