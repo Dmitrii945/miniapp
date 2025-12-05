@@ -5801,6 +5801,13 @@
                 fixMobileColors();
                 scheduleFeatherReplace();
                 
+                // Дополнительный вызов feather для десктоп кнопок
+                setTimeout(() => {
+                    if (typeof feather !== 'undefined') {
+                        feather.replace();
+                    }
+                }, 200);
+                
                 // Инициализируем систему неактивности
                 initIdleDetection();
                 initShakeDetection();
