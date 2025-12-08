@@ -761,7 +761,9 @@
 
             /* Скрываем хлебные крошки на десктопе */
             .breadcrumb-item,
-            .breadcrumb-separator {
+            .breadcrumb-separator,
+            .breadcrumb-container,
+            .breadcrumb-text {
                 display: none !important;
             }
 
@@ -3296,7 +3298,7 @@
                     }
 
                     if (breadcrumbs.length > 1) { // Изменяем условие, так как у нас всегда есть "СКИДКА СЕРВИС"
-                        html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
+                        html += `<p class="breadcrumb-text text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
                     }
                 }
 
@@ -5255,7 +5257,7 @@
                 return '';
             }
 
-            let html = '<div class="mb-4 p-3 bg-gray-50 rounded-lg">';
+            let html = '<div class="breadcrumb-container mb-4 p-3 bg-gray-50 rounded-lg">';
             html += '<div class="flex items-center flex-wrap text-sm text-gray-600">';
             
             breadcrumbs.forEach((crumb, index) => {
