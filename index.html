@@ -91,6 +91,19 @@
             background-color: #f3f4f6;
         }
         
+        /* Адаптивная высота изображений для сетки */
+        @media (min-width: 768px) {
+            .product-image {
+                height: 180px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .product-image {
+                height: 220px;
+            }
+        }
+        
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
@@ -154,9 +167,39 @@
         }
         
         .product-list {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 16px;
+        }
+        
+        /* Адаптивная сетка для планшетов */
+        @media (min-width: 640px) {
+            .product-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Адаптивная сетка для десктопа */
+        @media (min-width: 768px) {
+            .product-list {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        /* Для широких экранов */
+        @media (min-width: 1280px) {
+            .product-list {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+            }
+        }
+        
+        /* Для очень широких экранов */
+        @media (min-width: 1536px) {
+            .product-list {
+                grid-template-columns: repeat(5, 1fr);
+            }
         }
         
         .product-card {
@@ -206,6 +249,40 @@
 
         .category-card * {
             color: #ffffff !important;
+        }
+        
+        /* Контейнер для категорий - адаптивная сетка */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        /* Preview контейнер на всю ширину сетки */
+        .categories-grid #preview-container {
+            grid-column: 1 / -1;
+        }
+        
+        /* Адаптивная сетка категорий для планшетов */
+        @media (min-width: 640px) {
+            .categories-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Адаптивная сетка категорий для десктопа */
+        @media (min-width: 1024px) {
+            .categories-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+        }
+        
+        /* Для широких экранов */
+        @media (min-width: 1536px) {
+            .categories-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
         
         .retry-button {
@@ -4807,7 +4884,7 @@
         }
 
         function renderCategories(categories, sectionId, sectionName, allLeadToProducts = false) {
-            let html = '<div class="space-y-3">';
+            let html = '<div class="categories-grid">';
             
             // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ категории ведут к товарам
             if (allLeadToProducts) {
@@ -4885,7 +4962,7 @@
         }
 
         function renderModels(models, sectionId, sectionName, categoryId, categoryName, allLeadToProducts = false) {
-            let html = '<div class="space-y-3">';
+            let html = '<div class="categories-grid">';
             
             // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ модели ведут к товарам
             if (allLeadToProducts) {
@@ -5004,7 +5081,7 @@
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
-            let html = '<div class="space-y-3">';
+            let html = '<div class="categories-grid">';
             
             submodels.forEach(submodel => {
                 if (!submodel) return;
