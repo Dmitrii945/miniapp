@@ -114,15 +114,6 @@
             font-size: 0.875rem;
             font-weight: 600;
         }
-
-        .special-price-badge {
-            background-color: #3B82F6;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
         
         .image-loading {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -2511,10 +2502,7 @@
             </div>
             <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
             <div class="product-detail-content">
-                <div class="flex flex-col gap-2 mb-3">
-                    <div id="productDetailPrice" class="product-detail-price"></div>
-                    <div id="productDetailSpecialPrice" class="special-price-badge" style="display: none;"></div>
-                </div>
+                <div id="productDetailPrice" class="product-detail-price"></div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
                     <button onclick="makePhoneCall()" class="product-detail-btn">
@@ -2859,16 +2847,6 @@
             }
         }
 
-        // VIP пользователи с доступом к специальным ценам
-        const VIP_USERS = [
-            1606292950  // Добавьте сюда ID пользователей через запятую
-        ];
-
-        function isVipUser() {
-            const userId = tg?.initDataUnsafe?.user?.id;
-            return userId && VIP_USERS.includes(userId);
-        }
-
         function formatPriceText(price) {
             if (price === null || price === Infinity || price === 0) return "";
             return ` от ${Math.round(price)} р.`;
@@ -3202,14 +3180,9 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                <div class="flex flex-col items-end gap-1">
-                                    ${price && price !== 'Цена не указана' ? `
-                                        <span class="price-badge">${escapeHtml(price)}</span>
-                                    ` : ''}
-                                    ${isVipUser() && product.special_price ? `
-                                        <span class="special-price-badge">${escapeHtml(formatPriceForBadge(product.special_price))}</span>
-                                    ` : ''}
-                                </div>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -3991,15 +3964,6 @@
                 price.style.display = 'none';
             }
 
-            // Специальная цена для VIP
-            const specialPrice = document.getElementById('productDetailSpecialPrice');
-            if (isVipUser() && product.special_price) {
-                specialPrice.textContent = formatPriceForBadge(product.special_price);
-                specialPrice.style.display = 'inline-block';
-            } else {
-                specialPrice.style.display = 'none';
-            }
-
             // Описание из столбца I (description)
             if (product.description) {
                 description.textContent = product.description;
@@ -4054,15 +4018,6 @@
                 price.style.display = 'inline-block';
             } else {
                 price.style.display = 'none';
-            }
-
-            // Специальная цена для VIP
-            const specialPrice = document.getElementById('productDetailSpecialPrice');
-            if (isVipUser() && product.special_price) {
-                specialPrice.textContent = formatPriceForBadge(product.special_price);
-                specialPrice.style.display = 'inline-block';
-            } else {
-                specialPrice.style.display = 'none';
             }
 
             if (product.description) {
@@ -5264,14 +5219,9 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                <div class="flex flex-col items-end gap-1">
-                                    ${price && price !== 'Цена не указана' ? `
-                                        <span class="price-badge">${escapeHtml(price)}</span>
-                                    ` : ''}
-                                    ${isVipUser() && product.special_price ? `
-                                        <span class="special-price-badge">${escapeHtml(formatPriceForBadge(product.special_price))}</span>
-                                    ` : ''}
-                                </div>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
                             </div>
                             
                             <div class="space-y-2 mb-4">
