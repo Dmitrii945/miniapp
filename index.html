@@ -91,19 +91,6 @@
             background-color: #f3f4f6;
         }
         
-        /* Адаптивная высота изображений для сетки */
-        @media (min-width: 768px) {
-            .product-image {
-                height: 180px;
-            }
-        }
-        
-        @media (min-width: 1024px) {
-            .product-image {
-                height: 220px;
-            }
-        }
-        
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
@@ -125,6 +112,15 @@
             padding: 4px 8px;
             border-radius: 9999px;
             font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .special-price-badge {
+            background-color: #3B82F6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
             font-weight: 600;
         }
         
@@ -167,39 +163,9 @@
         }
         
         .product-list {
-            display: grid;
-            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 16px;
-        }
-        
-        /* Адаптивная сетка для планшетов */
-        @media (min-width: 640px) {
-            .product-list {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        /* Адаптивная сетка для десктопа */
-        @media (min-width: 768px) {
-            .product-list {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 20px;
-            }
-        }
-        
-        /* Для широких экранов */
-        @media (min-width: 1280px) {
-            .product-list {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 24px;
-            }
-        }
-        
-        /* Для очень широких экранов */
-        @media (min-width: 1536px) {
-            .product-list {
-                grid-template-columns: repeat(5, 1fr);
-            }
         }
         
         .product-card {
@@ -249,40 +215,6 @@
 
         .category-card * {
             color: #ffffff !important;
-        }
-        
-        /* Контейнер для категорий - адаптивная сетка */
-        .categories-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        
-        /* Preview контейнер на всю ширину сетки */
-        .categories-grid #preview-container {
-            grid-column: 1 / -1;
-        }
-        
-        /* Адаптивная сетка категорий для планшетов */
-        @media (min-width: 640px) {
-            .categories-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        /* Адаптивная сетка категорий для десктопа */
-        @media (min-width: 1024px) {
-            .categories-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 16px;
-            }
-        }
-        
-        /* Для широких экранов */
-        @media (min-width: 1536px) {
-            .categories-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
         }
         
         .retry-button {
@@ -759,19 +691,6 @@
                 padding-bottom: 80px;
             }
 
-            /* Скрываем хлебные крошки на десктопе */
-            .breadcrumb-item,
-            .breadcrumb-separator,
-            .breadcrumb-container,
-            .breadcrumb-text {
-                display: none !important;
-            }
-
-            /* Скрываем header полностью на десктопе */
-            header {
-                display: none !important;
-            }
-
             .desktop-bottom-bar {
                 display: flex;
                 height: 70px;
@@ -849,33 +768,6 @@
                 max-width: 1200px;
                 margin-left: auto;
                 margin-right: auto;
-            }
-
-            /* Кнопка "Назад" для десктопа */
-            .back-button {
-                position: fixed !important;
-                bottom: 70px !important;
-                left: 0 !important;
-                right: 0 !important;
-                width: 100% !important;
-                max-width: none !important;
-                height: 35px !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                border-radius: 0 !important;
-                z-index: 99 !important;
-                background: rgba(30, 41, 59, 0.55) !important;
-                backdrop-filter: blur(40px) !important;
-                -webkit-backdrop-filter: blur(40px) !important;
-                border: none !important;
-                border-top: 2px solid rgba(255, 255, 255, 0.1) !important;
-                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
-            }
-
-            .back-button:hover {
-                background: rgba(59, 130, 246, 0.4) !important;
-                border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: none !important;
             }
 
             .bottom-action-buttons {
@@ -2619,7 +2511,10 @@
             </div>
             <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
             <div class="product-detail-content">
-                <div id="productDetailPrice" class="product-detail-price"></div>
+                <div class="flex flex-col gap-2 mb-3">
+                    <div id="productDetailPrice" class="product-detail-price"></div>
+                    <div id="productDetailSpecialPrice" class="special-price-badge" style="display: none;"></div>
+                </div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
                     <button onclick="makePhoneCall()" class="product-detail-btn">
@@ -2964,6 +2859,16 @@
             }
         }
 
+        // VIP пользователи с доступом к специальным ценам
+        const VIP_USERS = [
+            1606292950  // Добавьте сюда ID пользователей через запятую
+        ];
+
+        function isVipUser() {
+            const userId = tg?.initDataUnsafe?.user?.id;
+            return userId && VIP_USERS.includes(userId);
+        }
+
         function formatPriceText(price) {
             if (price === null || price === Infinity || price === 0) return "";
             return ` от ${Math.round(price)} р.`;
@@ -3297,9 +3202,14 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                ${price && price !== 'Цена не указана' ? `
-                                    <span class="price-badge">${escapeHtml(price)}</span>
-                                ` : ''}
+                                <div class="flex flex-col items-end gap-1">
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
+                                    ${isVipUser() && product.special_price ? `
+                                        <span class="special-price-badge">${escapeHtml(formatPriceForBadge(product.special_price))}</span>
+                                    ` : ''}
+                                </div>
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -3325,7 +3235,7 @@
                     }
 
                     if (breadcrumbs.length > 1) { // Изменяем условие, так как у нас всегда есть "СКИДКА СЕРВИС"
-                        html += `<p class="breadcrumb-text text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
+                        html += `<p class="text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
                     }
                 }
 
@@ -4081,6 +3991,15 @@
                 price.style.display = 'none';
             }
 
+            // Специальная цена для VIP
+            const specialPrice = document.getElementById('productDetailSpecialPrice');
+            if (isVipUser() && product.special_price) {
+                specialPrice.textContent = formatPriceForBadge(product.special_price);
+                specialPrice.style.display = 'inline-block';
+            } else {
+                specialPrice.style.display = 'none';
+            }
+
             // Описание из столбца I (description)
             if (product.description) {
                 description.textContent = product.description;
@@ -4135,6 +4054,15 @@
                 price.style.display = 'inline-block';
             } else {
                 price.style.display = 'none';
+            }
+
+            // Специальная цена для VIP
+            const specialPrice = document.getElementById('productDetailSpecialPrice');
+            if (isVipUser() && product.special_price) {
+                specialPrice.textContent = formatPriceForBadge(product.special_price);
+                specialPrice.style.display = 'inline-block';
+            } else {
+                specialPrice.style.display = 'none';
             }
 
             if (product.description) {
@@ -4924,7 +4852,7 @@
         }
 
         function renderCategories(categories, sectionId, sectionName, allLeadToProducts = false) {
-            let html = '<div class="categories-grid">';
+            let html = '<div class="space-y-3">';
             
             // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ категории ведут к товарам
             if (allLeadToProducts) {
@@ -5002,7 +4930,7 @@
         }
 
         function renderModels(models, sectionId, sectionName, categoryId, categoryName, allLeadToProducts = false) {
-            let html = '<div class="categories-grid">';
+            let html = '<div class="space-y-3">';
             
             // ДОБАВЛЯЕМ ПРЕВЬЮ если ВСЕ модели ведут к товарам
             if (allLeadToProducts) {
@@ -5121,7 +5049,7 @@
         }
 
         function renderSubmodels(submodels, sectionId, sectionName, categoryId, categoryName, modelId, modelName) {
-            let html = '<div class="categories-grid">';
+            let html = '<div class="space-y-3">';
             
             submodels.forEach(submodel => {
                 if (!submodel) return;
@@ -5284,7 +5212,7 @@
                 return '';
             }
 
-            let html = '<div class="breadcrumb-container mb-4 p-3 bg-gray-50 rounded-lg">';
+            let html = '<div class="mb-4 p-3 bg-gray-50 rounded-lg">';
             html += '<div class="flex items-center flex-wrap text-sm text-gray-600">';
             
             breadcrumbs.forEach((crumb, index) => {
@@ -5336,9 +5264,14 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                ${price && price !== 'Цена не указана' ? `
-                                    <span class="price-badge">${escapeHtml(price)}</span>
-                                ` : ''}
+                                <div class="flex flex-col items-end gap-1">
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
+                                    ${isVipUser() && product.special_price ? `
+                                        <span class="special-price-badge">${escapeHtml(formatPriceForBadge(product.special_price))}</span>
+                                    ` : ''}
+                                </div>
                             </div>
                             
                             <div class="space-y-2 mb-4">
