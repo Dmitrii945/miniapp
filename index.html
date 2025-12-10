@@ -3250,12 +3250,14 @@
                 }
                 
                 console.log('Найдено секций:', sectionsData.sections.length);
+                console.log('Первая секция:', sectionsData.sections[0]);
                 
                 // Обрабатываем каждую секцию
                 for (const section of sectionsData.sections) {
-                    const sectionHash = section.section_hash;
-                    const sectionName = section.section_name;
-                    console.log('Обрабатываем секцию:', sectionName);
+                    console.log('Объект секции:', section);
+                    const sectionHash = section.section_hash || section.hash;
+                    const sectionName = section.section_name || section.name;
+                    console.log('Обрабатываем секцию:', sectionName, 'hash:', sectionHash);
                     
                     // Загружаем категории
                     const catUrl = `${API_BASE}/categories/${sectionHash}`;
