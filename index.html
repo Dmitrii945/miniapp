@@ -3231,6 +3231,10 @@
                 try {
                     sectionsData = JSON.parse(sectionsText);
                     console.log('Секции успешно распарсены:', sectionsData);
+                    console.log('sectionsData.success:', sectionsData.success);
+                    console.log('sectionsData.sections:', sectionsData.sections);
+                    console.log('Проверка: !sectionsData.success =', !sectionsData.success);
+                    console.log('Проверка: !sectionsData.sections =', !sectionsData.sections);
                 } catch (e) {
                     console.error('Ошибка парсинга секций:', e);
                     console.error('Текст ответа:', sectionsText.substring(0, 500));
@@ -3238,8 +3242,9 @@
                     return false;
                 }
                 
-                if (!sectionsData.success || !sectionsData.sections) {
-                    console.error('Некорректные данные секций:', sectionsData);
+                // Проверяем наличие sections (может быть без поля success)
+                if (!sectionsData.sections || sectionsData.sections.length === 0) {
+                    console.error('Нет секций в ответе:', sectionsData);
                     searchCacheBuilding = false;
                     return false;
                 }
