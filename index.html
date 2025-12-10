@@ -3158,30 +3158,47 @@
             }
             
             // Поиск по словам
-            const searchWords = searchText.split(/\s+/);
+            const searchWords = searchText.split(/\s+/).filter(w => w.length >= 2);
             const targetWords = targetText.split(/\s+/);
+            
+            if (searchWords.length === 0) {
+                return { match: false, score: 0 };
+            }
             
             let totalScore = 0;
             let matchedWords = 0;
             
             for (const searchWord of searchWords) {
-                if (searchWord.length < 2) continue;
-                
                 let bestScore = 0;
                 
                 for (const targetWord of targetWords) {
-                    // Проверка начала слова
-                    if (targetWord.startsWith(searchWord)) {
-                        bestScore = Math.max(bestScore, 80);
+                    // Точное совпадение слова
+                    if (targetWord === searchWord) {
+                        bestScore = Math.max(bestScore, 100);
                         continue;
                     }
                     
-                    // Fuzzy match
+                    // Проверка начала слова
+                    if (targetWord.startsWith(searchWord)) {
+                        bestScore = Math.max(bestScore, 90);
+                        continue;
+                    }
+                    
+                    // Проверка вхождения внутри слова
+                    if (targetWord.includes(searchWord)) {
+                        bestScore = Math.max(bestScore, 75);
+                        continue;
+                    }
+                    
+                    // Fuzzy match с опечатками
                     const distance = levenshteinDistance(searchWord, targetWord);
                     const maxLen = Math.max(searchWord.length, targetWord.length);
                     
-                    if (distance <= maxDistance && distance < maxLen) {
-                        const similarity = ((maxLen - distance) / maxLen) * 60;
+                    // Увеличиваем допуск для длинных слов
+                    const allowedDistance = Math.min(maxDistance, Math.floor(searchWord.length / 3));
+                    
+                    if (distance <= allowedDistance && distance < maxLen) {
+                        const similarity = ((maxLen - distance) / maxLen) * 70;
                         bestScore = Math.max(bestScore, similarity);
                     }
                 }
@@ -3197,7 +3214,8 @@
             }
             
             const avgScore = totalScore / searchWords.length;
-            return { match: avgScore > 30, score: avgScore };
+            // Снижаем порог для более гибкого поиска
+            return { match: avgScore > 25, score: avgScore };
         }
         
         // Построение кэша для поиска - загружает данные постепенно
@@ -3344,11 +3362,18 @@
                                 
                                 if (!prodData.products || prodData.products.length === 0) continue;
                                 
+                                // Логируем первый товар для отладки
+                                if (searchCache.length === 0) {
+                                    console.log('Первый товар из API:', prodData.products[0]);
+                                    console.log('Поля товара:', Object.keys(prodData.products[0]));
+                                }
+                                
                                 // Добавляем товары в кэш
                                 prodData.products.forEach((product, index) => {
                                     const searchText = [
                                         product.name || '',
                                         product.description || '',
+                                        product.color || '',
                                         sectionName,
                                         categoryName,
                                         modelName,
@@ -3405,6 +3430,9 @@
                 return [];
             }
             
+            console.log('Ищем:', query);
+            console.log('В кэше товаров:', searchCache.length);
+            
             const results = [];
             
             for (const item of searchCache) {
@@ -3417,6 +3445,8 @@
                     });
                 }
             }
+            
+            console.log('Найдено результатов:', results.length);
             
             // Сортируем по релевантности, затем по цене (от меньшей к большей)
             results.sort((a, b) => {
