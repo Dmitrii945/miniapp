@@ -3206,6 +3206,7 @@
         
         async function buildSearchCacheIncremental() {
             if (searchCacheBuilding) {
+                console.log('Кэш уже строится');
                 return 'building';
             }
             
@@ -3213,41 +3214,66 @@
             searchCache = [];
             
             try {
+                console.log('Начинаем построение кэша поиска...');
+                console.log('API_BASE:', API_BASE);
+                
                 // Загружаем секции
-                const sectionsResp = await fetch(`${API_BASE}/sections`);
+                const sectionsUrl = `${API_BASE}/sections`;
+                console.log('Загружаем секции:', sectionsUrl);
+                
+                const sectionsResp = await fetch(sectionsUrl);
+                console.log('Статус ответа секций:', sectionsResp.status);
+                
                 const sectionsText = await sectionsResp.text();
+                console.log('Получен текст секций, длина:', sectionsText.length);
                 
                 let sectionsData;
                 try {
                     sectionsData = JSON.parse(sectionsText);
+                    console.log('Секции успешно распарсены:', sectionsData);
                 } catch (e) {
-                    console.error('Ошибка парсинга секций');
+                    console.error('Ошибка парсинга секций:', e);
+                    console.error('Текст ответа:', sectionsText.substring(0, 500));
                     searchCacheBuilding = false;
                     return false;
                 }
                 
                 if (!sectionsData.success || !sectionsData.sections) {
+                    console.error('Некорректные данные секций:', sectionsData);
                     searchCacheBuilding = false;
                     return false;
                 }
+                
+                console.log('Найдено секций:', sectionsData.sections.length);
                 
                 // Обрабатываем каждую секцию
                 for (const section of sectionsData.sections) {
                     const sectionHash = section.section_hash;
                     const sectionName = section.section_name;
+                    console.log('Обрабатываем секцию:', sectionName);
                     
                     // Загружаем категории
-                    const catResp = await fetch(`${API_BASE}/categories/${sectionHash}`);
+                    const catUrl = `${API_BASE}/categories/${sectionHash}`;
+                    console.log('Загружаем категории:', catUrl);
+                    
+                    const catResp = await fetch(catUrl);
+                    console.log('Статус категорий:', catResp.status);
+                    
                     const catText = await catResp.text();
                     
                     let catData;
                     try {
                         catData = JSON.parse(catText);
+                        console.log('Категории загружены:', catData.categories?.length || 0);
                     } catch (e) {
+                        console.error('Ошибка парсинга категорий:', e);
                         continue;
                     }
                     
-                    if (!catData.success || !catData.categories) continue;
+                    if (!catData.success || !catData.categories) {
+                        console.log('Нет категорий для секции:', sectionName);
+                        continue;
+                    }
                     
                     for (const category of catData.categories) {
                         const categoryHash = category.category_hash;
@@ -3342,11 +3368,14 @@
                 }
                 
                 searchCacheBuilding = false;
-                console.log(`Кэш поиска построен: ${searchCache.length} товаров`);
+                console.log(`✅ Кэш поиска построен: ${searchCache.length} товаров`);
                 return true;
                 
             } catch (error) {
-                console.error('Ошибка построения кэша поиска:', error);
+                console.error('❌ ОШИБКА построения кэша поиска:', error);
+                console.error('Тип ошибки:', error.name);
+                console.error('Сообщение:', error.message);
+                console.error('Стек:', error.stack);
                 searchCacheBuilding = false;
                 return false;
             }
@@ -3411,21 +3440,31 @@
         
         // Выполнение поиска
         async function performSearch(query) {
+            console.log('performSearch вызвана с запросом:', query);
+            console.log('Размер кэша:', searchCache.length);
+            console.log('Кэш строится:', searchCacheBuilding);
+            
             const resultsContainer = document.getElementById('searchResults');
             
             if (searchCache.length === 0 && !searchCacheBuilding) {
+                console.log('Кэш пуст, начинаем построение...');
                 resultsContainer.innerHTML = '<div class="search-no-results">⏳ Загрузка каталога... Это может занять несколько секунд.</div>';
                 resultsContainer.classList.remove('hidden');
                 
                 const result = await buildSearchCacheIncremental();
                 
                 if (result === 'building') {
+                    console.log('Кэш строится, повторная проверка через 500мс');
                     // Кэш уже строится, ждем
                     setTimeout(() => performSearch(query), 500);
                     return;
                 }
                 
+                console.log('Результат buildSearchCacheIncremental:', result);
+                console.log('Размер кэша после построения:', searchCache.length);
+                
                 if (!result || searchCache.length === 0) {
+                    console.log('ПОКАЗЫВАЕМ ОШИБКУ: result =', result, ', searchCache.length =', searchCache.length);
                     resultsContainer.innerHTML = '<div class="search-no-results">❌ Ошибка загрузки каталога. Попробуйте позже.</div>';
                     return;
                 }
