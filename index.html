@@ -878,7 +878,119 @@
                 margin-left: auto;
                 margin-right: auto;
             }
+            
+            /* Зимняя тема - падающий снег */
+            .snowflake {
+                position: fixed;
+                top: -10px;
+                z-index: 9999;
+                user-select: none;
+                cursor: default;
+                animation: snowfall linear infinite;
+                color: #fff;
+                font-size: 1em;
+                pointer-events: none;
+            }
+            
+            @keyframes snowfall {
+                0% {
+                    transform: translateY(0) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0.8;
+                }
+            }
+            
+            /* Снежный эффект на кнопках */
+            .winter-theme .glass-btn::before,
+            .winter-theme button:not(.no-glass)::before,
+            .winter-theme .desktop-action-btn::before {
+                content: '❄️';
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                font-size: 12px;
+                opacity: 0.7;
+                animation: sparkle 2s infinite;
+            }
+            
+            @keyframes sparkle {
+                0%, 100% { opacity: 0.4; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.2); }
+            }
+            
+            /* Ёлочка в углу */
+            .christmas-tree {
+                position: fixed;
+                bottom: 80px;
+                right: 20px;
+                font-size: 60px;
+                z-index: 1001;
+                animation: treeGlow 3s infinite;
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+            }
+            
+            @keyframes treeGlow {
+                0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+                50% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
+            }
+            
+            /* Переключатель темы и звука */
+            .theme-controls {
+                position: fixed;
+                top: 70px;
+                right: 10px;
+                z-index: 1002;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .theme-toggle, .sound-toggle {
+                width: 45px;
+                height: 45px;
+                border-radius: 50%;
+                background: rgba(30, 41, 59, 0.75);
+                backdrop-filter: blur(40px);
+                border: 2px solid rgba(255, 255, 255, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 20px;
+            }
+            
+            .theme-toggle:hover, .sound-toggle:hover {
+                background: rgba(59, 130, 246, 0.4);
+                transform: scale(1.1);
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            }
+            
+            .christmas-tree {
+                font-size: 50px;
+            }
 
+        /* Стили для десктопной версии */
+        @media (min-width: 1024px) {
+            .theme-controls {
+                top: 80px;
+                right: 20px;
+                gap: 10px;
+            }
+            
+            .theme-toggle, .sound-toggle {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+            
+            .christmas-tree {
+                font-size: 60px;
+            }
+            
             /* Кнопка "Назад" для десктопа */
             .back-button {
                 position: fixed !important;
@@ -2531,6 +2643,27 @@
             </button>
         </div>
 
+        <!-- Контейнер для снежинок -->
+        <div id="snowContainer"></div>
+        
+        <!-- Ёлочка -->
+        <div id="christmasTree" class="christmas-tree" style="display: none;">🎄</div>
+        
+        <!-- Управление темой и звуком -->
+        <div class="theme-controls">
+            <button class="theme-toggle no-glass" id="themeToggle" onclick="toggleWinterTheme()" title="Зимняя тема">
+                ❄️
+            </button>
+            <button class="sound-toggle no-glass" id="soundToggle" onclick="toggleSound()" title="Звук" style="display: none;">
+                🔊
+            </button>
+        </div>
+        
+        <!-- Фоновая музыка -->
+        <audio id="christmasMusic" loop>
+            <source src="https://cdn.pixabay.com/download/audio/2021/11/23/audio_4e2d85dd58.mp3" type="audio/mpeg">
+        </audio>
+
         <!-- Main wrapper for desktop -->
         <div class="desktop-main-wrapper">
         <!-- Header -->
@@ -2851,6 +2984,11 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        
+        // Зимняя тема
+        let winterThemeEnabled = localStorage.getItem('winterTheme') === 'true';
+        let soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+        let snowflakes = [];
 
         // Состояние для галереи бригад
         let currentGalleryData = null;
@@ -2949,6 +3087,136 @@
                 }
             } catch (error) {
                 console.error('Ошибка загрузки фото канала:', error);
+            }
+        }
+        
+        // Зимняя тема - создание снежинок
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.textContent = ['❄', '❅', '❆'][Math.floor(Math.random() * 3)];
+            snowflake.style.left = Math.random() * 100 + '%';
+            snowflake.style.fontSize = (Math.random() * 1.5 + 0.5) + 'em';
+            snowflake.style.animationDuration = (Math.random() * 3 + 5) + 's';
+            snowflake.style.animationDelay = Math.random() * 5 + 's';
+            
+            const container = document.getElementById('snowContainer');
+            if (container) {
+                container.appendChild(snowflake);
+                snowflakes.push(snowflake);
+                
+                // Удаляем снежинку после анимации
+                setTimeout(() => {
+                    if (snowflake.parentNode) {
+                        snowflake.remove();
+                    }
+                    snowflakes = snowflakes.filter(s => s !== snowflake);
+                }, (parseFloat(snowflake.style.animationDuration) + parseFloat(snowflake.style.animationDelay)) * 1000);
+            }
+        }
+        
+        function startSnowfall() {
+            // Создаём снежинки каждые 200мс
+            const snowInterval = setInterval(() => {
+                if (winterThemeEnabled) {
+                    createSnowflake();
+                } else {
+                    clearInterval(snowInterval);
+                }
+            }, 200);
+            
+            // Сохраняем интервал для остановки
+            window.snowInterval = snowInterval;
+        }
+        
+        function stopSnowfall() {
+            if (window.snowInterval) {
+                clearInterval(window.snowInterval);
+                window.snowInterval = null;
+            }
+            
+            // Удаляем все снежинки
+            snowflakes.forEach(s => {
+                if (s.parentNode) s.remove();
+            });
+            snowflakes = [];
+            
+            const container = document.getElementById('snowContainer');
+            if (container) {
+                container.innerHTML = '';
+            }
+        }
+        
+        function toggleWinterTheme() {
+            winterThemeEnabled = !winterThemeEnabled;
+            localStorage.setItem('winterTheme', winterThemeEnabled);
+            
+            const body = document.body;
+            const tree = document.getElementById('christmasTree');
+            const soundToggle = document.getElementById('soundToggle');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (winterThemeEnabled) {
+                body.classList.add('winter-theme');
+                if (tree) tree.style.display = 'block';
+                if (soundToggle) soundToggle.style.display = 'flex';
+                if (themeToggle) themeToggle.textContent = '☀️';
+                startSnowfall();
+                
+                // Включаем музыку если была включена
+                if (soundEnabled) {
+                    playChristmasMusic();
+                }
+            } else {
+                body.classList.remove('winter-theme');
+                if (tree) tree.style.display = 'none';
+                if (soundToggle) soundToggle.style.display = 'none';
+                if (themeToggle) themeToggle.textContent = '❄️';
+                stopSnowfall();
+                stopChristmasMusic();
+            }
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled);
+            
+            const soundToggle = document.getElementById('soundToggle');
+            
+            if (soundEnabled) {
+                if (soundToggle) soundToggle.textContent = '🔊';
+                playChristmasMusic();
+            } else {
+                if (soundToggle) soundToggle.textContent = '🔇';
+                stopChristmasMusic();
+            }
+        }
+        
+        function playChristmasMusic() {
+            const music = document.getElementById('christmasMusic');
+            if (music && winterThemeEnabled) {
+                music.volume = 0.3;
+                music.play().catch(err => console.log('Автовоспроизведение заблокировано:', err));
+            }
+        }
+        
+        function stopChristmasMusic() {
+            const music = document.getElementById('christmasMusic');
+            if (music) {
+                music.pause();
+                music.currentTime = 0;
+            }
+        }
+        
+        // Инициализация зимней темы при загрузке
+        function initWinterTheme() {
+            if (winterThemeEnabled) {
+                toggleWinterTheme();
+            }
+            
+            const soundToggle = document.getElementById('soundToggle');
+            if (soundToggle && soundEnabled) {
+                soundToggle.textContent = '🔊';
             }
         }
 
@@ -6036,6 +6304,9 @@
                 
                 // Отображаем имя пользователя
                 displayUserName();
+                
+                // Инициализируем зимнюю тему
+                initWinterTheme();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
