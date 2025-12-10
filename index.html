@@ -3200,126 +3200,154 @@
             return { match: avgScore > 30, score: avgScore };
         }
         
-        // Построение кэша для поиска
-        async function buildSearchCache() {
+        // Построение кэша для поиска - загружает данные постепенно
+        let searchCacheBuilding = false;
+        let searchCacheSections = [];
+        
+        async function buildSearchCacheIncremental() {
+            if (searchCacheBuilding) {
+                return 'building';
+            }
+            
+            searchCacheBuilding = true;
+            searchCache = [];
+            
             try {
-                if (!catalogData || Object.keys(catalogData).length === 0) {
-                    const response = await fetch('/api/sections');
-                    const sectionsData = await response.json();
+                // Загружаем секции
+                const sectionsResp = await fetch('/api/sections');
+                const sectionsText = await sectionsResp.text();
+                
+                let sectionsData;
+                try {
+                    sectionsData = JSON.parse(sectionsText);
+                } catch (e) {
+                    console.error('Ошибка парсинга секций');
+                    searchCacheBuilding = false;
+                    return false;
+                }
+                
+                if (!sectionsData.success || !sectionsData.sections) {
+                    searchCacheBuilding = false;
+                    return false;
+                }
+                
+                // Обрабатываем каждую секцию
+                for (const section of sectionsData.sections) {
+                    const sectionHash = section.section_hash;
+                    const sectionName = section.section_name;
                     
-                    if (!sectionsData.success || !sectionsData.sections) {
-                        console.error('Не удалось загрузить секции');
-                        return false;
+                    // Загружаем категории
+                    const catResp = await fetch(`/api/categories/${sectionHash}`);
+                    const catText = await catResp.text();
+                    
+                    let catData;
+                    try {
+                        catData = JSON.parse(catText);
+                    } catch (e) {
+                        continue;
                     }
                     
-                    catalogData = {};
+                    if (!catData.success || !catData.categories) continue;
                     
-                    // Загружаем все данные каталога
-                    for (const section of sectionsData.sections) {
-                        const sectionHash = section.section_hash;
-                        catalogData[sectionHash] = {
-                            name: section.section_name,
-                            categories: {}
-                        };
+                    for (const category of catData.categories) {
+                        const categoryHash = category.category_hash;
+                        const categoryName = category.category_name;
                         
-                        const catResponse = await fetch(`/api/categories/${sectionHash}`);
-                        const catData = await catResponse.json();
+                        // Загружаем модели
+                        const modResp = await fetch(`/api/models/${sectionHash}/${categoryHash}`);
+                        const modText = await modResp.text();
                         
-                        if (catData.success && catData.categories) {
-                            for (const category of catData.categories) {
-                                const categoryHash = category.category_hash;
-                                catalogData[sectionHash].categories[categoryHash] = {
-                                    name: category.category_name,
-                                    models: {}
-                                };
+                        let modData;
+                        try {
+                            modData = JSON.parse(modText);
+                        } catch (e) {
+                            continue;
+                        }
+                        
+                        if (!modData.success || !modData.models) continue;
+                        
+                        for (const model of modData.models) {
+                            const modelHash = model.model_hash;
+                            const modelName = model.model_name;
+                            
+                            // Загружаем субмодели
+                            const subResp = await fetch(`/api/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
+                            const subText = await subResp.text();
+                            
+                            let subData;
+                            try {
+                                subData = JSON.parse(subText);
+                            } catch (e) {
+                                continue;
+                            }
+                            
+                            if (!subData.success || !subData.submodels) continue;
+                            
+                            for (const submodel of subData.submodels) {
+                                const submodelHash = submodel.submodel_hash;
+                                const submodelName = submodel.submodel_name;
                                 
-                                const modResponse = await fetch(`/api/models/${sectionHash}/${categoryHash}`);
-                                const modData = await modResponse.json();
+                                // Загружаем товары
+                                const prodResp = await fetch(`/api/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
+                                const prodText = await prodResp.text();
                                 
-                                if (modData.success && modData.models) {
-                                    for (const model of modData.models) {
-                                        const modelHash = model.model_hash;
-                                        catalogData[sectionHash].categories[categoryHash].models[modelHash] = {
-                                            name: model.model_name,
-                                            submodels: {}
-                                        };
-                                        
-                                        const subResponse = await fetch(`/api/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
-                                        const subData = await subResponse.json();
-                                        
-                                        if (subData.success && subData.submodels) {
-                                            for (const submodel of subData.submodels) {
-                                                const submodelHash = submodel.submodel_hash;
-                                                
-                                                const prodResponse = await fetch(`/api/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
-                                                const prodData = await prodResponse.json();
-                                                
-                                                if (prodData.success && prodData.products) {
-                                                    catalogData[sectionHash].categories[categoryHash].models[modelHash].submodels[submodelHash] = {
-                                                        name: submodel.submodel_name,
-                                                        products: prodData.products
-                                                    };
-                                                }
-                                            }
-                                        }
+                                let prodData;
+                                try {
+                                    prodData = JSON.parse(prodText);
+                                } catch (e) {
+                                    continue;
+                                }
+                                
+                                if (!prodData.success || !prodData.products) continue;
+                                
+                                // Добавляем товары в кэш
+                                prodData.products.forEach((product, index) => {
+                                    const searchText = [
+                                        product.name || '',
+                                        product.description || '',
+                                        sectionName,
+                                        categoryName,
+                                        modelName,
+                                        submodelName
+                                    ].join(' ');
+                                    
+                                    // Парсим цену для сортировки
+                                    let priceNum = 0;
+                                    const priceStr = product.special_price || product.current_price || product.old_price || '';
+                                    const priceMatch = priceStr.match(/[\d\s]+/);
+                                    if (priceMatch) {
+                                        priceNum = parseInt(priceMatch[0].replace(/\s/g, '')) || 0;
                                     }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                searchCache = [];
-                
-                for (const [sectionHash, section] of Object.entries(catalogData)) {
-                    for (const [categoryHash, category] of Object.entries(section.categories || {})) {
-                        for (const [modelHash, model] of Object.entries(category.models || {})) {
-                            for (const [submodelHash, submodel] of Object.entries(model.submodels || {})) {
-                                if (submodel.products && Array.isArray(submodel.products)) {
-                                    submodel.products.forEach((product, index) => {
-                                        const searchText = [
-                                            product.name || '',
-                                            product.description || '',
-                                            section.name || '',
-                                            category.name || '',
-                                            model.name || '',
-                                            submodel.name || ''
-                                        ].join(' ');
-                                        
-                                        // Парсим цену для сортировки
-                                        let priceNum = 0;
-                                        const priceStr = product.special_price || product.current_price || product.old_price || '';
-                                        const priceMatch = priceStr.match(/[\d\s]+/);
-                                        if (priceMatch) {
-                                            priceNum = parseInt(priceMatch[0].replace(/\s/g, ''));
-                                        }
-                                        
-                                        searchCache.push({
-                                            type: 'product',
-                                            name: product.name || 'Товар',
-                                            description: product.description || '',
-                                            price: product.current_price || product.old_price || '',
-                                            specialPrice: product.special_price || '',
-                                            priceNum: priceNum,
-                                            photo: product.photo || '',
-                                            path: `${section.name} → ${category.name} → ${model.name} → ${submodel.name}`,
-                                            searchText: searchText,
-                                            sectionHash,
-                                            categoryHash,
-                                            modelHash,
-                                            submodelHash,
-                                            productIndex: index
-                                        });
+                                    
+                                    searchCache.push({
+                                        type: 'product',
+                                        name: product.name || 'Товар',
+                                        description: product.description || '',
+                                        price: product.current_price || product.old_price || '',
+                                        specialPrice: product.special_price || '',
+                                        priceNum: priceNum,
+                                        photo: product.photo || '',
+                                        path: `${sectionName} → ${categoryName} → ${modelName} → ${submodelName}`,
+                                        searchText: searchText,
+                                        sectionHash,
+                                        categoryHash,
+                                        modelHash,
+                                        submodelHash,
+                                        productIndex: index
                                     });
-                                }
+                                });
                             }
                         }
                     }
                 }
                 
+                searchCacheBuilding = false;
+                console.log(`Кэш поиска построен: ${searchCache.length} товаров`);
                 return true;
+                
             } catch (error) {
                 console.error('Ошибка построения кэша поиска:', error);
+                searchCacheBuilding = false;
                 return false;
             }
         }
@@ -3385,20 +3413,33 @@
         async function performSearch(query) {
             const resultsContainer = document.getElementById('searchResults');
             
-            if (searchCache.length === 0) {
-                resultsContainer.innerHTML = '<div class="search-no-results">Загрузка каталога...</div>';
+            if (searchCache.length === 0 && !searchCacheBuilding) {
+                resultsContainer.innerHTML = '<div class="search-no-results">⏳ Загрузка каталога... Это может занять несколько секунд.</div>';
                 resultsContainer.classList.remove('hidden');
                 
-                const success = await buildSearchCache();
+                const result = await buildSearchCacheIncremental();
                 
-                if (!success || searchCache.length === 0) {
-                    resultsContainer.innerHTML = '<div class="search-no-results">Ошибка загрузки каталога. Попробуйте позже.</div>';
+                if (result === 'building') {
+                    // Кэш уже строится, ждем
+                    setTimeout(() => performSearch(query), 500);
+                    return;
+                }
+                
+                if (!result || searchCache.length === 0) {
+                    resultsContainer.innerHTML = '<div class="search-no-results">❌ Ошибка загрузки каталога. Попробуйте позже.</div>';
                     return;
                 }
                 
                 // Повторяем поиск после загрузки кэша
                 const results = searchProducts(query);
                 displaySearchResults(results, resultsContainer);
+                return;
+            }
+            
+            if (searchCacheBuilding) {
+                resultsContainer.innerHTML = '<div class="search-no-results">⏳ Загрузка каталога... Подождите немного.</div>';
+                resultsContainer.classList.remove('hidden');
+                setTimeout(() => performSearch(query), 500);
                 return;
             }
             
@@ -3455,9 +3496,9 @@
                 container.classList.remove('hidden');
                 input.focus();
                 
-                // Строим кэш если еще не построен
-                if (searchCache.length === 0) {
-                    buildSearchCache();
+                // Строим кэш если еще не построен и не строится
+                if (searchCache.length === 0 && !searchCacheBuilding) {
+                    buildSearchCacheIncremental();
                 }
             } else {
                 container.classList.add('hidden');
