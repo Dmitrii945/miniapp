@@ -3202,47 +3202,125 @@
         
         // Построение кэша для поиска
         async function buildSearchCache() {
-            if (!catalogData) {
-                await loadCatalogData();
-            }
-            
-            searchCache = [];
-            
-            for (const [sectionHash, section] of Object.entries(catalogData)) {
-                for (const [categoryHash, category] of Object.entries(section.categories || {})) {
-                    for (const [modelHash, model] of Object.entries(category.models || {})) {
-                        for (const [submodelHash, submodel] of Object.entries(model.submodels || {})) {
-                            if (submodel.products && Array.isArray(submodel.products)) {
-                                submodel.products.forEach((product, index) => {
-                                    const searchText = [
-                                        product.name || '',
-                                        product.description || '',
-                                        section.name || '',
-                                        category.name || '',
-                                        model.name || '',
-                                        submodel.name || ''
-                                    ].join(' ');
-                                    
-                                    searchCache.push({
-                                        type: 'product',
-                                        name: product.name || 'Товар',
-                                        description: product.description || '',
-                                        price: product.current_price || product.old_price || '',
-                                        specialPrice: product.special_price || '',
-                                        photo: product.photo || '',
-                                        path: `${section.name} → ${category.name} → ${model.name} → ${submodel.name}`,
-                                        searchText: searchText,
-                                        sectionHash,
-                                        categoryHash,
-                                        modelHash,
-                                        submodelHash,
-                                        productIndex: index
-                                    });
-                                });
+            try {
+                if (!catalogData || Object.keys(catalogData).length === 0) {
+                    const response = await fetch('/api/sections');
+                    const sectionsData = await response.json();
+                    
+                    if (!sectionsData.success || !sectionsData.sections) {
+                        console.error('Не удалось загрузить секции');
+                        return false;
+                    }
+                    
+                    catalogData = {};
+                    
+                    // Загружаем все данные каталога
+                    for (const section of sectionsData.sections) {
+                        const sectionHash = section.section_hash;
+                        catalogData[sectionHash] = {
+                            name: section.section_name,
+                            categories: {}
+                        };
+                        
+                        const catResponse = await fetch(`/api/categories/${sectionHash}`);
+                        const catData = await catResponse.json();
+                        
+                        if (catData.success && catData.categories) {
+                            for (const category of catData.categories) {
+                                const categoryHash = category.category_hash;
+                                catalogData[sectionHash].categories[categoryHash] = {
+                                    name: category.category_name,
+                                    models: {}
+                                };
+                                
+                                const modResponse = await fetch(`/api/models/${sectionHash}/${categoryHash}`);
+                                const modData = await modResponse.json();
+                                
+                                if (modData.success && modData.models) {
+                                    for (const model of modData.models) {
+                                        const modelHash = model.model_hash;
+                                        catalogData[sectionHash].categories[categoryHash].models[modelHash] = {
+                                            name: model.model_name,
+                                            submodels: {}
+                                        };
+                                        
+                                        const subResponse = await fetch(`/api/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
+                                        const subData = await subResponse.json();
+                                        
+                                        if (subData.success && subData.submodels) {
+                                            for (const submodel of subData.submodels) {
+                                                const submodelHash = submodel.submodel_hash;
+                                                
+                                                const prodResponse = await fetch(`/api/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
+                                                const prodData = await prodResponse.json();
+                                                
+                                                if (prodData.success && prodData.products) {
+                                                    catalogData[sectionHash].categories[categoryHash].models[modelHash].submodels[submodelHash] = {
+                                                        name: submodel.submodel_name,
+                                                        products: prodData.products
+                                                    };
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
+                
+                searchCache = [];
+                
+                for (const [sectionHash, section] of Object.entries(catalogData)) {
+                    for (const [categoryHash, category] of Object.entries(section.categories || {})) {
+                        for (const [modelHash, model] of Object.entries(category.models || {})) {
+                            for (const [submodelHash, submodel] of Object.entries(model.submodels || {})) {
+                                if (submodel.products && Array.isArray(submodel.products)) {
+                                    submodel.products.forEach((product, index) => {
+                                        const searchText = [
+                                            product.name || '',
+                                            product.description || '',
+                                            section.name || '',
+                                            category.name || '',
+                                            model.name || '',
+                                            submodel.name || ''
+                                        ].join(' ');
+                                        
+                                        // Парсим цену для сортировки
+                                        let priceNum = 0;
+                                        const priceStr = product.special_price || product.current_price || product.old_price || '';
+                                        const priceMatch = priceStr.match(/[\d\s]+/);
+                                        if (priceMatch) {
+                                            priceNum = parseInt(priceMatch[0].replace(/\s/g, ''));
+                                        }
+                                        
+                                        searchCache.push({
+                                            type: 'product',
+                                            name: product.name || 'Товар',
+                                            description: product.description || '',
+                                            price: product.current_price || product.old_price || '',
+                                            specialPrice: product.special_price || '',
+                                            priceNum: priceNum,
+                                            photo: product.photo || '',
+                                            path: `${section.name} → ${category.name} → ${model.name} → ${submodel.name}`,
+                                            searchText: searchText,
+                                            sectionHash,
+                                            categoryHash,
+                                            modelHash,
+                                            submodelHash,
+                                            productIndex: index
+                                        });
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Ошибка построения кэша поиска:', error);
+                return false;
             }
         }
         
@@ -3265,8 +3343,16 @@
                 }
             }
             
-            // Сортируем по релевантности
-            results.sort((a, b) => b.score - a.score);
+            // Сортируем по релевантности, затем по цене (от меньшей к большей)
+            results.sort((a, b) => {
+                // Сначала по релевантности
+                const scoreDiff = b.score - a.score;
+                if (Math.abs(scoreDiff) > 10) {
+                    return scoreDiff;
+                }
+                // Если релевантность похожа, сортируем по цене
+                return a.priceNum - b.priceNum;
+            });
             
             return results.slice(0, 50); // Максимум 50 результатов
         }
@@ -3302,11 +3388,26 @@
             if (searchCache.length === 0) {
                 resultsContainer.innerHTML = '<div class="search-no-results">Загрузка каталога...</div>';
                 resultsContainer.classList.remove('hidden');
-                await buildSearchCache();
+                
+                const success = await buildSearchCache();
+                
+                if (!success || searchCache.length === 0) {
+                    resultsContainer.innerHTML = '<div class="search-no-results">Ошибка загрузки каталога. Попробуйте позже.</div>';
+                    return;
+                }
+                
+                // Повторяем поиск после загрузки кэша
+                const results = searchProducts(query);
+                displaySearchResults(results, resultsContainer);
+                return;
             }
             
             const results = searchProducts(query);
-            
+            displaySearchResults(results, resultsContainer);
+        }
+        
+        // Отображение результатов поиска
+        function displaySearchResults(results, resultsContainer) {
             if (results.length === 0) {
                 resultsContainer.innerHTML = '<div class="search-no-results">Ничего не найдено</div>';
                 resultsContainer.classList.remove('hidden');
