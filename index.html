@@ -3371,31 +3371,31 @@
                                 // Добавляем товары в кэш
                                 prodData.products.forEach((product, index) => {
                                     const searchText = [
-                                        product.name || '',
-                                        product.description || '',
                                         product.color || '',
+                                        product.description || '',
+                                        product.photo_description || '',
                                         sectionName,
                                         categoryName,
                                         modelName,
                                         submodelName
-                                    ].join(' ');
+                                    ].join(' ').toLowerCase();
                                     
                                     // Парсим цену для сортировки
                                     let priceNum = 0;
-                                    const priceStr = product.special_price || product.current_price || product.old_price || '';
-                                    const priceMatch = priceStr.match(/[\d\s]+/);
+                                    const priceStr = product.special_price || product.price || '';
+                                    const priceMatch = priceStr.toString().replace(/\s/g, '').match(/[\d,\.]+/);
                                     if (priceMatch) {
-                                        priceNum = parseInt(priceMatch[0].replace(/\s/g, '')) || 0;
+                                        priceNum = parseFloat(priceMatch[0].replace(',', '.')) || 0;
                                     }
                                     
                                     searchCache.push({
                                         type: 'product',
-                                        name: product.name || 'Товар',
-                                        description: product.description || '',
-                                        price: product.current_price || product.old_price || '',
+                                        name: product.color || 'Товар',
+                                        description: product.description || product.photo_description || '',
+                                        price: product.price || '',
                                         specialPrice: product.special_price || '',
                                         priceNum: priceNum,
-                                        photo: product.photo || '',
+                                        photo: product.photo_url || '',
                                         path: `${sectionName} → ${categoryName} → ${modelName} → ${submodelName}`,
                                         searchText: searchText,
                                         sectionHash,
