@@ -2515,7 +2515,7 @@
                 </div>
                 <!-- Кнопка с фото канала для перехода в Telegram канал -->
                 <a href="https://t.me/chronoishere" target="_blank" class="flex-shrink-0">
-                    <img id="channelPhoto" src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer">
+                    <img id="channelPhoto" src="" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 24 24%22 fill=%22%23ffffff%22%3E%3Cpath d=%22M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.248-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.14.121.099.155.232.171.326.016.094.036.308.02.475z%22/%3E%3C/svg%3E'">
                 </a>
             </div>
             
@@ -2870,6 +2870,7 @@
             const userInfoHeader = document.getElementById('userInfoHeader');
             const userNameHeader = document.getElementById('userNameHeader');
             const userPhoto = document.getElementById('userPhoto');
+            const channelPhoto = document.getElementById('channelPhoto');
             
             if (userInfoHeader && userNameHeader && userInfo.first_name) {
                 // Формируем отображаемое имя
@@ -2899,6 +2900,25 @@
                         `;
                     }
                 }
+                
+                // Загружаем фото канала
+                if (channelPhoto) {
+                    loadChannelPhoto();
+                }
+            }
+        }
+        
+        async function loadChannelPhoto() {
+            try {
+                const channelPhoto = document.getElementById('channelPhoto');
+                const response = await fetch('/get_channel_photo?username=chronosphereadmin');
+                const data = await response.json();
+                
+                if (data.success && data.photo_url && channelPhoto) {
+                    channelPhoto.src = data.photo_url;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки фото канала:', error);
             }
         }
 
