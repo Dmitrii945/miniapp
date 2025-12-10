@@ -878,6 +878,89 @@
                 margin-left: auto;
                 margin-right: auto;
             }
+        }
+        
+        /* Падающий снег */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            z-index: 9999;
+            user-select: none;
+            cursor: default;
+            animation: snowfall linear infinite;
+            color: #fff;
+            font-size: 1em;
+            pointer-events: none;
+        }
+        
+        @keyframes snowfall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0.8;
+            }
+        }
+        
+        /* Снежинки на кнопках каталога */
+        .snow-enabled .glass-btn::after {
+            content: '❄';
+            position: absolute;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            animation: snowRotate 3s infinite linear;
+            pointer-events: none;
+        }
+        
+        .snow-enabled .glass-btn:nth-child(1)::after { top: 10%; left: 15%; animation-delay: 0s; }
+        .snow-enabled .glass-btn:nth-child(2)::after { top: 20%; right: 20%; animation-delay: 0.5s; }
+        .snow-enabled .glass-btn:nth-child(3)::after { bottom: 15%; left: 25%; animation-delay: 1s; }
+        .snow-enabled .glass-btn:nth-child(4)::after { top: 30%; left: 10%; animation-delay: 1.5s; }
+        .snow-enabled .glass-btn:nth-child(5)::after { bottom: 25%; right: 15%; animation-delay: 2s; }
+        
+        @keyframes snowRotate {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.6; }
+            50% { transform: rotate(180deg) scale(1.2); opacity: 0.8; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.6; }
+        }
+        
+        /* Кнопка управления снегом */
+        .snow-toggle {
+            position: fixed;
+            top: 70px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(40px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 24px;
+            z-index: 1002;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .snow-toggle:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        @media (min-width: 1024px) {
+            .snow-toggle {
+                top: 80px;
+                right: 20px;
+                width: 55px;
+                height: 55px;
+                font-size: 26px;
+            }
 
             /* Кнопка "Назад" для десктопа */
             .back-button {
@@ -2531,6 +2614,14 @@
             </button>
         </div>
 
+        <!-- Контейнер для падающего снега -->
+        <div id="snowContainer"></div>
+        
+        <!-- Кнопка управления снегом -->
+        <button class="snow-toggle no-glass" id="snowToggle" onclick="toggleSnow()" title="Снег">
+            ❄️
+        </button>
+
         <!-- Main wrapper for desktop -->
         <div class="desktop-main-wrapper">
         <!-- Header -->
@@ -2949,6 +3040,93 @@
                 }
             } catch (error) {
                 console.error('Ошибка загрузки фото канала:', error);
+            }
+        }
+        
+        // Управление снегом
+        let snowEnabled = localStorage.getItem('snowEnabled') === 'true';
+        let snowflakes = [];
+        let snowInterval = null;
+        
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.textContent = ['❄', '❅', '❆'][Math.floor(Math.random() * 3)];
+            snowflake.style.left = Math.random() * 100 + '%';
+            snowflake.style.fontSize = (Math.random() * 1.5 + 0.5) + 'em';
+            snowflake.style.animationDuration = (Math.random() * 3 + 5) + 's';
+            snowflake.style.animationDelay = Math.random() * 2 + 's';
+            
+            const container = document.getElementById('snowContainer');
+            if (container) {
+                container.appendChild(snowflake);
+                snowflakes.push(snowflake);
+                
+                // Удаляем снежинку после анимации
+                setTimeout(() => {
+                    if (snowflake.parentNode) {
+                        snowflake.remove();
+                    }
+                    snowflakes = snowflakes.filter(s => s !== snowflake);
+                }, (parseFloat(snowflake.style.animationDuration) + parseFloat(snowflake.style.animationDelay)) * 1000);
+            }
+        }
+        
+        function startSnowfall() {
+            if (snowInterval) return;
+            
+            snowInterval = setInterval(() => {
+                if (snowEnabled) {
+                    createSnowflake();
+                } else {
+                    stopSnowfall();
+                }
+            }, 200);
+        }
+        
+        function stopSnowfall() {
+            if (snowInterval) {
+                clearInterval(snowInterval);
+                snowInterval = null;
+            }
+            
+            // Удаляем все снежинки
+            snowflakes.forEach(s => {
+                if (s.parentNode) s.remove();
+            });
+            snowflakes = [];
+            
+            const container = document.getElementById('snowContainer');
+            if (container) {
+                container.innerHTML = '';
+            }
+        }
+        
+        function toggleSnow() {
+            snowEnabled = !snowEnabled;
+            localStorage.setItem('snowEnabled', snowEnabled);
+            
+            const body = document.body;
+            const snowToggle = document.getElementById('snowToggle');
+            
+            if (snowEnabled) {
+                body.classList.add('snow-enabled');
+                if (snowToggle) snowToggle.textContent = '☀️';
+                startSnowfall();
+            } else {
+                body.classList.remove('snow-enabled');
+                if (snowToggle) snowToggle.textContent = '❄️';
+                stopSnowfall();
+            }
+        }
+        
+        function initSnow() {
+            if (snowEnabled) {
+                const body = document.body;
+                const snowToggle = document.getElementById('snowToggle');
+                body.classList.add('snow-enabled');
+                if (snowToggle) snowToggle.textContent = '☀️';
+                startSnowfall();
             }
         }
 
@@ -6036,6 +6214,9 @@
                 
                 // Отображаем имя пользователя
                 displayUserName();
+                
+                // Инициализируем снег
+                initSnow();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
