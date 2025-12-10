@@ -3524,13 +3524,16 @@
             }
             
             if (searchCacheBuilding) {
+                console.log('Кэш всё ещё строится, ждём...');
                 resultsContainer.innerHTML = '<div class="search-no-results">⏳ Загрузка каталога... Подождите немного.</div>';
                 resultsContainer.classList.remove('hidden');
                 setTimeout(() => performSearch(query), 500);
                 return;
             }
             
+            console.log('Выполняем поиск в готовом кэше');
             const results = searchProducts(query);
+            console.log('Результаты поиска получены');
             displaySearchResults(results, resultsContainer);
         }
         
