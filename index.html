@@ -3295,13 +3295,19 @@
                     try {
                         catData = JSON.parse(catText);
                         console.log('Категории загружены:', catData.categories?.length || 0);
+                        
+                        // Для ОТДЕЛКА ФАСАДОВ показываем полный ответ
+                        if (sectionName === 'ОТДЕЛКА ФАСАДОВ') {
+                            console.log('Полный ответ API для ОТДЕЛКА ФАСАДОВ:', catData);
+                        }
                     } catch (e) {
-                        console.error('Ошибка парсинга категорий:', e);
+                        console.error('Ошибка парсинга категорий для', sectionName, ':', e);
+                        console.error('Текст ответа:', catText.substring(0, 200));
                         continue;
                     }
                     
                     if (!catData.categories || catData.categories.length === 0) {
-                        console.log('Нет категорий для секции:', sectionName);
+                        console.log('Нет категорий для секции:', sectionName, '- данные:', catData);
                         continue;
                     }
                     
@@ -3371,6 +3377,7 @@
                                 // Добавляем товары в кэш
                                 prodData.products.forEach((product, index) => {
                                     const searchText = [
+                                        product.search_keywords || '',
                                         product.color || '',
                                         product.description || '',
                                         product.photo_description || '',
