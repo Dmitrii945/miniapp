@@ -903,52 +903,43 @@
                 }
             }
             
-            /* Снежный эффект на кнопках */
+            /* Гирлянды на кнопках */
+            .winter-theme .glass-btn,
+            .winter-theme button:not(.no-glass),
+            .winter-theme .desktop-action-btn {
+                position: relative;
+                overflow: visible !important;
+            }
+            
             .winter-theme .glass-btn::before,
             .winter-theme button:not(.no-glass)::before,
             .winter-theme .desktop-action-btn::before {
-                content: '❄️';
+                content: '🔴🟡🔵🟢🟣';
                 position: absolute;
-                top: 5px;
-                right: 5px;
-                font-size: 12px;
-                opacity: 0.7;
-                animation: sparkle 2s infinite;
+                top: -8px;
+                left: 0;
+                right: 0;
+                font-size: 8px;
+                letter-spacing: 2px;
+                text-align: center;
+                animation: lightsGlow 1.5s infinite;
+                z-index: 1;
             }
             
-            @keyframes sparkle {
-                0%, 100% { opacity: 0.4; transform: scale(1); }
-                50% { opacity: 1; transform: scale(1.2); }
+            @keyframes lightsGlow {
+                0%, 100% { opacity: 0.6; filter: brightness(1); }
+                50% { opacity: 1; filter: brightness(1.5); }
             }
             
-            /* Ёлочка в углу */
-            .christmas-tree {
-                position: fixed;
-                bottom: 80px;
-                right: 20px;
-                font-size: 60px;
-                z-index: 1001;
-                animation: treeGlow 3s infinite;
-                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-            }
-            
-            @keyframes treeGlow {
-                0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
-                50% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
-            }
-            
-            /* Переключатель темы и звука */
+            /* Переключатель темы */
             .theme-controls {
                 position: fixed;
                 top: 70px;
                 right: 10px;
                 z-index: 1002;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
             }
             
-            .theme-toggle, .sound-toggle {
+            .theme-toggle {
                 width: 45px;
                 height: 45px;
                 border-radius: 50%;
@@ -963,14 +954,10 @@
                 font-size: 20px;
             }
             
-            .theme-toggle:hover, .sound-toggle:hover {
+            .theme-toggle:hover {
                 background: rgba(59, 130, 246, 0.4);
                 transform: scale(1.1);
                 box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-            }
-            
-            .christmas-tree {
-                font-size: 50px;
             }
 
         /* Стили для десктопной версии */
@@ -978,17 +965,12 @@
             .theme-controls {
                 top: 80px;
                 right: 20px;
-                gap: 10px;
             }
             
-            .theme-toggle, .sound-toggle {
+            .theme-toggle {
                 width: 50px;
                 height: 50px;
                 font-size: 24px;
-            }
-            
-            .christmas-tree {
-                font-size: 60px;
             }
             
             /* Кнопка "Назад" для десктопа */
@@ -2646,23 +2628,12 @@
         <!-- Контейнер для снежинок -->
         <div id="snowContainer"></div>
         
-        <!-- Ёлочка -->
-        <div id="christmasTree" class="christmas-tree" style="display: none;">🎄</div>
-        
-        <!-- Управление темой и звуком -->
+        <!-- Управление темой -->
         <div class="theme-controls">
             <button class="theme-toggle no-glass" id="themeToggle" onclick="toggleWinterTheme()" title="Зимняя тема">
                 ❄️
             </button>
-            <button class="sound-toggle no-glass" id="soundToggle" onclick="toggleSound()" title="Звук" style="display: none;">
-                🔊
-            </button>
         </div>
-        
-        <!-- Фоновая музыка -->
-        <audio id="christmasMusic" loop>
-            <source src="https://cdn.pixabay.com/download/audio/2021/11/23/audio_4e2d85dd58.mp3" type="audio/mpeg">
-        </audio>
 
         <!-- Main wrapper for desktop -->
         <div class="desktop-main-wrapper">
@@ -2987,7 +2958,6 @@
         
         // Зимняя тема
         let winterThemeEnabled = localStorage.getItem('winterTheme') === 'true';
-        let soundEnabled = localStorage.getItem('soundEnabled') === 'true';
         let snowflakes = [];
 
         // Состояние для галереи бригад
@@ -3152,59 +3122,16 @@
             localStorage.setItem('winterTheme', winterThemeEnabled);
             
             const body = document.body;
-            const tree = document.getElementById('christmasTree');
-            const soundToggle = document.getElementById('soundToggle');
             const themeToggle = document.getElementById('themeToggle');
             
             if (winterThemeEnabled) {
                 body.classList.add('winter-theme');
-                if (tree) tree.style.display = 'block';
-                if (soundToggle) soundToggle.style.display = 'flex';
                 if (themeToggle) themeToggle.textContent = '☀️';
                 startSnowfall();
-                
-                // Включаем музыку если была включена
-                if (soundEnabled) {
-                    playChristmasMusic();
-                }
             } else {
                 body.classList.remove('winter-theme');
-                if (tree) tree.style.display = 'none';
-                if (soundToggle) soundToggle.style.display = 'none';
                 if (themeToggle) themeToggle.textContent = '❄️';
                 stopSnowfall();
-                stopChristmasMusic();
-            }
-        }
-        
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            localStorage.setItem('soundEnabled', soundEnabled);
-            
-            const soundToggle = document.getElementById('soundToggle');
-            
-            if (soundEnabled) {
-                if (soundToggle) soundToggle.textContent = '🔊';
-                playChristmasMusic();
-            } else {
-                if (soundToggle) soundToggle.textContent = '🔇';
-                stopChristmasMusic();
-            }
-        }
-        
-        function playChristmasMusic() {
-            const music = document.getElementById('christmasMusic');
-            if (music && winterThemeEnabled) {
-                music.volume = 0.3;
-                music.play().catch(err => console.log('Автовоспроизведение заблокировано:', err));
-            }
-        }
-        
-        function stopChristmasMusic() {
-            const music = document.getElementById('christmasMusic');
-            if (music) {
-                music.pause();
-                music.currentTime = 0;
             }
         }
         
@@ -3212,11 +3139,6 @@
         function initWinterTheme() {
             if (winterThemeEnabled) {
                 toggleWinterTheme();
-            }
-            
-            const soundToggle = document.getElementById('soundToggle');
-            if (soundToggle && soundEnabled) {
-                soundToggle.textContent = '🔊';
             }
         }
 
