@@ -3255,9 +3255,14 @@
                 // Обрабатываем каждую секцию
                 for (const section of sectionsData.sections) {
                     console.log('Объект секции:', section);
-                    const sectionHash = section.section_hash || section.hash;
-                    const sectionName = section.section_name || section.name;
+                    const sectionHash = section.id;
+                    const sectionName = section.name;
                     console.log('Обрабатываем секцию:', sectionName, 'hash:', sectionHash);
+                    
+                    if (!sectionHash || !sectionName) {
+                        console.log('Пропускаем секцию с пустыми полями');
+                        continue;
+                    }
                     
                     // Загружаем категории
                     const catUrl = `${API_BASE}/categories/${sectionHash}`;
@@ -3277,14 +3282,16 @@
                         continue;
                     }
                     
-                    if (!catData.success || !catData.categories) {
+                    if (!catData.categories || catData.categories.length === 0) {
                         console.log('Нет категорий для секции:', sectionName);
                         continue;
                     }
                     
                     for (const category of catData.categories) {
-                        const categoryHash = category.category_hash;
-                        const categoryName = category.category_name;
+                        const categoryHash = category.id;
+                        const categoryName = category.name;
+                        
+                        if (!categoryHash || !categoryName) continue;
                         
                         // Загружаем модели
                         const modResp = await fetch(`${API_BASE}/models/${sectionHash}/${categoryHash}`);
@@ -3297,11 +3304,13 @@
                             continue;
                         }
                         
-                        if (!modData.success || !modData.models) continue;
+                        if (!modData.models || modData.models.length === 0) continue;
                         
                         for (const model of modData.models) {
-                            const modelHash = model.model_hash;
-                            const modelName = model.model_name;
+                            const modelHash = model.id;
+                            const modelName = model.name;
+                            
+                            if (!modelHash || !modelName) continue;
                             
                             // Загружаем субмодели
                             const subResp = await fetch(`${API_BASE}/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
@@ -3314,11 +3323,13 @@
                                 continue;
                             }
                             
-                            if (!subData.success || !subData.submodels) continue;
+                            if (!subData.submodels || subData.submodels.length === 0) continue;
                             
                             for (const submodel of subData.submodels) {
-                                const submodelHash = submodel.submodel_hash;
-                                const submodelName = submodel.submodel_name;
+                                const submodelHash = submodel.id;
+                                const submodelName = submodel.name;
+                                
+                                if (!submodelHash || !submodelName) continue;
                                 
                                 // Загружаем товары
                                 const prodResp = await fetch(`${API_BASE}/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
@@ -3331,7 +3342,7 @@
                                     continue;
                                 }
                                 
-                                if (!prodData.success || !prodData.products) continue;
+                                if (!prodData.products || prodData.products.length === 0) continue;
                                 
                                 // Добавляем товары в кэш
                                 prodData.products.forEach((product, index) => {
