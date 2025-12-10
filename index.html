@@ -3214,7 +3214,7 @@
             
             try {
                 // Загружаем секции
-                const sectionsResp = await fetch('/api/sections');
+                const sectionsResp = await fetch(`${API_BASE}/sections`);
                 const sectionsText = await sectionsResp.text();
                 
                 let sectionsData;
@@ -3237,7 +3237,7 @@
                     const sectionName = section.section_name;
                     
                     // Загружаем категории
-                    const catResp = await fetch(`/api/categories/${sectionHash}`);
+                    const catResp = await fetch(`${API_BASE}/categories/${sectionHash}`);
                     const catText = await catResp.text();
                     
                     let catData;
@@ -3254,7 +3254,7 @@
                         const categoryName = category.category_name;
                         
                         // Загружаем модели
-                        const modResp = await fetch(`/api/models/${sectionHash}/${categoryHash}`);
+                        const modResp = await fetch(`${API_BASE}/models/${sectionHash}/${categoryHash}`);
                         const modText = await modResp.text();
                         
                         let modData;
@@ -3271,7 +3271,7 @@
                             const modelName = model.model_name;
                             
                             // Загружаем субмодели
-                            const subResp = await fetch(`/api/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
+                            const subResp = await fetch(`${API_BASE}/submodels/${sectionHash}/${categoryHash}/${modelHash}`);
                             const subText = await subResp.text();
                             
                             let subData;
@@ -3288,7 +3288,7 @@
                                 const submodelName = submodel.submodel_name;
                                 
                                 // Загружаем товары
-                                const prodResp = await fetch(`/api/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
+                                const prodResp = await fetch(`${API_BASE}/products/${sectionHash}/${categoryHash}/${modelHash}/${submodelHash}`);
                                 const prodText = await prodResp.text();
                                 
                                 let prodData;
