@@ -6337,11 +6337,7 @@
             
             html += '</div>';
             
-            // Найти основной контейнер для вывода
-            let contentArea = document.getElementById('content');
-            if (contentArea) {
-                contentArea.innerHTML = html;
-            }
+            elements.content.innerHTML = html;
             currentProducts = products;
             scheduleFeatherReplace();
         }
