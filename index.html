@@ -600,44 +600,40 @@
             display: none;
         }
 
-        .search-input-container-header {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            margin-top: 8px;
-            padding: 0 16px;
-            z-index: 30;
-        }
-
-        .search-input-group-header {
+        .search-input-wrapper {
             position: relative;
             display: flex;
             align-items: center;
-            background: rgba(30, 41, 59, 0.95);
-            border-radius: 16px;
+            flex: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .search-input-wrapper:focus-within {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(59, 130, 246, 0.5);
         }
 
         .search-icon-header {
             position: absolute;
-            left: 16px;
-            width: 20px;
-            height: 20px;
+            left: 12px;
+            width: 18px;
+            height: 18px;
             color: rgba(255, 255, 255, 0.5);
             pointer-events: none;
         }
 
         .search-input-header {
             width: 100%;
-            padding: 14px 48px;
+            padding: 8px 40px 8px 38px;
             background: transparent;
             border: none;
             color: #ffffff;
-            font-size: 16px;
+            font-size: 14px;
             outline: none;
         }
 
@@ -645,11 +641,11 @@
             color: rgba(255, 255, 255, 0.4);
         }
 
-        .clear-search-btn-header {
+        .close-search-btn-inline {
             position: absolute;
-            right: 12px;
-            width: 28px;
-            height: 28px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             border: none;
             background: rgba(255, 255, 255, 0.1);
@@ -659,15 +655,16 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
-        .clear-search-btn-header:hover {
+        .close-search-btn-inline:hover {
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .clear-search-btn-header i {
-            width: 16px;
-            height: 16px;
+        .close-search-btn-inline i {
+            width: 14px;
+            height: 14px;
         }
 
         /* Для мобильных */
@@ -679,45 +676,6 @@
             .search-label {
                 display: none;
             }
-
-            .search-input-container-header {
-                left: 0;
-                right: 0;
-                padding: 0 16px;
-            }
-        }
-
-        /* Плавающая кнопка закрытия результатов поиска */
-        .close-search-results-btn {
-            position: fixed;
-            top: 120px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(239, 68, 68, 0.9);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-        }
-
-        .close-search-results-btn:hover {
-            background: rgba(220, 38, 38, 1);
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(239, 68, 68, 0.6);
-        }
-
-        .close-search-results-btn i {
-            width: 24px;
-            height: 24px;
         }
 
         .clickable-card {
@@ -1025,12 +983,6 @@
                 transform: scale(2);
             }
 
-            /* Кнопка закрытия результатов поиска для десктопа */
-            .close-search-results-btn {
-                top: 150px;
-                right: 140px;
-            }
-
             .desktop-main-wrapper {
                 display: block;
                 margin: 0 120px;
@@ -1082,18 +1034,34 @@
                 transform: translateX(-50%) !important;
             }
 
-            .bottom-action-buttons {
-                display: none !important;
+            .header-search-container {
+                max-width: 600px;
             }
 
-            #toggleMenu,
-            #myChatsButton {
-                display: none !important;
+            .search-toggle-btn .search-label {
+                display: inline;
             }
-        }
 
-        .taxi-buttons {
-            display: flex;
+            .search-input-header {
+                font-size: 16px;
+                padding: 10px 44px 10px 42px;
+            }
+
+            .search-icon-header {
+                width: 20px;
+                height: 20px;
+                left: 14px;
+            }
+
+            .close-search-btn-inline {
+                width: 28px;
+                height: 28px;
+                right: 10px;
+            }
+
+            .close-search-btn-inline i {
+                width: 16px;
+                height: 16px
             gap: 8px;
             margin-top: 12px;
         }
@@ -2726,20 +2694,18 @@
                         <i data-feather="search" class="w-5 h-5"></i>
                         <span class="search-label">Поиск</span>
                     </button>
-                    <div id="searchInputContainer" class="search-input-container-header hidden">
-                        <div class="search-input-group-header">
-                            <i data-feather="search" class="search-icon-header"></i>
-                            <input 
-                                type="text" 
-                                id="searchInputHeader" 
-                                class="search-input-header" 
-                                placeholder="Поиск товаров..."
-                                autocomplete="off"
-                            >
-                            <button id="clearSearchBtnHeader" class="clear-search-btn-header hidden" onclick="clearSearch()">
-                                <i data-feather="x"></i>
-                            </button>
-                        </div>
+                    <div id="searchInputContainer" class="search-input-wrapper hidden">
+                        <i data-feather="search" class="search-icon-header"></i>
+                        <input 
+                            type="text" 
+                            id="searchInputHeader" 
+                            class="search-input-header" 
+                            placeholder="Поиск товаров..."
+                            autocomplete="off"
+                        >
+                        <button id="closeSearchBtn" class="close-search-btn-inline" onclick="closeSearchFully()">
+                            <i data-feather="x"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -6247,26 +6213,33 @@
 
             if (!searchInput) return;
 
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-                
-                // Показываем/скрываем кнопку очистки
-                if (query.length > 0) {
-                    clearBtn.classList.remove('hidden');
-                } else {
-                    clearBtn.classList.add('hidden');
-                }
 
-                // Дебаунс для поиска
-                clearTimeout(searchTimeout);
-                
-                if (query.length >= 2) {
-                    searchTimeout = setTimeout(() => {
-                        performSearch(query);
-                    }, 500);
-                } else if (query.length === 0) {
-                    // Если поле очищено, возвращаемся к исходному состоянию
-                    if (isSearching) {
+        function toggleSearch() {
+            const container = document.getElementById('searchInputContainer');
+            const toggleBtn = document.getElementById('searchToggleBtn');
+            const searchInput = document.getElementById('searchInputHeader');
+            
+            // Скрываем кнопку и показываем строку
+            toggleBtn.classList.add('hidden');
+            container.classList.remove('hidden');
+            
+            setTimeout(() => {
+                searchInput.focus();
+            }, 100);
+        }
+
+        function closeSearchFully() {
+            const container = document.getElementById('searchInputContainer');
+            const toggleBtn = document.getElementById('searchToggleBtn');
+            const searchInput = document.getElementById('searchInputHeader');
+            
+            // Очищаем поле
+            searchInput.value = '';
+
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();   if (isSearching) {
                         isSearching = false;
                         loadSections();
                     }
@@ -6301,13 +6274,6 @@
                 hideLoading();
                 
                 // Сохраняем результаты как текущие товары
-                currentProducts = data.products || [];
-                
-                if (currentProducts.length === 0) {
-                    showEmptyState(`По запросу "${query}" ничего не найдено`);
-                    return;
-                }
-                
                 // Обновляем заголовок
                 elements.pageTitle.textContent = `Результаты поиска: "${query}"`;
                 
@@ -6385,7 +6351,7 @@
                                 <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                                     <i data-feather="phone" class="w-4 h-4 mr-2"></i>
                                     Позвонить
-                                </button>
+                                </boseSearchFully
                             </div>
 
                             <div class="mt-3">
@@ -6398,32 +6364,7 @@
                         </div>
                     </div>
                 `;
-            });
-
-            html += `
-                <button onclick="clearSearch(); loadSections();" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Вернуться к каталогу
-                </button>
-            `;
-
-            html += '</div>';
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function clearSearch() {
-            const searchInput = document.getElementById('searchInputHeader');
-            const clearBtn = document.getElementById('clearSearchBtnHeader');
-            const container = document.getElementById('searchInputContainer');
-            
-            if (searchInput) {
-                searchInput.value = '';
-            }
-            
-            if (clearBtn) {
+   if (clearBtn) {
                 clearBtn.classList.add('hidden');
             }
             
