@@ -767,9 +767,37 @@
                 display: none !important;
             }
 
-            /* Скрываем header полностью на десктопе */
-            header {
+            /* Скрываем содержимое header на десктопе */
+            header > div:not(#userInfoHeader) {
                 display: none !important;
+            }
+            
+            /* Показываем только userInfoHeader на десктопе */
+            header {
+                background: transparent !important;
+                box-shadow: none !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                padding: 20px;
+                display: flex !important;
+                justify-content: center;
+            }
+            
+            #userInfoHeader {
+                background: rgba(30, 41, 59, 0.75) !important;
+                backdrop-filter: blur(40px) !important;
+                -webkit-backdrop-filter: blur(40px) !important;
+                border-radius: 16px;
+                padding: 12px 20px;
+                min-width: 300px;
+                max-width: 500px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                margin-bottom: 0;
+                border-bottom: none;
             }
 
             .desktop-bottom-bar {
@@ -2508,11 +2536,17 @@
         <!-- Header -->
         <header class="shadow-lg p-4 sticky top-0 z-10">
             <!-- Фото и имя пользователя -->
-            <div id="userInfoHeader" class="flex items-center gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
-                <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
-                <div id="userNameHeader" class="text-white font-medium">
-                    <!-- Имя пользователя будет вставлено через JS -->
+            <div id="userInfoHeader" class="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
+                <div class="flex items-center gap-3">
+                    <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
+                    <div id="userNameHeader" class="text-white font-medium">
+                        <!-- Имя пользователя будет вставлено через JS -->
+                    </div>
                 </div>
+                <!-- Кнопка с фото канала для перехода в Telegram канал (справа) -->
+                <a href="https://t.me/chronoishere" target="_blank" class="flex-shrink-0">
+                    <img id="channelPhoto" src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer object-cover">
+                </a>
             </div>
             
             <div class="flex items-center justify-between">
@@ -2620,7 +2654,7 @@
             <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
             <div class="product-detail-content">
                 <div id="productDetailPrice" class="product-detail-price"></div>
-                <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #FCD34D; color: #000000; font-weight: 600; display: none; margin-top: 8px;"></div>
+                <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #EF4444; color: #FFFFFF; font-weight: 600; display: none; margin-top: 8px;"></div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
                     <button onclick="makePhoneCall()" class="product-detail-btn">
@@ -2866,6 +2900,7 @@
             const userInfoHeader = document.getElementById('userInfoHeader');
             const userNameHeader = document.getElementById('userNameHeader');
             const userPhoto = document.getElementById('userPhoto');
+            const channelPhoto = document.getElementById('channelPhoto');
             
             if (userInfoHeader && userNameHeader && userInfo.first_name) {
                 // Формируем отображаемое имя
@@ -2895,6 +2930,25 @@
                         `;
                     }
                 }
+                
+                // Загружаем фото канала
+                if (channelPhoto) {
+                    loadChannelPhoto();
+                }
+            }
+        }
+        
+        async function loadChannelPhoto() {
+            try {
+                const channelPhoto = document.getElementById('channelPhoto');
+                const response = await fetch('/get_channel_photo?username=chronosphereadmin');
+                const data = await response.json();
+                
+                if (data.success && data.photo_url && channelPhoto) {
+                    channelPhoto.src = data.photo_url;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки фото канала:', error);
             }
         }
 
@@ -5357,14 +5411,16 @@
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 const color = safeString(product.color, 'Не указан');
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
-                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
+                // ТЕСТ: принудительно показываем тестовую цену
+                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : 'ТЕСТ 999₽';
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
                 
                 // Проверяем, нужно ли показывать специальную цену
                 const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
+                // ВРЕМЕННО показываем ВСЕМ для теста
+                const showSpecialPrice = true;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
