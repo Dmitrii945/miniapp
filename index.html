@@ -3887,36 +3887,29 @@
         // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
 
         async function loadBrigades() {
-            lastAction = { type: 'loadBrigades' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
-            elements.pageTitle.textContent = 'Бригады';
-            
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/brigades`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data.error) {
-                    showEmptyState('Ошибка загрузки данных бригад');
-                    return;
-                }
-                
-                if (!data.brigades || data.brigades.length === 0) {
-                    showEmptyState('Бригады не найдены');
-                    return;
-                }
-                
-                renderBrigadeGroups(data.brigades);
-                updateBackButton();
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки бригад');
-            }
+    lastAction = { type: 'loadBrigades' };
+    navigationStack = [];
+    updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
+    elements.pageTitle.textContent = 'Бригады';
+    showLoading();
+    try {
+        const response = await fetch(`${API_BASE}/brigades`);
+        const data = await response.json();
+        hideLoading();
+        if (data.error) {
+            showEmptyState('Ошибка загрузки данных бригад');
+            return;
+        }
+        if (!data.brigades || data.brigades.length === 0) {
+            showEmptyState('Бригады не найдены');
+            return;
+        }
+        renderBrigadeGroups(data.brigades);
+        updateBackButton();
+    } catch (error) {
+        hideLoading();
+        showError('Ошибка загрузки бригад');
+    }
         }
 
         function renderBrigadeGroups(brigadeGroups) {
