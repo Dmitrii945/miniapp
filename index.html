@@ -6174,31 +6174,30 @@
         }
 
         function initSearch() {
-            const searchInput = document.getElementById('searchInputHeader');
+            // Используем делегирование событий на документе
+            document.addEventListener('input', (e) => {
+                if (e.target && e.target.id === 'searchInputHeader') {
+                    const query = e.target.value.trim();
 
-            if (!searchInput) return;
-
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-
-                // Дебаунс для поиска
-                clearTimeout(searchTimeout);
-                
-                if (query.length >= 2) {
-                    searchTimeout = setTimeout(() => {
-                        performSearch(query);
-                    }, 500);
-                } else if (query.length === 0) {
-                    // Если поле очищено, возвращаемся к исходному состоянию
-                    if (isSearching) {
-                        isSearching = false;
-                        loadSections();
+                    // Дебаунс для поиска
+                    clearTimeout(searchTimeout);
+                    
+                    if (query.length >= 2) {
+                        searchTimeout = setTimeout(() => {
+                            performSearch(query);
+                        }, 500);
+                    } else if (query.length === 0) {
+                        // Если поле очищено, возвращаемся к исходному состоянию
+                        if (isSearching) {
+                            isSearching = false;
+                            loadSections();
+                        }
                     }
                 }
             });
 
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
+            document.addEventListener('keypress', (e) => {
+                if (e.target && e.target.id === 'searchInputHeader' && e.key === 'Enter') {
                     const query = e.target.value.trim();
                     if (query.length >= 2) {
                         clearTimeout(searchTimeout);
