@@ -850,6 +850,22 @@
                 margin-left: auto;
                 margin-right: auto;
             }
+            
+            /* Закрепляем хедер в десктоп версии */
+            .desktop-main-wrapper header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            
+            /* Добавляем отступ сверху для контента под закрепленным хедером */
+            .desktop-main-wrapper #content {
+                margin-top: 120px;
+            }
 
             /* Кнопка "Назад" для десктопа */
             .back-button {
@@ -2529,8 +2545,11 @@
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
                 
-                <!-- Правая группа: Чаты -->
+                <!-- Правая группа: Чаты и Канал -->
                 <div class="flex items-center gap-2">
+                    <button onclick="window.open('https://t.me/chronoishere', '_blank')" class="chat-button" title="Наш канал" style="padding: 8px;">
+                        <img src="https://i.ibb.co/9gKwH7N/photo-2024-09-25-21-29-27.jpg" alt="Канал" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    </button>
                     <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
                         <i data-feather="message-circle"></i>
                         <span class="hidden sm:inline">Чаты</span>
@@ -5316,9 +5335,14 @@
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 const color = safeString(product.color, 'Не указан');
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
+                
+                // Проверяем нужно ли показывать специальную цену
+                const userId = tg?.initDataUnsafe?.user?.id;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
@@ -5336,9 +5360,14 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                ${price && price !== 'Цена не указана' ? `
-                                    <span class="price-badge">${escapeHtml(price)}</span>
-                                ` : ''}
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
+                                    ${showSpecialPrice ? `
+                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
+                                    ` : ''}
+                                </div>
                             </div>
                             
                             <div class="space-y-2 mb-4">
