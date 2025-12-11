@@ -566,65 +566,86 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
 
-        /* Строка поиска */
-        .search-container {
-            position: sticky;
-            top: 100px;
-            z-index: 15;
-            background: transparent;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
+        /* Строка поиска в хедере */
+        .header-search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 400px;
         }
 
-        .search-wrapper {
-            max-width: 100%;
-            margin: 0 auto;
+        .search-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
-        .search-input-group {
+        .search-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .search-label {
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .search-input-container-header {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 8px;
+            padding: 0 16px;
+            z-index: 30;
+        }
+
+        .search-input-group-header {
             position: relative;
             display: flex;
             align-items: center;
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
-        .search-icon {
+        .search-icon-header {
             position: absolute;
             left: 16px;
             width: 20px;
             height: 20px;
             color: rgba(255, 255, 255, 0.5);
             pointer-events: none;
-            z-index: 1;
         }
 
-        .search-input {
+        .search-input-header {
             width: 100%;
-            padding: 12px 48px 12px 48px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.05);
+            padding: 14px 48px;
+            background: transparent;
+            border: none;
             color: #ffffff;
             font-size: 16px;
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .search-input:focus {
             outline: none;
-            border-color: rgba(59, 130, 246, 0.5);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
         }
 
-        .search-input::placeholder {
+        .search-input-header::placeholder {
             color: rgba(255, 255, 255, 0.4);
         }
 
-        .clear-search-btn {
+        .clear-search-btn-header {
             position: absolute;
             right: 12px;
             width: 28px;
@@ -638,16 +659,32 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            z-index: 1;
         }
 
-        .clear-search-btn:hover {
+        .clear-search-btn-header:hover {
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .clear-search-btn i {
+        .clear-search-btn-header i {
             width: 16px;
             height: 16px;
+        }
+
+        /* Для мобильных */
+        @media (max-width: 767px) {
+            .search-toggle-btn {
+                padding: 8px;
+            }
+
+            .search-label {
+                display: none;
+            }
+
+            .search-input-container-header {
+                left: 0;
+                right: 0;
+                padding: 0 16px;
+            }
         }
 
         /* Плавающая кнопка закрытия результатов поиска */
@@ -1002,27 +1039,32 @@
                 margin-right: auto;
             }
 
-            /* Строка поиска для десктопа */
-            .search-container {
-                padding: 12px 120px;
-                top: 130px;
+            /* Строка поиска в хедере для десктопа */
+            .search-input-container-header {
+                position: fixed;
+                top: 140px;
+                left: 120px;
+                right: 120px;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0;
             }
 
-            .search-wrapper {
-                max-width: 1600px;
-                margin: 0 auto;
+            .search-toggle-btn .search-label {
+                display: inline;
             }
 
             /* Кнопка "Назад" для десктопа */
             .back-button {
                 position: fixed !important;
                 bottom: 70px !important;
-                left: 120px !important;
-                right: 120px !important;
-                width: auto !important;
-                max-width: 1600px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                width: 1200px !important;
+                max-width: calc(100% - 240px) !important;
                 height: 35px !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
                 padding: 0 !important;
                 border-radius: 0 !important;
                 z-index: 99 !important;
@@ -1032,13 +1074,12 @@
                 border: none !important;
                 border-top: 2px solid rgba(255, 255, 255, 0.1) !important;
                 box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
-                transform: none !important;
             }
 
             .back-button:hover {
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: none !important;
+                transform: translateX(-50%) !important;
             }
 
             .bottom-action-buttons {
@@ -2678,6 +2719,30 @@
                         <!-- Имя пользователя будет вставлено через JS -->
                     </div>
                 </div>
+                
+                <!-- Строка поиска в хедере -->
+                <div class="header-search-container">
+                    <button id="searchToggleBtn" class="search-toggle-btn" onclick="toggleSearch()">
+                        <i data-feather="search" class="w-5 h-5"></i>
+                        <span class="search-label">Поиск</span>
+                    </button>
+                    <div id="searchInputContainer" class="search-input-container-header hidden">
+                        <div class="search-input-group-header">
+                            <i data-feather="search" class="search-icon-header"></i>
+                            <input 
+                                type="text" 
+                                id="searchInputHeader" 
+                                class="search-input-header" 
+                                placeholder="Поиск товаров..."
+                                autocomplete="off"
+                            >
+                            <button id="clearSearchBtnHeader" class="clear-search-btn-header hidden" onclick="clearSearch()">
+                                <i data-feather="x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Кнопка с фото канала для перехода в Telegram канал (справа) -->
                 <a href="https://t.me/chronoishere" target="_blank" class="flex-shrink-0">
                     <img id="channelPhoto" src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer object-cover">
@@ -2707,25 +2772,6 @@
                 </div>
             </div>
         </header>
-
-        <!-- Search Bar -->
-        <div class="search-container">
-            <div class="search-wrapper">
-                <div class="search-input-group">
-                    <i data-feather="search" class="search-icon"></i>
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        class="search-input" 
-                        placeholder="Поиск товаров..."
-                        autocomplete="off"
-                    >
-                    <button id="clearSearchBtn" class="clear-search-btn hidden" onclick="clearSearch()">
-                        <i data-feather="x"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
 
         <!-- Loading -->
         <div id="loading" class="hidden p-8 text-center">
@@ -6175,10 +6221,29 @@
 
         let searchTimeout = null;
         let isSearching = false;
+        let searchExpanded = false;
+
+        function toggleSearch() {
+            const container = document.getElementById('searchInputContainer');
+            const toggleBtn = document.getElementById('searchToggleBtn');
+            const searchInput = document.getElementById('searchInputHeader');
+            
+            searchExpanded = !searchExpanded;
+            
+            if (searchExpanded) {
+                container.classList.remove('hidden');
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 100);
+            } else {
+                container.classList.add('hidden');
+                clearSearch();
+            }
+        }
 
         function initSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const clearBtn = document.getElementById('clearSearchBtn');
+            const searchInput = document.getElementById('searchInputHeader');
+            const clearBtn = document.getElementById('clearSearchBtnHeader');
 
             if (!searchInput) return;
 
@@ -6350,8 +6415,9 @@
         }
 
         function clearSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const clearBtn = document.getElementById('clearSearchBtn');
+            const searchInput = document.getElementById('searchInputHeader');
+            const clearBtn = document.getElementById('clearSearchBtnHeader');
+            const container = document.getElementById('searchInputContainer');
             
             if (searchInput) {
                 searchInput.value = '';
@@ -6362,6 +6428,11 @@
             }
             
             isSearching = false;
+            searchExpanded = false;
+            
+            if (container) {
+                container.classList.add('hidden');
+            }
         }
 
         function closeSearchResults() {
