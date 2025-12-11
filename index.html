@@ -6144,6 +6144,9 @@
             // Показываем или скрываем строку поиска
             if (container.classList.contains('hidden')) {
                 container.classList.remove('hidden');
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
                 setTimeout(() => {
                     searchInput.focus();
                 }, 100);
