@@ -2654,7 +2654,7 @@
             <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
             <div class="product-detail-content">
                 <div id="productDetailPrice" class="product-detail-price"></div>
-                <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #FCD34D; color: #000000; font-weight: 600; display: none; margin-top: 8px;"></div>
+                <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #EF4444; color: #FFFFFF; font-weight: 600; display: none; margin-top: 8px;"></div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
                     <button onclick="makePhoneCall()" class="product-detail-btn">
@@ -5418,7 +5418,8 @@
                 
                 // Проверяем, нужно ли показывать специальную цену
                 const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
+                // ВРЕМЕННО показываем ВСЕМ для теста - уберите этот комментарий после проверки
+                const showSpecialPrice = specialPrice !== null;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
