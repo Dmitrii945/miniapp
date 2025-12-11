@@ -566,6 +566,89 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
 
+        /* Строка поиска */
+        .search-container {
+            position: sticky;
+            top: 100px;
+            z-index: 15;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+        }
+
+        .search-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .search-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            width: 20px;
+            height: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 48px 12px 48px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1;
+        }
+
+        .clear-search-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .clear-search-btn i {
+            width: 16px;
+            height: 16px;
+        }
+
         .clickable-card {
             cursor: pointer;
             transition: all 0.2s;
@@ -879,16 +962,27 @@
                 margin-right: auto;
             }
 
+            /* Строка поиска для десктопа */
+            .search-container {
+                padding: 12px 120px;
+                top: 130px;
+            }
+
+            .search-wrapper {
+                max-width: 1600px;
+                margin: 0 auto;
+            }
+
             /* Кнопка "Назад" для десктопа */
             .back-button {
                 position: fixed !important;
                 bottom: 70px !important;
-                left: 0 !important;
-                right: 0 !important;
-                width: 100% !important;
-                max-width: none !important;
+                left: 120px !important;
+                right: 120px !important;
+                width: auto !important;
+                max-width: 1600px !important;
                 height: 35px !important;
-                margin: 0 !important;
+                margin: 0 auto !important;
                 padding: 0 !important;
                 border-radius: 0 !important;
                 z-index: 99 !important;
@@ -2534,7 +2628,7 @@
         <!-- Main wrapper for desktop -->
         <div class="desktop-main-wrapper">
         <!-- Header -->
-        <header class="shadow-lg p-4 sticky top-0 z-10">
+        <header class="shadow-lg p-4 sticky top-0 z-20">
             <!-- Фото и имя пользователя -->
             <div id="userInfoHeader" class="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
                 <div class="flex items-center gap-3">
@@ -2572,6 +2666,25 @@
                 </div>
             </div>
         </header>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-wrapper">
+                <div class="search-input-group">
+                    <i data-feather="search" class="search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Поиск товаров..."
+                        autocomplete="off"
+                    >
+                    <button id="clearSearchBtn" class="clear-search-btn hidden" onclick="clearSearch()">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Loading -->
         <div id="loading" class="hidden p-8 text-center">
@@ -6017,6 +6130,192 @@
             }, true);
         }
 
+        // ========== ПОИСК ==========
+
+        let searchTimeout = null;
+        let isSearching = false;
+
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                // Показываем/скрываем кнопку очистки
+                if (query.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+
+                // Дебаунс для поиска
+                clearTimeout(searchTimeout);
+                
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        performSearch(query);
+                    }, 500);
+                } else if (query.length === 0) {
+                    // Если поле очищено, возвращаемся к исходному состоянию
+                    if (isSearching) {
+                        isSearching = false;
+                        loadSections();
+                    }
+                }
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query.length >= 2) {
+                        clearTimeout(searchTimeout);
+                        performSearch(query);
+                    }
+                }
+            });
+        }
+
+        async function performSearch(query) {
+            try {
+                isSearching = true;
+                showLoading();
+                
+                const response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`, {
+                    timeout: API_TIMEOUT
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                hideLoading();
+                
+                // Сохраняем результаты как текущие товары
+                currentProducts = data.products || [];
+                
+                if (currentProducts.length === 0) {
+                    showEmptyState(`По запросу "${query}" ничего не найдено`);
+                    return;
+                }
+                
+                // Обновляем заголовок
+                elements.pageTitle.textContent = `Результаты поиска: "${query}"`;
+                
+                // Отображаем результаты
+                renderSearchResults(query, currentProducts);
+                
+            } catch (error) {
+                console.error('Ошибка поиска:', error);
+                hideLoading();
+                showErrorState(`Ошибка при поиске: ${error.message}`);
+            }
+        }
+
+        function renderSearchResults(query, products) {
+            let html = '<div class="product-list">';
+            
+            html += `
+                <div class="mb-4 p-4 bg-white bg-opacity-10 rounded-lg backdrop-blur-md">
+                    <p class="text-white text-sm">
+                        <i data-feather="search" class="w-4 h-4 inline mr-2"></i>
+                        Найдено товаров: <strong>${products.length}</strong>
+                    </p>
+                </div>
+            `;
+            
+            products.forEach((product, index) => {
+                const productId = generateProductId(product);
+                const isFavorite = favorites.some(fav => fav.id === productId);
+                const color = safeString(product.color, 'Не указан');
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
+                const photoUrl = safeString(product.photo_url);
+                
+                const userId = tg?.initDataUnsafe?.user?.id;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price && specialPrice;
+                
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+
+                html += `
+                    <div class="product-card fade-in" data-product-index="${index}" onclick="openProductDetail(${index})">
+                        <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                            <i data-feather="heart"></i>
+                        </div>
+                `;
+
+                html += renderUniversalImage(imageUrl, alternativeUrls, color, photoUrl);
+                
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
+                                    ${showSpecialPrice ? `
+                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <div class="text-xs text-gray-400 mb-3">
+                                <span>${escapeHtml(product.section || '')} → ${escapeHtml(product.category || '')}</span>
+                            </div>
+
+                            <div class="mt-3">
+                                <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
+                                    <i data-feather="phone" class="w-4 h-4 mr-2"></i>
+                                    Позвонить
+                                </button>
+                            </div>
+
+                            <div class="mt-3">
+                                <button onclick="contactAboutSpecificProduct(${index})" 
+                                        class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                                    <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                                    Узнать подробнее
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <button onclick="clearSearch(); loadSections();" class="back-button">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Вернуться к каталогу
+                </button>
+            `;
+
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            scheduleFeatherReplace();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            if (clearBtn) {
+                clearBtn.classList.add('hidden');
+            }
+            
+            isSearching = false;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initTelegramApp();
@@ -6036,6 +6335,9 @@
                 
                 // Отображаем имя пользователя
                 displayUserName();
+                
+                // Инициализируем поиск
+                initSearch();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
