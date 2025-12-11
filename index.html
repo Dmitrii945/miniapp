@@ -6187,32 +6187,6 @@
 
         let searchTimeout = null;
         let isSearching = false;
-        let searchExpanded = false;
-
-        function toggleSearch() {
-            const container = document.getElementById('searchInputContainer');
-            const toggleBtn = document.getElementById('searchToggleBtn');
-            const searchInput = document.getElementById('searchInputHeader');
-            
-            searchExpanded = !searchExpanded;
-            
-            if (searchExpanded) {
-                container.classList.remove('hidden');
-                setTimeout(() => {
-                    searchInput.focus();
-                }, 100);
-            } else {
-                container.classList.add('hidden');
-                clearSearch();
-            }
-        }
-
-        function initSearch() {
-            const searchInput = document.getElementById('searchInputHeader');
-            const clearBtn = document.getElementById('clearSearchBtnHeader');
-
-            if (!searchInput) return;
-
 
         function toggleSearch() {
             const container = document.getElementById('searchInputContainer');
@@ -6235,11 +6209,37 @@
             
             // Очищаем поле
             searchInput.value = '';
+            
+            // Показываем кнопку и скрываем строку
+            container.classList.add('hidden');
+            toggleBtn.classList.remove('hidden');
+            
+            // Если были результаты поиска, возвращаемся к каталогу
+            if (isSearching) {
+                isSearching = false;
+                loadSections();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function initSearch() {
+            const searchInput = document.getElementById('searchInputHeader');
 
             if (!searchInput) return;
 
             searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();   if (isSearching) {
+                const query = e.target.value.trim();
+
+                // Дебаунс для поиска
+                clearTimeout(searchTimeout);
+                
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        performSearch(query);
+                    }, 500);
+                } else if (query.length === 0) {
+                    // Если поле очищено, возвращаемся к исходному состоянию
+                    if (isSearching) {
                         isSearching = false;
                         loadSections();
                     }
@@ -6289,13 +6289,6 @@
 
         function renderSearchResults(query, products) {
             let html = '<div class="product-list">';
-            
-            // Добавляем плавающую кнопку закрытия результатов
-            html += `
-                <button onclick="closeSearchResults()" class="close-search-results-btn" title="Закрыть результаты поиска">
-                    <i data-feather="x"></i>
-                </button>
-            `;
             
             html += `
                 <div class="mb-4 p-4 bg-white bg-opacity-10 rounded-lg backdrop-blur-md">
@@ -6351,7 +6344,7 @@
                                 <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                                     <i data-feather="phone" class="w-4 h-4 mr-2"></i>
                                     Позвонить
-                                </boseSearchFully
+                                </button>
                             </div>
 
                             <div class="mt-3">
@@ -6364,22 +6357,17 @@
                         </div>
                     </div>
                 `;
-   if (clearBtn) {
-                clearBtn.classList.add('hidden');
-            }
+            });
             
-            isSearching = false;
-            searchExpanded = false;
+            html += '</div>';
             
-            if (container) {
-                container.classList.add('hidden');
-            }
+            elements.contentArea.innerHTML = html;
+            currentProducts = products;
+            scheduleFeatherReplace();
         }
 
         function closeSearchResults() {
-            clearSearch();
-            loadSections();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            closeSearchFully();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
