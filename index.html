@@ -2761,7 +2761,13 @@
 
 
         <!-- Мобильный блок кнопок Бригады и Такси под каталогом -->
-        <div class="bottom-action-buttons" style="display: none;" id="mobileBrigadeTaxi">
+
+        <main id="content" class="p-4 fade-in">
+            <!-- Контент загружается динамически -->
+        </main>
+
+        <!-- Мобильный блок кнопок Бригады и Такси теперь внизу -->
+        <div class="bottom-action-buttons" style="display: none; margin-top: 24px;" id="mobileBrigadeTaxi">
             <button class="square-action-button" onclick="openBrigadesMenu()">
                 <i data-feather="users" class="square-button-icon"></i>
                 Бригады
@@ -2771,10 +2777,6 @@
                 Такси
             </button>
         </div>
-
-        <main id="content" class="p-4 fade-in">
-            <!-- Контент загружается динамически -->
-        </main>
 
         <!-- Gallery Modal -->
         <div id="galleryModal" class="gallery-container hidden">
