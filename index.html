@@ -5418,7 +5418,7 @@
                 
                 // Проверяем, нужно ли показывать специальную цену
                 const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
