@@ -4100,7 +4100,7 @@
 
             // Специальная цена (только для определенных пользователей)
             const userId = tg?.initDataUnsafe?.user?.id;
-            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
+            if (userId && SPECIAL_PRICE_USER_IDS.indexOf(userId) !== -1 && product.special_price) {
                 specialPrice.textContent = formatPriceForBadge(product.special_price);
                 specialPrice.style.display = 'inline-block';
             } else {
@@ -4166,7 +4166,7 @@
 
             // Специальная цена (только для определенных пользователей)
             const userId = tg?.initDataUnsafe?.user?.id;
-            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
+            if (userId && SPECIAL_PRICE_USER_IDS.indexOf(userId) !== -1 && product.special_price) {
                 specialPrice.textContent = formatPriceForBadge(product.special_price);
                 specialPrice.style.display = 'inline-block';
             } else {
@@ -5359,7 +5359,7 @@
                 
                 // Проверяем, нужно ли показывать специальную цену
                 const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.indexOf(userId) !== -1 && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
