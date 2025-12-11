@@ -2523,12 +2523,17 @@
         <div class="desktop-main-wrapper">
         <!-- Header -->
         <header class="shadow-lg p-4 sticky top-0 z-10">
-            <!-- Фото и имя пользователя -->
-            <div id="userInfoHeader" class="flex items-center gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
-                <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
-                <div id="userNameHeader" class="text-white font-medium">
-                    <!-- Имя пользователя будет вставлено через JS -->
+            <!-- Фото и имя пользователя + кнопка канала -->
+            <div id="userInfoHeader" class="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
+                <div class="flex items-center gap-3">
+                    <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
+                    <div id="userNameHeader" class="text-white font-medium">
+                        <!-- Имя пользователя будет вставлено через JS -->
+                    </div>
                 </div>
+                <button onclick="window.open('https://t.me/chronoishere', '_blank')" class="chat-button" title="Наш канал" style="padding: 6px; min-width: 36px; height: 36px;">
+                    <img src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Канал" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                </button>
             </div>
             
             <div class="flex items-center justify-between">
@@ -2545,10 +2550,10 @@
                     <div class="sub-title">Скидка Сервис</div>
                 </div>
                 
-                <!-- Правая группа: Чаты и Канал -->
+                <!-- Правая группа: Поиск и Чаты -->
                 <div class="flex items-center gap-2">
-                    <button onclick="window.open('https://t.me/chronoishere', '_blank')" class="chat-button" title="Наш канал" style="padding: 8px;">
-                        <img src="https://i.ibb.co/9gKwH7N/photo-2024-09-25-21-29-27.jpg" alt="Канал" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <button id="searchButton" class="chat-button" onclick="openSearch()" title="Поиск">
+                        <i data-feather="search"></i>
                     </button>
                     <button id="myChatsButton" class="chat-button" onclick="showMyChats()" title="Мои чаты">
                         <i data-feather="message-circle"></i>
@@ -2671,6 +2676,36 @@
                 <div class="text-center p-4">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
                     <p class="mt-2 text-gray-600">Загружаю чаты...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Modal -->
+        <div id="searchModal" class="chat-modal hidden">
+            <div class="chat-modal-header">
+                <h2 class="chat-modal-title">Поиск товаров</h2>
+                <button onclick="closeSearchModal()" class="chat-modal-close">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div style="padding: 16px; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                <div style="display: flex; gap: 8px;">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Введите запрос..." 
+                        style="flex: 1; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 16px;"
+                        onkeypress="if(event.key === 'Enter') performSearch()"
+                    />
+                    <button onclick="performSearch()" style="padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                        Поиск
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="searchResults">
+                <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
+                    <i data-feather="search" style="width: 48px; height: 48px; margin: 0 auto 16px; opacity: 0.5;"></i>
+                    <p>Введите запрос для поиска товаров</p>
                 </div>
             </div>
         </div>
@@ -6623,6 +6658,86 @@
 
         function closeMyChatsModal() {
             document.getElementById('myChatsModal').classList.add('hidden');
+        }
+
+        function openSearch() {
+            document.getElementById('searchModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('searchInput').focus();
+            }, 100);
+        }
+
+        function closeSearchModal() {
+            document.getElementById('searchModal').classList.add('hidden');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
+                    <i data-feather="search" style="width: 48px; height: 48px; margin: 0 auto 16px; opacity: 0.5;"></i>
+                    <p>Введите запрос для поиска товаров</p>
+                </div>
+            `;
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+                    <p class="mt-2 text-gray-600">Поиск...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    resultsDiv.innerHTML = data.results.map(product => `
+                        <div style="padding: 16px; border-bottom: 1px solid #e5e7eb; cursor: pointer;" onclick="showProductFromSearch(${product.index})">
+                            <div style="display: flex; gap: 12px;">
+                                ${product.photo_url ? `
+                                    <img src="${product.photo_url}" alt="${product.name}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+                                ` : ''}
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">${product.name}</div>
+                                    <div style="color: #10b981; font-weight: 600;">${product.price} ₽</div>
+                                    ${product.article ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">Артикул: ${product.article}</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
+                            <i data-feather="search" style="width: 48px; height: 48px; margin: 0 auto 16px; opacity: 0.5;"></i>
+                            <p>Ничего не найдено</p>
+                        </div>
+                    `;
+                }
+                
+                if (window.feather) {
+                    feather.replace();
+                }
+            } catch (error) {
+                console.error('Ошибка поиска:', error);
+                resultsDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #ef4444;">
+                        <p>Ошибка при выполнении поиска</p>
+                    </div>
+                `;
+            }
+        }
+
+        function showProductFromSearch(productIndex) {
+            closeSearchModal();
+            // Найдём продукт в текущем каталоге
+            const product = allProducts.find(p => p.index === productIndex);
+            if (product) {
+                showProduct(product);
+            }
         }
 
         function openChatSessionAsBrigade(sessionId, brigadeName, objectName, userName, brigadeData = null, groupName = null, objectIndex = null) {
