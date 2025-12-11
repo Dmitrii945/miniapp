@@ -2646,6 +2646,14 @@
                 <i data-feather="map-pin"></i>
                 <span>2GIS</span>
             </button>
+            <button class="desktop-action-btn" onclick="openBrigadesMenu()">
+                <i data-feather="users"></i>
+                <span>Бригады</span>
+            </button>
+            <button class="desktop-action-btn" onclick="callTaxi()">
+                <i data-feather="map"></i>
+                <span>Такси</span>
+            </button>
             <button class="desktop-action-btn" onclick="showMyChats()">
                 <i data-feather="message-circle"></i>
                 <span>Чаты</span>
@@ -2911,7 +2919,6 @@
                                 <div class="text-sm opacity-80">60-01-60</div>
                             </div>
                         </div>
-                        
                         <div class="menu-item" onclick="open2GIS(); closeSideMenu();">
                             <i data-feather="map-pin"></i>
                             <div>
@@ -2919,8 +2926,21 @@
                                 <div class="text-sm opacity-80">Наш адрес на карте</div>
                             </div>
                         </div>
-
-                        <div class="menu-divider"></div>
+                        <div class="menu-item" onclick="openBrigadesMenu(); closeSideMenu();">
+                            <i data-feather="users"></i>
+                            <div>
+                                <div class="font-medium text-white">Бригады</div>
+                                <div class="text-sm opacity-80">Все бригады</div>
+                            </div>
+                        </div>
+                        <div class="menu-item" onclick="callTaxi(); closeSideMenu();">
+                            <i data-feather="map"></i>
+                            <div>
+                                <div class="font-medium text-white">Такси</div>
+                                <div class="text-sm opacity-80">Вызвать такси</div>
+                            </div>
+                        </div>
+                        <div class="menu-divider"></div
                                 <div class="text-sm text-gray-600">До нашего магазина</div>
                             </div>
                         </div>
