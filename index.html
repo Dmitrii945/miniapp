@@ -2759,7 +2759,19 @@
             </button>
         </div>
 
-        <!-- Main Content -->
+
+        <!-- Мобильный блок кнопок Бригады и Такси под каталогом -->
+        <div class="bottom-action-buttons" style="display: none;" id="mobileBrigadeTaxi">
+            <button class="square-action-button" onclick="openBrigadesMenu()">
+                <i data-feather="users" class="square-button-icon"></i>
+                Бригады
+            </button>
+            <button class="square-action-button" onclick="callTaxi()">
+                <i data-feather="map" class="square-button-icon"></i>
+                Такси
+            </button>
+        </div>
+
         <main id="content" class="p-4 fade-in">
             <!-- Контент загружается динамически -->
         </main>
@@ -2940,14 +2952,6 @@
                                 <div class="text-sm opacity-80">Вызвать такси</div>
                             </div>
                         </div>
-                        <div class="menu-divider"></div
-                                <div class="text-sm text-gray-600">До нашего магазина</div>
-                            </div>
-                        </div>
-
-                        <div class="menu-divider"></div>
-
-                        <!-- Телеграмм канал -->
                         <div class="menu-item" onclick="openTelegramChannel(); closeSideMenu();">
                             <i data-feather="send"></i>
                             <div>
@@ -2955,10 +2959,6 @@
                                 <div class="text-sm text-gray-600">Новости и акции</div>
                             </div>
                         </div>
-
-                        <div class="menu-divider"></div>
-
-                        <!-- МЕНЮ -->
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
                             <div>
@@ -2966,6 +2966,23 @@
                                 <div class="text-sm text-gray-600">Вернуться в каталог</div>
                             </div>
                         </div>
+                            // Функция для кнопки "Бригады"
+                            function openBrigadesMenu() {
+                                loadBrigades();
+                            }
+
+                            // Показ мобильного блока кнопок Бригады/Такси только на мобильных
+                            function showMobileBrigadeTaxi() {
+                                const el = document.getElementById('mobileBrigadeTaxi');
+                                if (!el) return;
+                                if (window.innerWidth < 768) {
+                                    el.style.display = 'grid';
+                                } else {
+                                    el.style.display = 'none';
+                                }
+                            }
+                            window.addEventListener('resize', showMobileBrigadeTaxi);
+                            document.addEventListener('DOMContentLoaded', showMobileBrigadeTaxi);
                     </div>
                 </div>
             </div>
