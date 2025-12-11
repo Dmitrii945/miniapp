@@ -2620,6 +2620,7 @@
             <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
             <div class="product-detail-content">
                 <div id="productDetailPrice" class="product-detail-price"></div>
+                <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #FCD34D; color: #000000; font-weight: 600; display: none; margin-top: 8px;"></div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
                     <button onclick="makePhoneCall()" class="product-detail-btn">
@@ -2798,6 +2799,11 @@
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
+        
+        // Список ID пользователей, которым показывать специальную цену
+        const SPECIAL_PRICE_USER_IDS = [
+            1606292950
+        ];
 
         // Состояние приложения
         let navigationStack = [];
@@ -2824,11 +2830,6 @@
                 lon: 65.610084
             }
         };
-
-        // ID пользователей Telegram, которым доступна специальная цена
-        const SPECIAL_PRICE_USER_IDS = [
-            1606292950,
-        ];
 
         // DOM элементы
         const elements = {
@@ -3286,9 +3287,9 @@
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
                 
-                // Проверяем нужно ли показывать специальную цену
+                // Проверяем, нужно ли показывать специальную цену
                 const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.indexOf(userId) !== -1 && specialPrice;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
@@ -3321,7 +3322,7 @@
                 `;
 
                 if (navigation) {
-                    const breadcrumbs = ['СКИДКА СЕРВИС'];
+                    const breadcrumbs = ['СКИДКА СЕРВИС']; // Всегда начинаем с "СКИДКА СЕРВИС"
                     
                     if (navigation.section) {
                         breadcrumbs.push(navigation.section.name);
@@ -3339,7 +3340,7 @@
                         breadcrumbs.push(navigation.submodel.name);
                     }
 
-                    if (breadcrumbs.length > 1) {
+                    if (breadcrumbs.length > 1) { // Изменяем условие, так как у нас всегда есть "СКИДКА СЕРВИС"
                         html += `<p class="breadcrumb-text text-gray-400 text-xs text-contrast">${breadcrumbs.join(' → ')}</p>`;
                     }
                 }
@@ -4065,6 +4066,7 @@
             const title = document.getElementById('productDetailTitle');
             const image = document.getElementById('productDetailImage');
             const price = document.getElementById('productDetailPrice');
+            const specialPrice = document.getElementById('productDetailSpecialPrice');
             const description = document.getElementById('productDetailDescription');
 
             // Заголовок
@@ -4089,30 +4091,20 @@
             }
 
             // Цена
-            const userId = tg?.initDataUnsafe?.user?.id;
-            const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.indexOf(userId) !== -1 && product.special_price;
-            
             if (product.price && product.price !== 'Цена не указана') {
-                price.innerHTML = '';
-                
-                // Обычная цена
-                const normalPriceSpan = document.createElement('span');
-                normalPriceSpan.textContent = formatPriceForBadge(product.price);
-                normalPriceSpan.className = 'price-badge';
-                price.appendChild(normalPriceSpan);
-                
-                // Специальная цена
-                if (showSpecialPrice) {
-                    const specialPriceSpan = document.createElement('span');
-                    specialPriceSpan.textContent = formatPriceForBadge(product.special_price);
-                    specialPriceSpan.className = 'price-badge';
-                    specialPriceSpan.style.cssText = 'background: #FCD34D; color: #000000; font-weight: 600; margin-left: 8px;';
-                    price.appendChild(specialPriceSpan);
-                }
-                
-                price.style.display = 'block';
+                price.textContent = formatPriceForBadge(product.price);
+                price.style.display = 'inline-block';
             } else {
                 price.style.display = 'none';
+            }
+
+            // Специальная цена (только для определенных пользователей)
+            const userId = tg?.initDataUnsafe?.user?.id;
+            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
+                specialPrice.textContent = formatPriceForBadge(product.special_price);
+                specialPrice.style.display = 'inline-block';
+            } else {
+                specialPrice.style.display = 'none';
             }
 
             // Описание из столбца I (description)
@@ -4141,6 +4133,7 @@
             const title = document.getElementById('productDetailTitle');
             const image = document.getElementById('productDetailImage');
             const price = document.getElementById('productDetailPrice');
+            const specialPrice = document.getElementById('productDetailSpecialPrice');
             const description = document.getElementById('productDetailDescription');
 
             const product = fav.product;
@@ -4164,30 +4157,20 @@
                 image.style.display = 'none';
             }
 
-            const userId = tg?.initDataUnsafe?.user?.id;
-            const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.indexOf(userId) !== -1 && product.special_price;
-            
             if (product.price && product.price !== 'Цена не указана') {
-                price.innerHTML = '';
-                
-                // Обычная цена
-                const normalPriceSpan = document.createElement('span');
-                normalPriceSpan.textContent = formatPriceForBadge(product.price);
-                normalPriceSpan.className = 'price-badge';
-                price.appendChild(normalPriceSpan);
-                
-                // Специальная цена
-                if (showSpecialPrice) {
-                    const specialPriceSpan = document.createElement('span');
-                    specialPriceSpan.textContent = formatPriceForBadge(product.special_price);
-                    specialPriceSpan.className = 'price-badge';
-                    specialPriceSpan.style.cssText = 'background: #FCD34D; color: #000000; font-weight: 600; margin-left: 8px;';
-                    price.appendChild(specialPriceSpan);
-                }
-                
-                price.style.display = 'block';
+                price.textContent = formatPriceForBadge(product.price);
+                price.style.display = 'inline-block';
             } else {
                 price.style.display = 'none';
+            }
+
+            // Специальная цена (только для определенных пользователей)
+            const userId = tg?.initDataUnsafe?.user?.id;
+            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
+                specialPrice.textContent = formatPriceForBadge(product.special_price);
+                specialPrice.style.display = 'inline-block';
+            } else {
+                specialPrice.style.display = 'none';
             }
 
             if (product.description) {
@@ -5374,9 +5357,9 @@
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
                 
-                // Проверяем нужно ли показывать специальную цену
+                // Проверяем, нужно ли показывать специальную цену
                 const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.indexOf(userId) !== -1 && specialPrice;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
