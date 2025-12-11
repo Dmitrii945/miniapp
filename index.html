@@ -2966,23 +2966,6 @@
                                 <div class="text-sm text-gray-600">Вернуться в каталог</div>
                             </div>
                         </div>
-                            // Функция для кнопки "Бригады"
-                            function openBrigadesMenu() {
-                                loadBrigades();
-                            }
-
-                            // Показ мобильного блока кнопок Бригады/Такси только на мобильных
-                            function showMobileBrigadeTaxi() {
-                                const el = document.getElementById('mobileBrigadeTaxi');
-                                if (!el) return;
-                                if (window.innerWidth < 768) {
-                                    el.style.display = 'grid';
-                                } else {
-                                    el.style.display = 'none';
-                                }
-                            }
-                            window.addEventListener('resize', showMobileBrigadeTaxi);
-                            document.addEventListener('DOMContentLoaded', showMobileBrigadeTaxi);
                     </div>
                 </div>
             </div>
@@ -2993,6 +2976,23 @@
     </div>
 
     <script>
+                // Функция для кнопки "Бригады"
+                function openBrigadesMenu() {
+                    loadBrigades();
+                }
+
+                // Показ мобильного блока кнопок Бригады/Такси только на мобильных
+                function showMobileBrigadeTaxi() {
+                    const el = document.getElementById('mobileBrigadeTaxi');
+                    if (!el) return;
+                    if (window.innerWidth < 768) {
+                        el.style.display = 'grid';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                }
+                window.addEventListener('resize', showMobileBrigadeTaxi);
+                document.addEventListener('DOMContentLoaded', showMobileBrigadeTaxi);
         // Конфигурация
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
