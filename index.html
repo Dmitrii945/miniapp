@@ -650,6 +650,39 @@
             height: 16px;
         }
 
+        /* Плавающая кнопка закрытия результатов поиска */
+        .close-search-results-btn {
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .close-search-results-btn:hover {
+            background: rgba(220, 38, 38, 1);
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(239, 68, 68, 0.6);
+        }
+
+        .close-search-results-btn i {
+            width: 24px;
+            height: 24px;
+        }
+
         .clickable-card {
             cursor: pointer;
             transition: all 0.2s;
@@ -955,6 +988,12 @@
                 transform: scale(2);
             }
 
+            /* Кнопка закрытия результатов поиска для десктопа */
+            .close-search-results-btn {
+                top: 150px;
+                right: 140px;
+            }
+
             .desktop-main-wrapper {
                 display: block;
                 margin: 0 120px;
@@ -978,12 +1017,13 @@
             .back-button {
                 position: fixed !important;
                 bottom: 70px !important;
-                left: 120px !important;
-                right: 120px !important;
-                width: auto !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                width: calc(100% - 240px) !important;
                 max-width: 1600px !important;
                 height: 35px !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
                 padding: 0 !important;
                 border-radius: 0 !important;
                 z-index: 99 !important;
@@ -998,7 +1038,7 @@
             .back-button:hover {
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: none !important;
+                transform: translateX(-50%) !important;
             }
 
             .bottom-action-buttons {
@@ -6219,6 +6259,13 @@
         function renderSearchResults(query, products) {
             let html = '<div class="product-list">';
             
+            // Добавляем плавающую кнопку закрытия результатов
+            html += `
+                <button onclick="closeSearchResults()" class="close-search-results-btn" title="Закрыть результаты поиска">
+                    <i data-feather="x"></i>
+                </button>
+            `;
+            
             html += `
                 <div class="mb-4 p-4 bg-white bg-opacity-10 rounded-lg backdrop-blur-md">
                     <p class="text-white text-sm">
@@ -6315,6 +6362,12 @@
             }
             
             isSearching = false;
+        }
+
+        function closeSearchResults() {
+            clearSearch();
+            loadSections();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
