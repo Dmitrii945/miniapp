@@ -1037,11 +1037,12 @@
                 left: 50% !important;
                 right: auto !important;
                 transform: translateX(-50%) !important;
-                width: 1200px !important;
-                max-width: calc(100% - 240px) !important;
+                width: auto !important;
+                max-width: 1200px !important;
+                min-width: 1200px !important;
                 height: 35px !important;
                 margin: 0 !important;
-                padding: 0 !important;
+                padding: 0 20px !important;
                 border-radius: 0 !important;
                 z-index: 99 !important;
                 background: rgba(30, 41, 59, 0.55) !important;
@@ -1056,6 +1057,14 @@
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
                 transform: translateX(-50%) !important;
+            }
+            
+            /* Адаптация для узких экранов */
+            @media (max-width: 1240px) {
+                .back-button {
+                    min-width: calc(100% - 40px) !important;
+                    max-width: calc(100% - 40px) !important;
+                }
             }
         }
         
@@ -6169,7 +6178,7 @@
             const container = document.getElementById('searchInputContainer');
             const searchInput = document.getElementById('searchInputHeader');
             
-            // Показываем или скрываем строку поиска
+            // Если строка поиска скрыта, показываем её
             if (container.classList.contains('hidden')) {
                 container.classList.remove('hidden');
                 if (typeof feather !== 'undefined') {
@@ -6179,7 +6188,11 @@
                     searchInput.focus();
                 }, 100);
             } else {
-                closeSearchFully();
+                // Если строка поиска уже видна, прокручиваем к ней и фокусируемся
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 300); // Даём время на прокрутку
             }
         }
 
