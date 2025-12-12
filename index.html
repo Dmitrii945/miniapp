@@ -2646,7 +2646,7 @@
                 <i data-feather="map-pin"></i>
                 <span>2GIS</span>
             </button>
-            <button class="desktop-action-btn" onclick="openBrigadesMenu()">
+            <button class="desktop-action-btn" onclick="loadBrigades()">
                 <i data-feather="users"></i>
                 <span>Бригады</span>
             </button>
@@ -2768,7 +2768,7 @@
 
         <!-- Мобильный блок кнопок Бригады и Такси теперь внизу -->
         <div class="bottom-action-buttons" style="display: none; margin-top: 24px;" id="mobileBrigadeTaxi">
-            <button class="square-action-button" onclick="openBrigadesMenu()">
+            <button class="square-action-button" onclick="loadBrigades()">
                 <i data-feather="users" class="square-button-icon"></i>
                 Бригады
             </button>
@@ -2940,7 +2940,7 @@
                                 <div class="text-sm opacity-80">Наш адрес на карте</div>
                             </div>
                         </div>
-                        <div class="menu-item" onclick="openBrigadesMenu(); closeSideMenu();">
+                        <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
                             <i data-feather="users"></i>
                             <div>
                                 <div class="font-medium text-white">Бригады</div>
@@ -2978,11 +2978,6 @@
     </div>
 
     <script>
-                // Функция для кнопки "Бригады"
-                function openBrigadesMenu() {
-                    loadBrigades();
-                }
-
                 // Показ мобильного блока кнопок Бригады/Такси только на мобильных
                 function showMobileBrigadeTaxi() {
                     const el = document.getElementById('mobileBrigadeTaxi');
