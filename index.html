@@ -110,9 +110,9 @@
         }
         
         .tg-theme-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
             border-radius: 16px !important;
             backdrop-filter: blur(40px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
@@ -123,11 +123,11 @@
         }
         
         .tg-theme-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: var(--hover-bg) !important;
+            border-color: var(--border-color) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
+            box-shadow: 0 12px 40px var(--shadow-color), inset 0 1px 0 var(--border-color) !important;
+            color: var(--text-primary) !important;
         }
         
         .tg-theme-text {
@@ -179,7 +179,7 @@
         
         .price-badge {
             background-color: #10B981;
-            color: white;
+            color: #ffffff;
             padding: 4px 8px;
             border-radius: 9999px;
             font-size: 0.875rem;
@@ -199,7 +199,7 @@
         
         .breadcrumb-item {
             cursor: pointer !important;
-            color: #000000 !important;
+            color: var(--text-primary) !important;
             padding: 6px 14px !important;
             border-radius: 12px !important;
             background: rgba(255, 255, 255, 0.03) !important;
@@ -306,7 +306,7 @@
         }
 
         .category-card * {
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
         }
         
         /* Контейнер для категорий - адаптивная сетка */
@@ -630,17 +630,17 @@
             gap: 6px;
             padding: 8px 12px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
             cursor: pointer;
             transition: all 0.3s ease;
             white-space: nowrap;
         }
 
         .search-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.4);
+            background: var(--hover-bg);
+            border-color: var(--border-color);
         }
 
         .search-label {
@@ -793,9 +793,9 @@
         }
 
         .menu-button {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
             border-radius: 16px !important;
             padding: 12px 16px !important;
             display: flex !important;
@@ -806,22 +806,22 @@
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
             transition: all 0.3s ease !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 4px 16px var(--shadow-color) !important;
             cursor: pointer !important;
         }
 
         .menu-button:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
+            background: var(--hover-bg) !important;
+            border-color: var(--border-color) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-            color: #ffffff !important;
+            box-shadow: 0 8px 32px var(--shadow-color) !important;
+            color: var(--text-primary) !important;
         }
 
         .install-button {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
             border-radius: 16px !important;
             padding: 12px !important;
             display: flex !important;
@@ -910,6 +910,26 @@
             background: rgba(255, 255, 255, 0.2);
             margin: 12px 0;
         }
+        
+        body.light-theme .menu-divider {
+            background: var(--border-color);
+        }
+        
+        /* Стили для бокового меню */
+        #sideMenu > div {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        body.light-theme #sideMenu {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        body.light-theme #sideMenu > div {
+            background: rgba(255, 255, 255, 0.98);
+            border-left: 1px solid var(--border-color);
+        }
 
         /* Скрываем десктопные элементы на мобильных */
         .desktop-bottom-bar {
@@ -993,11 +1013,11 @@
                 height: 70px;
                 border-radius: 12px;
                 border: none !important;
-                border-top: 3px solid rgba(255, 255, 255, 0.1) !important;
-                background: rgba(30, 41, 59, 0.55) !important;
+                border-top: 3px solid var(--border-color) !important;
+                background: var(--bg-secondary) !important;
                 backdrop-filter: blur(40px) !important;
                 -webkit-backdrop-filter: blur(40px) !important;
-                color: #ffffff !important;
+                color: var(--text-primary) !important;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -1268,7 +1288,7 @@
         }
 
         .favorite-button i {
-            color: white;
+            color: #ffffff;
         }
 
         .favorite-button:hover {
@@ -1282,7 +1302,7 @@
         }
 
         .favorite-button.active i {
-            color: white;
+            color: #ffffff;
         }
 
         .product-card .favorite-label {
@@ -1340,10 +1360,10 @@
         }
 
         .brigade-card {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--bg-card);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 8px 32px var(--shadow-color);
+            border: 1px solid var(--border-color);
             overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
@@ -1352,18 +1372,18 @@
             flex-direction: column;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
         }
 
         .brigade-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 16px 48px var(--shadow-color);
+            border-color: var(--border-color);
+            background: var(--hover-bg);
         }
 
         .brigade-card * {
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
         }
 
         .chat-object-btn {
@@ -1371,7 +1391,7 @@
             margin-top: 12px;
             padding: 12px 16px;
             background-color: #3B82F6;
-            color: white;
+            color: #ffffff;
             border: none;
             border-radius: 8px;
             font-size: 0.9rem;
@@ -1422,7 +1442,7 @@
             font-size: 0.875rem;
             font-weight: 600;
             margin-bottom: 4px;
-            color: #ffffff;
+            color: var(--text-primary);
             line-height: 1.2;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -1431,7 +1451,7 @@
         }
 
         .brigade-description {
-            color: #e5e7eb;
+            color: var(--text-secondary);
             font-size: 0.75rem;
             line-height: 1.2;
             display: -webkit-box;
@@ -1442,7 +1462,7 @@
 
         .object-count {
             background-color: #3B82F6;
-            color: white;
+            color: #ffffff;
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 0.7rem;
@@ -1596,6 +1616,10 @@
             display: flex;
             flex-direction: column;
         }
+        
+        body.light-theme .gallery-container {
+            background: rgba(255, 255, 255, 0.98);
+        }
 
         .gallery-header {
             padding: 20px;
@@ -1605,6 +1629,12 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        body.light-theme .gallery-header {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .gallery-title {
@@ -1810,6 +1840,10 @@
             flex-direction: column;
         }
         
+        body.light-theme .info-modal {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
         .info-modal-header {
             padding: 20px;
             background: rgba(0, 0, 0, 0.8);
@@ -1828,7 +1862,7 @@
         .info-modal-close {
             background: rgba(255, 255, 255, 0.2);
             border: none;
-            color: white;
+            color: var(--text-primary);
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -1847,7 +1881,7 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            color: white;
+            color: var(--text-primary);
             font-size: 16px;
             line-height: 1.5;
             white-space: pre-line;
@@ -1866,6 +1900,10 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+        }
+        
+        body.light-theme .product-detail-modal {
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .product-detail-header {
@@ -1977,6 +2015,10 @@
             display: flex;
             flex-direction: column;
         }
+        
+        body.light-theme .chat-modal {
+            background: rgba(255, 255, 255, 0.95);
+        }
 
         .chat-modal.hidden {
             display: none;
@@ -1989,6 +2031,11 @@
             justify-content: space-between;
             align-items: center;
             color: white;
+        }
+        
+        body.light-theme .chat-modal-header {
+            background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%);
+            color: var(--text-primary);
         }
 
         .chat-modal-title {
@@ -2971,11 +3018,11 @@
 
         <!-- Side Menu -->
         <div id="sideMenu" class="hidden fixed inset-0 bg-black bg-opacity-30" style="z-index: 1000;">
-            <div class="absolute right-0 top-0 h-full w-80 transform translate-x-full transition-transform duration-300" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border-left: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="absolute right-0 top-0 h-full w-80 transform translate-x-full transition-transform duration-300" id="sideMenuPanel">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-8">
-                        <h2 class="text-lg font-semibold text-white">Меню</h2>
-                        <button id="closeMenu" class="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-all duration-200" style="color: white;">
+                        <h2 class="text-lg font-semibold" id="sideMenuTitle" style="color: var(--text-primary);">Меню</h2>
+                        <button id="closeMenu" class="p-2 rounded-full transition-all duration-200" style="color: var(--text-primary);">
                             <i data-feather="x"></i>
                         </button>
                     </div>
