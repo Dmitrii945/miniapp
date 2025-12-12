@@ -1,3 +1,4 @@
+<!-- Удалён ошибочный JS/HTML-фрагмент. Начало файла теперь полностью корректное. -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -566,6 +567,122 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
 
+        /* Кнопка поиска в хедере */
+        .search-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .search-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .search-label {
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        /* Строка поиска между хедером и контентом */
+        .search-input-container-main {
+            position: sticky;
+            top: 0;
+            z-index: 19;
+            max-width: 100%;
+            padding: 12px 16px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .search-input-container-main:focus-within {
+            background: rgba(30, 41, 59, 1);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .search-icon-header {
+            position: absolute;
+            left: 28px;
+            width: 18px;
+            height: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+        }
+
+        .search-input-header {
+            flex: 1;
+            padding: 10px 45px 10px 50px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-header:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .search-input-header::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .close-search-btn-inline {
+            position: absolute;
+            right: 24px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .close-search-btn-inline:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .close-search-btn-inline i {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Для мобильных */
+        @media (max-width: 767px) {
+            .search-toggle-btn {
+                padding: 8px;
+            }
+
+            .search-label {
+                display: none;
+            }
+        }
+
         .clickable-card {
             cursor: pointer;
             transition: all 0.2s;
@@ -767,9 +884,37 @@
                 display: none !important;
             }
 
-            /* Скрываем header полностью на десктопе */
-            header {
+            /* Скрываем содержимое header на десктопе */
+            header > div:not(#userInfoHeader) {
                 display: none !important;
+            }
+            
+            /* Показываем только userInfoHeader на десктопе */
+            header {
+                background: transparent !important;
+                box-shadow: none !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                padding: 20px;
+                display: flex !important;
+                justify-content: center;
+            }
+            
+            #userInfoHeader {
+                background: rgba(30, 41, 59, 0.75) !important;
+                backdrop-filter: blur(40px) !important;
+                -webkit-backdrop-filter: blur(40px) !important;
+                border-radius: 16px;
+                padding: 12px 20px;
+                min-width: 300px;
+                max-width: 500px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                margin-bottom: 0;
+                border-bottom: none;
             }
 
             .desktop-bottom-bar {
@@ -851,14 +996,49 @@
                 margin-right: auto;
             }
 
+            /* Кнопка поиска в хедере для десктопа */
+            .search-toggle-btn .search-label {
+                display: inline;
+            }
+
+            /* Строка поиска для десктопа */
+            .search-input-container-main {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 16px 20px;
+            }
+
+            .search-input-header {
+                font-size: 16px;
+                padding: 12px 50px 12px 50px;
+            }
+
+            .search-icon-header {
+                width: 20px;
+                height: 20px;
+                left: 32px;
+            }
+
+            .close-search-btn-inline {
+                width: 32px;
+                height: 32px;
+                right: 28px;
+            }
+
+            .close-search-btn-inline i {
+                width: 18px;
+                height: 18px;
+            }
+
             /* Кнопка "Назад" для десктопа */
             .back-button {
                 position: fixed !important;
                 bottom: 70px !important;
-                left: 0 !important;
-                right: 0 !important;
-                width: 100% !important;
-                max-width: none !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                width: 1200px !important;
+                max-width: calc(100% - 240px) !important;
                 height: 35px !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -875,23 +1055,8 @@
             .back-button:hover {
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: none !important;
+                transform: translateX(-50%) !important;
             }
-
-            .bottom-action-buttons {
-                display: none !important;
-            }
-
-            #toggleMenu,
-            #myChatsButton {
-                display: none !important;
-            }
-        }
-
-        .taxi-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
         }
         
         .taxi-service-button {
@@ -2473,10 +2638,6 @@
                 <i data-feather="heart"></i>
                 <span>Избранное</span>
             </button>
-            <button class="desktop-action-btn" onclick="loadBrigades()">
-                <i data-feather="users"></i>
-                <span>Бригады</span>
-            </button>
             <button class="desktop-action-btn" onclick="makePhoneCall()">
                 <i data-feather="phone"></i>
                 <span>Телефон</span>
@@ -2485,13 +2646,17 @@
                 <i data-feather="map-pin"></i>
                 <span>2GIS</span>
             </button>
+            <button class="desktop-action-btn" onclick="loadBrigades()">
+                <i data-feather="users"></i>
+                <span>Бригады</span>
+            </button>
+            <button class="desktop-action-btn" onclick="callTaxi()">
+                <i data-feather="map"></i>
+                <span>Такси</span>
+            </button>
             <button class="desktop-action-btn" onclick="showMyChats()">
                 <i data-feather="message-circle"></i>
                 <span>Чаты</span>
-            </button>
-            <button class="desktop-action-btn" onclick="callTaxi()">
-                <i data-feather="car"></i>
-                <span>Такси</span>
             </button>
             <button class="desktop-action-btn" onclick="openTelegramChannel()">
                 <i data-feather="send"></i>
@@ -2506,13 +2671,26 @@
         <!-- Main wrapper for desktop -->
         <div class="desktop-main-wrapper">
         <!-- Header -->
-        <header class="shadow-lg p-4 sticky top-0 z-10">
+        <header class="shadow-lg p-4 sticky top-0 z-20">
             <!-- Фото и имя пользователя -->
-            <div id="userInfoHeader" class="flex items-center gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
-                <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
-                <div id="userNameHeader" class="text-white font-medium">
-                    <!-- Имя пользователя будет вставлено через JS -->
+            <div id="userInfoHeader" class="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
+                <div class="flex items-center gap-3">
+                    <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
+                    <div id="userNameHeader" class="text-white font-medium">
+                        <!-- Имя пользователя будет вставлено через JS -->
+                    </div>
                 </div>
+                
+                <!-- Кнопка поиска в хедере -->
+                <button id="searchToggleBtn" class="search-toggle-btn" onclick="toggleSearch()">
+                    <i data-feather="search" class="w-5 h-5"></i>
+                    <span class="search-label">Поиск</span>
+                </button>
+                
+                <!-- Кнопка с фото канала для перехода в Telegram канал (справа) -->
+                <a href="https://t.me/chronoishere" target="_blank" class="flex-shrink-0">
+                    <img id="channelPhoto" src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer object-cover">
+                </a>
             </div>
             
             <div class="flex items-center justify-between">
@@ -2538,6 +2716,21 @@
                 </div>
             </div>
         </header>
+
+        <!-- Строка поиска между хедером и контентом -->
+        <div id="searchInputContainer" class="search-input-container-main hidden">
+            <i data-feather="search" class="search-icon-header"></i>
+            <input 
+                type="text" 
+                id="searchInputHeader" 
+                class="search-input-header" 
+                placeholder="Поиск товаров..."
+                autocomplete="off"
+            >
+            <button id="closeSearchBtn" class="close-search-btn-inline" onclick="closeSearchFully()">
+                <i data-feather="x"></i>
+            </button>
+        </div>
 
         <!-- Loading -->
         <div id="loading" class="hidden p-8 text-center">
@@ -2566,10 +2759,24 @@
             </button>
         </div>
 
-        <!-- Main Content -->
+
+        <!-- Мобильный блок кнопок Бригады и Такси под каталогом -->
+
         <main id="content" class="p-4 fade-in">
             <!-- Контент загружается динамически -->
         </main>
+
+        <!-- Мобильный блок кнопок Бригады и Такси теперь внизу -->
+        <div class="bottom-action-buttons" style="display: none; margin-top: 24px;" id="mobileBrigadeTaxi">
+            <button class="square-action-button" onclick="loadBrigades()">
+                <i data-feather="users" class="square-button-icon"></i>
+                Бригады
+            </button>
+            <button class="square-action-button" onclick="callTaxi()">
+                <i data-feather="map" class="square-button-icon"></i>
+                Такси
+            </button>
+        </div>
 
         <!-- Gallery Modal -->
         <div id="galleryModal" class="gallery-container hidden">
@@ -2620,6 +2827,7 @@
             <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
             <div class="product-detail-content">
                 <div id="productDetailPrice" class="product-detail-price"></div>
+                <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #FCD34D; color: #000000; font-weight: 600; display: none; margin-top: 8px;"></div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
                     <button onclick="makePhoneCall()" class="product-detail-btn">
@@ -2640,12 +2848,6 @@
                 <h2 class="chat-modal-title">Мои чаты</h2>
                 <button onclick="closeMyChatsModal()" class="chat-modal-close">
                     <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div style="padding: 16px; border-bottom: 1px solid rgba(0,0,0,0.1);">
-                <button onclick="loadBrigades(); closeMyChatsModal();" class="w-full py-3 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:bg-green-600 transition">
-                    <i data-feather="users" class="w-5 h-5 mr-2"></i>
-                    БРИГАДЫ
                 </button>
             </div>
             <div class="chat-messages" id="myChatsContent">
@@ -2723,17 +2925,6 @@
 
                         <div class="menu-divider"></div>
                         
-                        <!-- Бригады -->
-                        <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
-                            <i data-feather="users"></i>
-                            <div>
-                                <div class="font-medium text-white">Бригады</div>
-                                <div class="text-sm opacity-80">Наши строительные бригады</div>
-                            </div>
-                        </div>
-
-                        <div class="menu-divider"></div>
-                        
                         <!-- Контакты -->
                         <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
                             <i data-feather="phone"></i>
@@ -2742,7 +2933,6 @@
                                 <div class="text-sm opacity-80">60-01-60</div>
                             </div>
                         </div>
-                        
                         <div class="menu-item" onclick="open2GIS(); closeSideMenu();">
                             <i data-feather="map-pin"></i>
                             <div>
@@ -2750,19 +2940,20 @@
                                 <div class="text-sm opacity-80">Наш адрес на карте</div>
                             </div>
                         </div>
-
-                        <!-- Вызов такси -->
-                        <div class="menu-item" onclick="openTaxiMenu(); closeSideMenu();">
-                            <i data-feather="car"></i>
+                        <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
+                            <i data-feather="users"></i>
                             <div>
-                                <div class="font-medium">Вызвать такси</div>
-                                <div class="text-sm text-gray-600">До нашего магазина</div>
+                                <div class="font-medium text-white">Бригады</div>
+                                <div class="text-sm opacity-80">Все бригады</div>
                             </div>
                         </div>
-
-                        <div class="menu-divider"></div>
-
-                        <!-- Телеграмм канал -->
+                        <div class="menu-item" onclick="callTaxi(); closeSideMenu();">
+                            <i data-feather="map"></i>
+                            <div>
+                                <div class="font-medium text-white">Такси</div>
+                                <div class="text-sm opacity-80">Вызвать такси</div>
+                            </div>
+                        </div>
                         <div class="menu-item" onclick="openTelegramChannel(); closeSideMenu();">
                             <i data-feather="send"></i>
                             <div>
@@ -2770,10 +2961,6 @@
                                 <div class="text-sm text-gray-600">Новости и акции</div>
                             </div>
                         </div>
-
-                        <div class="menu-divider"></div>
-
-                        <!-- МЕНЮ -->
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
                             <div>
@@ -2791,6 +2978,18 @@
     </div>
 
     <script>
+                // Показ мобильного блока кнопок Бригады/Такси только на мобильных
+                function showMobileBrigadeTaxi() {
+                    const el = document.getElementById('mobileBrigadeTaxi');
+                    if (!el) return;
+                    if (window.innerWidth < 768) {
+                        el.style.display = 'grid';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                }
+                window.addEventListener('resize', showMobileBrigadeTaxi);
+                document.addEventListener('DOMContentLoaded', showMobileBrigadeTaxi);
         // Конфигурация
         const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
@@ -2798,6 +2997,16 @@
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
+        
+        // Список ID пользователей, которым показывать специальную цену
+        const SPECIAL_PRICE_USER_IDS = [
+            1606292950,
+            1445276912,
+            1955229007,
+            5564422095,
+            8343032724
+            
+        ];
 
         // Состояние приложения
         let navigationStack = [];
@@ -2855,6 +3064,7 @@
             const userInfoHeader = document.getElementById('userInfoHeader');
             const userNameHeader = document.getElementById('userNameHeader');
             const userPhoto = document.getElementById('userPhoto');
+            const channelPhoto = document.getElementById('channelPhoto');
             
             if (userInfoHeader && userNameHeader && userInfo.first_name) {
                 // Формируем отображаемое имя
@@ -2884,6 +3094,25 @@
                         `;
                     }
                 }
+                
+                // Загружаем фото канала
+                if (channelPhoto) {
+                    loadChannelPhoto();
+                }
+            }
+        }
+        
+        async function loadChannelPhoto() {
+            try {
+                const channelPhoto = document.getElementById('channelPhoto');
+                const response = await fetch('/get_channel_photo?username=chronosphereadmin');
+                const data = await response.json();
+                
+                if (data.success && data.photo_url && channelPhoto) {
+                    channelPhoto.src = data.photo_url;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки фото канала:', error);
             }
         }
 
@@ -3276,9 +3505,14 @@
                 
                 const color = safeString(product.color, 'Не указан');
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
+                
+                // Проверяем, нужно ли показывать специальную цену
+                const userId = tg?.initDataUnsafe?.user?.id;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
@@ -3297,9 +3531,14 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                ${price && price !== 'Цена не указана' ? `
-                                    <span class="price-badge">${escapeHtml(price)}</span>
-                                ` : ''}
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
+                                    ${showSpecialPrice ? `
+                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
+                                    ` : ''}
+                                </div>
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -3643,36 +3882,29 @@
         // ========== ФУНКЦИИ ДЛЯ БРИГАД ==========
 
         async function loadBrigades() {
-            lastAction = { type: 'loadBrigades' };
-            
-            navigationStack = [];
-            updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
-            elements.pageTitle.textContent = 'Бригады';
-            
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/brigades`);
-                const data = await response.json();
-                
-                hideLoading();
-                
-                if (data.error) {
-                    showEmptyState('Ошибка загрузки данных бригад');
-                    return;
-                }
-                
-                if (!data.brigades || data.brigades.length === 0) {
-                    showEmptyState('Бригады не найдены');
-                    return;
-                }
-                
-                renderBrigadeGroups(data.brigades);
-                updateBackButton();
-            } catch (error) {
-                hideLoading();
-                showError('Ошибка загрузки бригад');
-            }
+    lastAction = { type: 'loadBrigades' };
+    navigationStack = [];
+    updateBreadcrumbs([{ name: 'Бригады', action: 'loadBrigades' }]);
+    elements.pageTitle.textContent = 'Бригады';
+    showLoading();
+    try {
+        const response = await fetch(`${API_BASE}/brigades`);
+        const data = await response.json();
+        hideLoading();
+        if (data.error) {
+            showEmptyState('Ошибка загрузки данных бригад');
+            return;
+        }
+        if (!data.brigades || data.brigades.length === 0) {
+            showEmptyState('Бригады не найдены');
+            return;
+        }
+        renderBrigadeGroups(data.brigades);
+        updateBackButton();
+    } catch (error) {
+        hideLoading();
+        showError('Ошибка загрузки бригад');
+    }
         }
 
         function renderBrigadeGroups(brigadeGroups) {
@@ -4050,6 +4282,7 @@
             const title = document.getElementById('productDetailTitle');
             const image = document.getElementById('productDetailImage');
             const price = document.getElementById('productDetailPrice');
+            const specialPrice = document.getElementById('productDetailSpecialPrice');
             const description = document.getElementById('productDetailDescription');
 
             // Заголовок
@@ -4081,6 +4314,15 @@
                 price.style.display = 'none';
             }
 
+            // Специальная цена (только для определенных пользователей)
+            const userId = tg?.initDataUnsafe?.user?.id;
+            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
+                specialPrice.textContent = formatPriceForBadge(product.special_price);
+                specialPrice.style.display = 'inline-block';
+            } else {
+                specialPrice.style.display = 'none';
+            }
+
             // Описание из столбца I (description)
             if (product.description) {
                 description.textContent = product.description;
@@ -4107,6 +4349,7 @@
             const title = document.getElementById('productDetailTitle');
             const image = document.getElementById('productDetailImage');
             const price = document.getElementById('productDetailPrice');
+            const specialPrice = document.getElementById('productDetailSpecialPrice');
             const description = document.getElementById('productDetailDescription');
 
             const product = fav.product;
@@ -4135,6 +4378,15 @@
                 price.style.display = 'inline-block';
             } else {
                 price.style.display = 'none';
+            }
+
+            // Специальная цена (только для определенных пользователей)
+            const userId = tg?.initDataUnsafe?.user?.id;
+            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
+                specialPrice.textContent = formatPriceForBadge(product.special_price);
+                specialPrice.style.display = 'inline-block';
+            } else {
+                specialPrice.style.display = 'none';
             }
 
             if (product.description) {
@@ -4890,20 +5142,6 @@
 
             
             html += '</div>';
-
-            // Добавляем квадратные кнопки в стартовое меню
-            html += `
-                <div class="bottom-action-buttons">
-                    <button class="square-action-button brigades-button" onclick="openBrigades()">
-                        <i data-feather="users"></i>
-                        <span>БРИГАДЫ</span>
-                    </button>
-                    <button class="square-action-button taxi-square-button" onclick="callTaxi()">
-                        <i data-feather="car"></i>
-                        <span>ТАКСИ</span>
-                    </button>
-                </div>
-            `;
             
             if (!html) {
                 showEmptyState('Нет доступных разделов');
@@ -5316,9 +5554,14 @@
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 const color = safeString(product.color, 'Не указан');
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
+                
+                // Проверяем, нужно ли показывать специальную цену
+                const userId = tg?.initDataUnsafe?.user?.id;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
@@ -5336,9 +5579,14 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                ${price && price !== 'Цена не указана' ? `
-                                    <span class="price-badge">${escapeHtml(price)}</span>
-                                ` : ''}
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
+                                    ${showSpecialPrice ? `
+                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
+                                    ` : ''}
+                                </div>
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -5912,6 +6160,195 @@
             }, true);
         }
 
+        // ========== ПОИСК ==========
+
+        let searchTimeout = null;
+        let isSearching = false;
+
+        function toggleSearch() {
+            const container = document.getElementById('searchInputContainer');
+            const searchInput = document.getElementById('searchInputHeader');
+            
+            // Показываем или скрываем строку поиска
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 100);
+            } else {
+                closeSearchFully();
+            }
+        }
+
+        function closeSearchFully() {
+            const container = document.getElementById('searchInputContainer');
+            const searchInput = document.getElementById('searchInputHeader');
+            
+            // Очищаем поле
+            searchInput.value = '';
+            
+            // Скрываем строку поиска
+            container.classList.add('hidden');
+            
+            // Если были результаты поиска, возвращаемся к каталогу
+            if (isSearching) {
+                isSearching = false;
+                loadSections();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function initSearch() {
+            // Используем делегирование событий на документе
+            document.addEventListener('input', (e) => {
+                if (e.target && e.target.id === 'searchInputHeader') {
+                    const query = e.target.value.trim();
+
+                    // Дебаунс для поиска
+                    clearTimeout(searchTimeout);
+                    
+                    if (query.length >= 2) {
+                        searchTimeout = setTimeout(() => {
+                            performSearch(query);
+                        }, 500);
+                    } else if (query.length === 0) {
+                        // Если поле очищено, возвращаемся к исходному состоянию
+                        if (isSearching) {
+                            isSearching = false;
+                            loadSections();
+                        }
+                    }
+                }
+            });
+
+            document.addEventListener('keypress', (e) => {
+                if (e.target && e.target.id === 'searchInputHeader' && e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query.length >= 2) {
+                        clearTimeout(searchTimeout);
+                        performSearch(query);
+                    }
+                }
+            });
+        }
+
+        async function performSearch(query) {
+            try {
+                isSearching = true;
+                showLoading();
+                
+                const response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`, {
+                    timeout: API_TIMEOUT
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                hideLoading();
+                
+                // Сохраняем результаты как текущие товары
+                currentProducts = data.products || [];
+                // Обновляем заголовок
+                elements.pageTitle.textContent = `Результаты поиска: "${query}"`;
+                
+                // Отображаем результаты
+                renderSearchResults(query, currentProducts);
+                
+            } catch (error) {
+                console.error('Ошибка поиска:', error);
+                hideLoading();
+                showErrorState(`Ошибка при поиске: ${error.message}`);
+            }
+        }
+
+        function renderSearchResults(query, products) {
+            let html = '<div class="product-list">';
+            
+            html += `
+                <div class="mb-4 p-4 bg-white bg-opacity-10 rounded-lg backdrop-blur-md">
+                    <p class="text-white text-sm">
+                        <i data-feather="search" class="w-4 h-4 inline mr-2"></i>
+                        Найдено товаров: <strong>${products.length}</strong>
+                    </p>
+                </div>
+            `;
+            
+            products.forEach((product, index) => {
+                const productId = generateProductId(product);
+                const isFavorite = favorites.some(fav => fav.id === productId);
+                const color = safeString(product.color, 'Не указан');
+                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
+                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
+                const photoUrl = safeString(product.photo_url);
+                
+                const userId = tg?.initDataUnsafe?.user?.id;
+                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price && specialPrice;
+                
+                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
+                const alternativeUrls = getAlternativeImageUrls(photoUrl);
+
+                html += `
+                    <div class="product-card fade-in" data-product-index="${index}" onclick="openProductDetail(${index})">
+                        <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
+                            <i data-feather="heart"></i>
+                        </div>
+                `;
+
+                html += renderUniversalImage(imageUrl, alternativeUrls, color, photoUrl);
+                
+                html += `
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                    ${price && price !== 'Цена не указана' ? `
+                                        <span class="price-badge">${escapeHtml(price)}</span>
+                                    ` : ''}
+                                    ${showSpecialPrice ? `
+                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <div class="text-xs text-gray-400 mb-3">
+                                <span>${escapeHtml(product.section || '')} → ${escapeHtml(product.category || '')}</span>
+                            </div>
+
+                            <div class="mt-3">
+                                <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
+                                    <i data-feather="phone" class="w-4 h-4 mr-2"></i>
+                                    Позвонить
+                                </button>
+                            </div>
+
+                            <div class="mt-3">
+                                <button onclick="contactAboutSpecificProduct(${index})" 
+                                        class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
+                                    <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+                                    Узнать подробнее
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            elements.content.innerHTML = html;
+            currentProducts = products;
+            scheduleFeatherReplace();
+        }
+
+        function closeSearchResults() {
+            closeSearchFully();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initTelegramApp();
@@ -5931,6 +6368,9 @@
                 
                 // Отображаем имя пользователя
                 displayUserName();
+                
+                // Инициализируем поиск
+                initSearch();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
