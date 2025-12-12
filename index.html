@@ -1606,8 +1606,15 @@
 
         .object-gallery-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
+        }
+        
+        @media (min-width: 768px) {
+            .object-gallery-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+            }
         }
 
         .object-gallery-image-item {
@@ -1616,6 +1623,7 @@
             cursor: pointer;
             transition: all 0.2s;
             border: 1px solid #e5e7eb;
+            aspect-ratio: 3 / 4;
         }
 
         .object-gallery-image-item:hover {
@@ -1625,13 +1633,13 @@
 
         .object-gallery-image {
             width: 100%;
-            height: 120px;
+            height: 100%;
             object-fit: cover;
         }
 
         .object-gallery-image-placeholder {
             width: 100%;
-            height: 120px;
+            height: 100%;
             background: #f3f4f6;
             display: flex;
             align-items: center;
