@@ -1275,8 +1275,8 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: #000000;
-            border: 1px solid #333333;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -1286,6 +1286,7 @@
             cursor: pointer;
             transition: all 0.2s;
             z-index: 10;
+            backdrop-filter: blur(10px);
         }
 
         .favorite-button i {
@@ -1293,8 +1294,21 @@
         }
 
         .favorite-button:hover {
-            background-color: #1a1a1a;
+            background-color: rgba(0, 0, 0, 0.7);
             transform: scale(1.1);
+        }
+        
+        body.light-theme .favorite-button {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        
+        body.light-theme .favorite-button i {
+            color: #000000;
+        }
+        
+        body.light-theme .favorite-button:hover {
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .favorite-button.active {
@@ -2093,6 +2107,25 @@
             transform: translateY(0);
         }
 
+        .chat-brigade-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            transition: background 0.2s;
+            margin-right: 12px;
+        }
+
+        .chat-brigade-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         .chat-modal-close {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -2547,7 +2580,7 @@
 
         .loading-text {
             margin-top: 30px;
-            color: var(--text-primary);
+            color: var(--text-primary) !important;
             font-size: 24px;
             font-weight: 600;
             text-align: center;
@@ -2783,7 +2816,7 @@
         <!-- Header -->
         <header class="shadow-lg p-4 sticky top-0 z-20">
             <!-- Фото и имя пользователя -->
-            <div id="userInfoHeader" class="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
+            <div id="userInfoHeader" class="flex items-center justify-between mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
                 <div class="flex items-center gap-3">
                     <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
                     <div id="userNameHeader" class="font-medium" style="color: var(--text-primary);">
@@ -2791,21 +2824,24 @@
                     </div>
                 </div>
                 
-                <!-- Кнопка смены темы -->
-                <button id="themeToggleBtn" class="search-toggle-btn" onclick="toggleTheme()" title="Сменить тему">
-                    <i data-feather="sun" class="w-5 h-5" id="themeIcon"></i>
-                </button>
-                
-                <!-- Кнопка поиска в хедере -->
-                <button id="searchToggleBtn" class="search-toggle-btn" onclick="toggleSearch()">
-                    <i data-feather="search" class="w-5 h-5"></i>
-                    <span class="search-label">Поиск</span>
-                </button>
-                
-                <!-- Кнопка с фото канала для перехода в Telegram канал (справа) -->
-                <a href="https://t.me/chronoishere" target="_blank" class="flex-shrink-0">
-                    <img id="channelPhoto" src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer object-cover">
-                </a>
+                <!-- Кнопки в правой части -->
+                <div class="flex items-center gap-2">
+                    <!-- Кнопка поиска -->
+                    <button id="searchToggleBtn" class="search-toggle-btn" onclick="toggleSearch()">
+                        <i data-feather="search" class="w-5 h-5"></i>
+                        <span class="search-label">Поиск</span>
+                    </button>
+                    
+                    <!-- Кнопка смены темы -->
+                    <button id="themeToggleBtn" class="search-toggle-btn" onclick="toggleTheme()" title="Сменить тему">
+                        <i data-feather="sun" class="w-5 h-5" id="themeIcon"></i>
+                    </button>
+                    
+                    <!-- Кнопка с фото канала для перехода в Telegram канал -->
+                    <a href="https://t.me/chronoishere" target="_blank" class="flex-shrink-0">
+                        <img id="channelPhoto" src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer object-cover">
+                    </a>
+                </div>
             </div>
             
             <div class="flex items-center justify-between">
@@ -2989,6 +3025,9 @@
         <!-- Chat Modal -->
         <div id="chatModal" class="chat-modal hidden">
             <div class="chat-modal-header">
+                <button onclick="closeChatModal(); loadBrigades();" class="chat-brigade-btn" title="Открыть бригады">
+                    <i data-feather="users" class="w-5 h-5"></i>
+                </button>
                 <div style="flex: 1;">
                     <div class="chat-modal-title" id="chatModalTitle" style="display: flex; align-items: center;">
                         <span>Чат с бригадой</span>
@@ -3033,7 +3072,7 @@
                         <div class="menu-item" onclick="loadFavorites(); closeSideMenu();">
                             <i data-feather="heart"></i>
                             <div>
-                                <div class="font-medium text-white">Избранное</div>
+                                <div class="font-medium">Избранное</div>
                                 <div class="text-sm opacity-80">Сохраненные товары</div>
                             </div>
                         </div>
@@ -3044,28 +3083,28 @@
                         <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
                             <i data-feather="phone"></i>
                             <div>
-                                <div class="font-medium text-white">Телефон</div>
+                                <div class="font-medium">Телефон</div>
                                 <div class="text-sm opacity-80">60-01-60</div>
                             </div>
                         </div>
                         <div class="menu-item" onclick="open2GIS(); closeSideMenu();">
                             <i data-feather="map-pin"></i>
                             <div>
-                                <div class="font-medium text-white">2GIS</div>
+                                <div class="font-medium">2GIS</div>
                                 <div class="text-sm opacity-80">Наш адрес на карте</div>
                             </div>
                         </div>
                         <div class="menu-item" onclick="loadBrigades(); closeSideMenu();">
                             <i data-feather="users"></i>
                             <div>
-                                <div class="font-medium text-white">Бригады</div>
+                                <div class="font-medium">Бригады</div>
                                 <div class="text-sm opacity-80">Все бригады</div>
                             </div>
                         </div>
                         <div class="menu-item" onclick="callTaxi(); closeSideMenu();">
                             <i data-feather="map"></i>
                             <div>
-                                <div class="font-medium text-white">Такси</div>
+                                <div class="font-medium">Такси</div>
                                 <div class="text-sm opacity-80">Вызвать такси</div>
                             </div>
                         </div>
@@ -3073,14 +3112,14 @@
                             <i data-feather="send"></i>
                             <div>
                                 <div class="font-medium">Телеграмм канал</div>
-                                <div class="text-sm text-gray-600">Новости и акции</div>
+                                <div class="text-sm opacity-80">Новости и акции</div>
                             </div>
                         </div>
                         <div class="menu-item" onclick="loadSections(); closeSideMenu();">
                             <i data-feather="home"></i>
                             <div>
                                 <div class="font-medium">МЕНЮ</div>
-                                <div class="text-sm text-gray-600">Вернуться в каталог</div>
+                                <div class="text-sm opacity-80">Вернуться в каталог</div>
                             </div>
                         </div>
                     </div>
@@ -4081,7 +4120,7 @@
                 
                 html += `
                     <div class="brigade-group">
-                        <h2 class="brigade-group-title" style="color: #ffffff !important;">${escapeHtml(group.group_name)}</h2>
+                        <h2 class="brigade-group-title" style="color: var(--text-primary) !important;">${escapeHtml(group.group_name)}</h2>
                         <div class="brigade-grid">
                 `;
                 
@@ -4182,7 +4221,7 @@
                                 <h3 class="object-title">${escapeHtml(object.object_name)}</h3>
                                 <div class="flex justify-between items-center mt-3">
                                     <div class="gallery-status ${getStatusClass(object.status)}">${getStatusText(object.status)}</div>
-                                    <div class="text-sm text-gray-500">${object.all_photos ? object.all_photos.length : 0} фото</div>
+                                    <div class="text-sm" style="color: var(--text-primary);">${object.all_photos ? object.all_photos.length : 0} фото</div>
                                 </div>
                                 ${object.object_description && object.object_description.trim() !== '' ? `
                                     <button class="info-button mt-3" 
@@ -6481,12 +6520,9 @@
             let html = '<div class="product-list">';
             
             html += `
-                <div class="mb-4 p-4 bg-white bg-opacity-10 rounded-lg backdrop-blur-md">
-                    <p class="text-white text-sm">
-                        <i data-feather="search" class="w-4 h-4 inline mr-2"></i>
-                        Найдено товаров: <strong>${products.length}</strong>
-                    </p>
-                </div>
+                <p class="mb-3 text-sm" style="color: var(--text-primary);">
+                    Найдено товаров: <strong>${products.length}</strong>
+                </p>
             `;
             
             products.forEach((product, index) => {
