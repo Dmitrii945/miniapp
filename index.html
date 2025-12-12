@@ -79,7 +79,7 @@
         h1, h2, h3 {
             font-family: 'Poppins', sans-serif;
             font-weight: 600;
-            color: #ffffff;
+            color: var(--text-primary);
         }
         
         /* Базовый стиль для всех стеклянных кнопок */
@@ -619,7 +619,6 @@
         .back-button:hover {
             background: var(--hover-bg) !important;
             border-color: var(--border-color) !important;
-            transform: translateY(-2px) !important;
             box-shadow: 0 12px 40px var(--shadow-color), inset 0 1px 0 var(--border-color) !important;
         }
 
@@ -698,6 +697,10 @@
 
         .search-input-header::placeholder {
             color: rgba(255, 255, 255, 0.4);
+        }
+        
+        body.light-theme .search-input-header::placeholder {
+            color: rgba(0, 0, 0, 0.4);
         }
 
         .close-search-btn-inline {
@@ -1254,20 +1257,18 @@
             font-size: 1.5rem;
             font-weight: 800;
             line-height: 1.2;
-            color: #FFFFFF;
+            color: var(--text-primary) !important;
             letter-spacing: -0.02em;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .sub-title {
             font-family: 'Inter', sans-serif;
             font-size: 0.875rem;
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
             font-weight: 500;
             line-height: 1;
             margin-top: 4px;
             letter-spacing: 0.05em;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .favorite-button {
@@ -2524,7 +2525,7 @@
 
         .company-name {
             margin-top: 40px;
-            color: white;
+            color: var(--text-primary);
             font-size: 36px;
             font-weight: 700;
             text-align: center;
@@ -2546,7 +2547,7 @@
 
         .loading-text {
             margin-top: 30px;
-            color: white;
+            color: var(--text-primary);
             font-size: 24px;
             font-weight: 600;
             text-align: center;
@@ -2785,7 +2786,7 @@
             <div id="userInfoHeader" class="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
                 <div class="flex items-center gap-3">
                     <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
-                    <div id="userNameHeader" class="text-white font-medium">
+                    <div id="userNameHeader" class="font-medium" style="color: var(--text-primary);">
                         <!-- Имя пользователя будет вставлено через JS -->
                     </div>
                 </div>
