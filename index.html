@@ -6435,11 +6435,7 @@
                 stateBeforeSearch = null;
                 
                 // Выполняем последнее действие для обновления контента
-                if (lastAction) {
-                    executeLastAction();
-                } else {
-                    loadSections();
-                }
+                retryLastAction();
             }
         }
 
