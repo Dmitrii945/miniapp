@@ -52,11 +52,16 @@
         }
         
         /* Дополнительные стили для светлой темы */
-        body.light-theme .info-modal,
         body.light-theme .chat-modal,
         body.light-theme .product-detail-modal {
             background: rgba(248, 250, 252, 0.98) !important;
             color: #0f172a !important;
+        }
+        
+        /* info-modal всегда темное */
+        body.light-theme .info-modal {
+            background: rgba(0, 0, 0, 0.9) !important;
+            color: #ffffff !important;
         }
         
         body.light-theme .menu-divider {
