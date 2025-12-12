@@ -652,6 +652,47 @@
             font-weight: 500;
             display: none;
         }
+        
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            margin-top: -1px;
+        }
+        
+        .search-suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-suggestion-item:hover {
+            background: var(--hover-bg);
+        }
+        
+        .search-suggestion-icon {
+            width: 16px;
+            height: 16px;
+            color: var(--text-secondary);
+        }
 
         /* Строка поиска между хедером и контентом */
         .search-input-container-main {
@@ -706,6 +747,47 @@
         
         body.light-theme .search-input-header::placeholder {
             color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            margin-top: -1px;
+        }
+        
+        .search-suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-suggestion-item:hover {
+            background: var(--hover-bg);
+        }
+        
+        .search-suggestion-icon {
+            width: 16px;
+            height: 16px;
+            color: var(--text-secondary);
         }
 
         .close-search-btn-inline {
@@ -2905,6 +2987,8 @@
             <button id="closeSearchBtn" class="close-search-btn-inline" onclick="closeSearchFully()">
                 <i data-feather="x"></i>
             </button>
+            <!-- Подсказки поиска -->
+            <div id="searchSuggestions" class="search-suggestions hidden"></div>
         </div>
 
         <!-- Loading -->
@@ -6397,6 +6481,44 @@
         let searchTimeout = null;
         let isSearching = false;
 
+        async function showSearchSuggestions(query) {
+            const container = document.getElementById('searchSuggestions');
+            
+            if (query.length < 2) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/search/suggestions?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.suggestions && data.suggestions.length > 0) {
+                    container.innerHTML = data.suggestions.slice(0, 5).map(item => `
+                        <div class="search-suggestion-item" onclick="selectSuggestion('${escapeHtml(item).replace(/'/g, "\\'")}')">
+                            <i data-feather="search" class="search-suggestion-icon"></i>
+                            <span>${escapeHtml(item)}</span>
+                        </div>
+                    `).join('');
+                    container.classList.remove('hidden');
+                    scheduleFeatherReplace();
+                } else {
+                    container.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки подсказок:', error);
+                container.classList.add('hidden');
+            }
+        }
+        
+        function selectSuggestion(suggestion) {
+            const searchInput = document.getElementById('searchInputHeader');
+            searchInput.value = suggestion;
+            document.getElementById('searchSuggestions').classList.add('hidden');
+            clearTimeout(searchTimeout);
+            performSearch(suggestion);
+        }
+
         function toggleSearch() {
             const container = document.getElementById('searchInputContainer');
             const searchInput = document.getElementById('searchInputHeader');
@@ -6422,12 +6544,14 @@
         function closeSearchFully() {
             const container = document.getElementById('searchInputContainer');
             const searchInput = document.getElementById('searchInputHeader');
+            const suggestions = document.getElementById('searchSuggestions');
             
             // Очищаем поле
             searchInput.value = '';
             
-            // Скрываем строку поиска
+            // Скрываем строку поиска и подсказки
             container.classList.add('hidden');
+            suggestions.classList.add('hidden');
             
             // Всегда очищаем результаты поиска и возвращаемся к последней странице
             isSearching = false;
@@ -6445,10 +6569,15 @@
                     clearTimeout(searchTimeout);
                     
                     if (query.length >= 2) {
+                        // Показываем подсказки
+                        showSearchSuggestions(query);
+                        
                         searchTimeout = setTimeout(() => {
                             performSearch(query);
                         }, 500);
                     } else if (query.length === 0) {
+                        // Скрываем подсказки
+                        document.getElementById('searchSuggestions').classList.add('hidden');
                         // Если поле очищено, восстанавливаем состояние
                         if (isSearching) {
                             isSearching = false;
@@ -7428,6 +7557,7 @@
 
         // Глобальные функции
         // Глобальные функции
+        window.selectSuggestion = selectSuggestion;
         window.loadSections = loadSections;
         window.loadCategories = loadCategories;
         window.loadModels = loadModels;
