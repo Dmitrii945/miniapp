@@ -3130,6 +3130,9 @@
         let lastAction = null;
         let deferredPrompt = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        
+        // Сохранение состояния перед поиском
+        let stateBeforeSearch = null;
 
         // Состояние для галереи бригад
         let currentGalleryData = null;
@@ -6360,11 +6363,29 @@
             // Скрываем строку поиска
             container.classList.add('hidden');
             
-            // Если были результаты поиска, возвращаемся к каталогу
+            // Если были результаты поиска, восстанавливаем состояние
             if (isSearching) {
                 isSearching = false;
-                loadSections();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Восстанавливаем сохраненное состояние
+                if (stateBeforeSearch) {
+                    // Восстанавливаем состояние
+                    lastAction = stateBeforeSearch.lastAction;
+                    navigationStack = stateBeforeSearch.navigationStack;
+                    currentProducts = stateBeforeSearch.currentProducts;
+                    elements.pageTitle.textContent = stateBeforeSearch.pageTitle;
+                    elements.content.innerHTML = stateBeforeSearch.contentHTML;
+                    
+                    // Обновляем иконки Feather
+                    scheduleFeatherReplace();
+                    
+                    // Очищаем сохраненное состояние
+                    stateBeforeSearch = null;
+                } else {
+                    // Если нет сохраненного состояния, возвращаемся к началу
+                    loadSections();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             }
         }
 
@@ -6382,10 +6403,22 @@
                             performSearch(query);
                         }, 500);
                     } else if (query.length === 0) {
-                        // Если поле очищено, возвращаемся к исходному состоянию
+                        // Если поле очищено, восстанавливаем состояние
                         if (isSearching) {
                             isSearching = false;
-                            loadSections();
+                            
+                            // Восстанавливаем сохраненное состояние
+                            if (stateBeforeSearch) {
+                                lastAction = stateBeforeSearch.lastAction;
+                                navigationStack = stateBeforeSearch.navigationStack;
+                                currentProducts = stateBeforeSearch.currentProducts;
+                                elements.pageTitle.textContent = stateBeforeSearch.pageTitle;
+                                elements.content.innerHTML = stateBeforeSearch.contentHTML;
+                                scheduleFeatherReplace();
+                                stateBeforeSearch = null;
+                            } else {
+                                loadSections();
+                            }
                         }
                     }
                 }
@@ -6404,6 +6437,17 @@
 
         async function performSearch(query) {
             try {
+                // Сохраняем текущее состояние перед поиском (только если еще не в режиме поиска)
+                if (!isSearching) {
+                    stateBeforeSearch = {
+                        lastAction: lastAction,
+                        navigationStack: [...navigationStack],
+                        currentProducts: [...currentProducts],
+                        pageTitle: elements.pageTitle.textContent,
+                        contentHTML: elements.content.innerHTML
+                    };
+                }
+                
                 isSearching = true;
                 showLoading();
                 
