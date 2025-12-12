@@ -566,160 +566,6 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
 
-        /* Строка поиска в хедере */
-        .header-search-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            max-width: 400px;
-        }
-
-        .search-toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .search-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        .search-label {
-            font-size: 14px;
-            font-weight: 500;
-            display: none;
-        }
-
-        .search-input-container-header {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            margin-top: 8px;
-            padding: 0 16px;
-            z-index: 30;
-        }
-
-        .search-input-group-header {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: rgba(30, 41, 59, 0.95);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        }
-
-        .search-icon-header {
-            position: absolute;
-            left: 16px;
-            width: 20px;
-            height: 20px;
-            color: rgba(255, 255, 255, 0.5);
-            pointer-events: none;
-        }
-
-        .search-input-header {
-            width: 100%;
-            padding: 14px 48px;
-            background: transparent;
-            border: none;
-            color: #ffffff;
-            font-size: 16px;
-            outline: none;
-        }
-
-        .search-input-header::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .clear-search-btn-header {
-            position: absolute;
-            right: 12px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .clear-search-btn-header:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .clear-search-btn-header i {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Для мобильных */
-        @media (max-width: 767px) {
-            .search-toggle-btn {
-                padding: 8px;
-            }
-
-            .search-label {
-                display: none;
-            }
-
-            .search-input-container-header {
-                left: 0;
-                right: 0;
-                padding: 0 16px;
-            }
-        }
-
-        /* Плавающая кнопка закрытия результатов поиска */
-        .close-search-results-btn {
-            position: fixed;
-            top: 120px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(239, 68, 68, 0.9);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-        }
-
-        .close-search-results-btn:hover {
-            background: rgba(220, 38, 38, 1);
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(239, 68, 68, 0.6);
-        }
-
-        .close-search-results-btn i {
-            width: 24px;
-            height: 24px;
-        }
-
         .clickable-card {
             cursor: pointer;
             transition: all 0.2s;
@@ -921,37 +767,9 @@
                 display: none !important;
             }
 
-            /* Скрываем содержимое header на десктопе */
-            header > div:not(#userInfoHeader) {
-                display: none !important;
-            }
-            
-            /* Показываем только userInfoHeader на десктопе */
+            /* Скрываем header полностью на десктопе */
             header {
-                background: transparent !important;
-                box-shadow: none !important;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1000;
-                padding: 20px;
-                display: flex !important;
-                justify-content: center;
-            }
-            
-            #userInfoHeader {
-                background: rgba(30, 41, 59, 0.75) !important;
-                backdrop-filter: blur(40px) !important;
-                -webkit-backdrop-filter: blur(40px) !important;
-                border-radius: 16px;
-                padding: 12px 20px;
-                min-width: 300px;
-                max-width: 500px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                margin-bottom: 0;
-                border-bottom: none;
+                display: none !important;
             }
 
             .desktop-bottom-bar {
@@ -1025,12 +843,6 @@
                 transform: scale(2);
             }
 
-            /* Кнопка закрытия результатов поиска для десктопа */
-            .close-search-results-btn {
-                top: 150px;
-                right: 140px;
-            }
-
             .desktop-main-wrapper {
                 display: block;
                 margin: 0 120px;
@@ -1039,30 +851,14 @@
                 margin-right: auto;
             }
 
-            /* Строка поиска в хедере для десктопа */
-            .search-input-container-header {
-                position: fixed;
-                top: 140px;
-                left: 120px;
-                right: 120px;
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 0;
-            }
-
-            .search-toggle-btn .search-label {
-                display: inline;
-            }
-
             /* Кнопка "Назад" для десктопа */
             .back-button {
                 position: fixed !important;
                 bottom: 70px !important;
-                left: 50% !important;
-                right: auto !important;
-                transform: translateX(-50%) !important;
-                width: 1200px !important;
-                max-width: calc(100% - 240px) !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
                 height: 35px !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -1079,7 +875,7 @@
             .back-button:hover {
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: translateX(-50%) !important;
+                transform: none !important;
             }
 
             .bottom-action-buttons {
@@ -2710,43 +2506,13 @@
         <!-- Main wrapper for desktop -->
         <div class="desktop-main-wrapper">
         <!-- Header -->
-        <header class="shadow-lg p-4 sticky top-0 z-20">
+        <header class="shadow-lg p-4 sticky top-0 z-10">
             <!-- Фото и имя пользователя -->
-            <div id="userInfoHeader" class="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
-                <div class="flex items-center gap-3">
-                    <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
-                    <div id="userNameHeader" class="text-white font-medium">
-                        <!-- Имя пользователя будет вставлено через JS -->
-                    </div>
+            <div id="userInfoHeader" class="flex items-center gap-3 mb-3 pb-3 border-b border-white border-opacity-20" style="display: none;">
+                <img id="userPhoto" src="" alt="User" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30" style="display: none;">
+                <div id="userNameHeader" class="text-white font-medium">
+                    <!-- Имя пользователя будет вставлено через JS -->
                 </div>
-                
-                <!-- Строка поиска в хедере -->
-                <div class="header-search-container">
-                    <button id="searchToggleBtn" class="search-toggle-btn" onclick="toggleSearch()">
-                        <i data-feather="search" class="w-5 h-5"></i>
-                        <span class="search-label">Поиск</span>
-                    </button>
-                    <div id="searchInputContainer" class="search-input-container-header hidden">
-                        <div class="search-input-group-header">
-                            <i data-feather="search" class="search-icon-header"></i>
-                            <input 
-                                type="text" 
-                                id="searchInputHeader" 
-                                class="search-input-header" 
-                                placeholder="Поиск товаров..."
-                                autocomplete="off"
-                            >
-                            <button id="clearSearchBtnHeader" class="clear-search-btn-header hidden" onclick="clearSearch()">
-                                <i data-feather="x"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Кнопка с фото канала для перехода в Telegram канал (справа) -->
-                <a href="https://t.me/chronoishere" target="_blank" class="flex-shrink-0">
-                    <img id="channelPhoto" src="https://t.me/i/userpic/320/chronosphereadmin.jpg" alt="Channel" class="w-10 h-10 rounded-full border-2 border-white border-opacity-30 hover:opacity-80 transition-opacity cursor-pointer object-cover">
-                </a>
             </div>
             
             <div class="flex items-center justify-between">
@@ -2854,7 +2620,6 @@
             <img id="productDetailImage" class="product-detail-image" src="" alt="Фото товара">
             <div class="product-detail-content">
                 <div id="productDetailPrice" class="product-detail-price"></div>
-                <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #FCD34D; color: #000000; font-weight: 600; display: none; margin-top: 8px;"></div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
                     <button onclick="makePhoneCall()" class="product-detail-btn">
@@ -3033,16 +2798,6 @@
         const API_TIMEOUT = 30000;
         let debugMode = false;
         let featherTimeout;
-        
-        // Список ID пользователей, которым показывать специальную цену
-        const SPECIAL_PRICE_USER_IDS = [
-            1606292950,
-            1445276912,
-            1955229007,
-            5564422095,
-            8343032724
-            
-        ];
 
         // Состояние приложения
         let navigationStack = [];
@@ -3100,7 +2855,6 @@
             const userInfoHeader = document.getElementById('userInfoHeader');
             const userNameHeader = document.getElementById('userNameHeader');
             const userPhoto = document.getElementById('userPhoto');
-            const channelPhoto = document.getElementById('channelPhoto');
             
             if (userInfoHeader && userNameHeader && userInfo.first_name) {
                 // Формируем отображаемое имя
@@ -3130,25 +2884,6 @@
                         `;
                     }
                 }
-                
-                // Загружаем фото канала
-                if (channelPhoto) {
-                    loadChannelPhoto();
-                }
-            }
-        }
-        
-        async function loadChannelPhoto() {
-            try {
-                const channelPhoto = document.getElementById('channelPhoto');
-                const response = await fetch('/get_channel_photo?username=chronosphereadmin');
-                const data = await response.json();
-                
-                if (data.success && data.photo_url && channelPhoto) {
-                    channelPhoto.src = data.photo_url;
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки фото канала:', error);
             }
         }
 
@@ -3541,14 +3276,9 @@
                 
                 const color = safeString(product.color, 'Не указан');
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
-                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
-                
-                // Проверяем, нужно ли показывать специальную цену
-                const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
@@ -3567,14 +3297,9 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-                                    ${price && price !== 'Цена не указана' ? `
-                                        <span class="price-badge">${escapeHtml(price)}</span>
-                                    ` : ''}
-                                    ${showSpecialPrice ? `
-                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
-                                    ` : ''}
-                                </div>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -4325,7 +4050,6 @@
             const title = document.getElementById('productDetailTitle');
             const image = document.getElementById('productDetailImage');
             const price = document.getElementById('productDetailPrice');
-            const specialPrice = document.getElementById('productDetailSpecialPrice');
             const description = document.getElementById('productDetailDescription');
 
             // Заголовок
@@ -4357,15 +4081,6 @@
                 price.style.display = 'none';
             }
 
-            // Специальная цена (только для определенных пользователей)
-            const userId = tg?.initDataUnsafe?.user?.id;
-            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
-                specialPrice.textContent = formatPriceForBadge(product.special_price);
-                specialPrice.style.display = 'inline-block';
-            } else {
-                specialPrice.style.display = 'none';
-            }
-
             // Описание из столбца I (description)
             if (product.description) {
                 description.textContent = product.description;
@@ -4392,7 +4107,6 @@
             const title = document.getElementById('productDetailTitle');
             const image = document.getElementById('productDetailImage');
             const price = document.getElementById('productDetailPrice');
-            const specialPrice = document.getElementById('productDetailSpecialPrice');
             const description = document.getElementById('productDetailDescription');
 
             const product = fav.product;
@@ -4421,15 +4135,6 @@
                 price.style.display = 'inline-block';
             } else {
                 price.style.display = 'none';
-            }
-
-            // Специальная цена (только для определенных пользователей)
-            const userId = tg?.initDataUnsafe?.user?.id;
-            if (userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price) {
-                specialPrice.textContent = formatPriceForBadge(product.special_price);
-                specialPrice.style.display = 'inline-block';
-            } else {
-                specialPrice.style.display = 'none';
             }
 
             if (product.description) {
@@ -5611,14 +5316,9 @@
                 const isFavorite = favorites.some(fav => fav.id === productId);
                 const color = safeString(product.color, 'Не указан');
                 const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
-                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
                 const description = safeString(product.description);
                 const photoUrl = safeString(product.photo_url);
                 const photoDescription = safeString(product.photo_description);
-                
-                // Проверяем, нужно ли показывать специальную цену
-                const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price && specialPrice;
                 
                 let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
                 const alternativeUrls = getAlternativeImageUrls(photoUrl);
@@ -5636,14 +5336,9 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-                                    ${price && price !== 'Цена не указана' ? `
-                                        <span class="price-badge">${escapeHtml(price)}</span>
-                                    ` : ''}
-                                    ${showSpecialPrice ? `
-                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
-                                    ` : ''}
-                                </div>
+                                ${price && price !== 'Цена не указана' ? `
+                                    <span class="price-badge">${escapeHtml(price)}</span>
+                                ` : ''}
                             </div>
                             
                             <div class="space-y-2 mb-4">
@@ -6217,230 +5912,6 @@
             }, true);
         }
 
-        // ========== ПОИСК ==========
-
-        let searchTimeout = null;
-        let isSearching = false;
-        let searchExpanded = false;
-
-        function toggleSearch() {
-            const container = document.getElementById('searchInputContainer');
-            const toggleBtn = document.getElementById('searchToggleBtn');
-            const searchInput = document.getElementById('searchInputHeader');
-            
-            searchExpanded = !searchExpanded;
-            
-            if (searchExpanded) {
-                container.classList.remove('hidden');
-                setTimeout(() => {
-                    searchInput.focus();
-                }, 100);
-            } else {
-                container.classList.add('hidden');
-                clearSearch();
-            }
-        }
-
-        function initSearch() {
-            const searchInput = document.getElementById('searchInputHeader');
-            const clearBtn = document.getElementById('clearSearchBtnHeader');
-
-            if (!searchInput) return;
-
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-                
-                // Показываем/скрываем кнопку очистки
-                if (query.length > 0) {
-                    clearBtn.classList.remove('hidden');
-                } else {
-                    clearBtn.classList.add('hidden');
-                }
-
-                // Дебаунс для поиска
-                clearTimeout(searchTimeout);
-                
-                if (query.length >= 2) {
-                    searchTimeout = setTimeout(() => {
-                        performSearch(query);
-                    }, 500);
-                } else if (query.length === 0) {
-                    // Если поле очищено, возвращаемся к исходному состоянию
-                    if (isSearching) {
-                        isSearching = false;
-                        loadSections();
-                    }
-                }
-            });
-
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const query = e.target.value.trim();
-                    if (query.length >= 2) {
-                        clearTimeout(searchTimeout);
-                        performSearch(query);
-                    }
-                }
-            });
-        }
-
-        async function performSearch(query) {
-            try {
-                isSearching = true;
-                showLoading();
-                
-                const response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`, {
-                    timeout: API_TIMEOUT
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                hideLoading();
-                
-                // Сохраняем результаты как текущие товары
-                currentProducts = data.products || [];
-                
-                if (currentProducts.length === 0) {
-                    showEmptyState(`По запросу "${query}" ничего не найдено`);
-                    return;
-                }
-                
-                // Обновляем заголовок
-                elements.pageTitle.textContent = `Результаты поиска: "${query}"`;
-                
-                // Отображаем результаты
-                renderSearchResults(query, currentProducts);
-                
-            } catch (error) {
-                console.error('Ошибка поиска:', error);
-                hideLoading();
-                showErrorState(`Ошибка при поиске: ${error.message}`);
-            }
-        }
-
-        function renderSearchResults(query, products) {
-            let html = '<div class="product-list">';
-            
-            // Добавляем плавающую кнопку закрытия результатов
-            html += `
-                <button onclick="closeSearchResults()" class="close-search-results-btn" title="Закрыть результаты поиска">
-                    <i data-feather="x"></i>
-                </button>
-            `;
-            
-            html += `
-                <div class="mb-4 p-4 bg-white bg-opacity-10 rounded-lg backdrop-blur-md">
-                    <p class="text-white text-sm">
-                        <i data-feather="search" class="w-4 h-4 inline mr-2"></i>
-                        Найдено товаров: <strong>${products.length}</strong>
-                    </p>
-                </div>
-            `;
-            
-            products.forEach((product, index) => {
-                const productId = generateProductId(product);
-                const isFavorite = favorites.some(fav => fav.id === productId);
-                const color = safeString(product.color, 'Не указан');
-                const price = product.price ? formatPriceForBadge(product.price) : 'Цена не указана';
-                const specialPrice = product.special_price ? formatPriceForBadge(product.special_price) : null;
-                const photoUrl = safeString(product.photo_url);
-                
-                const userId = tg?.initDataUnsafe?.user?.id;
-                const showSpecialPrice = userId && SPECIAL_PRICE_USER_IDS.includes(userId) && product.special_price && specialPrice;
-                
-                let imageUrl = extractPhotoFilenameFromUrl(photoUrl);
-                const alternativeUrls = getAlternativeImageUrls(photoUrl);
-
-                html += `
-                    <div class="product-card fade-in" data-product-index="${index}" onclick="openProductDetail(${index})">
-                        <div class="favorite-button ${isFavorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${index})">
-                            <i data-feather="heart"></i>
-                        </div>
-                `;
-
-                html += renderUniversalImage(imageUrl, alternativeUrls, color, photoUrl);
-                
-                html += `
-                        <div class="p-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="font-semibold text-lg text-contrast">${escapeHtml(color)}</h3>
-                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-                                    ${price && price !== 'Цена не указана' ? `
-                                        <span class="price-badge">${escapeHtml(price)}</span>
-                                    ` : ''}
-                                    ${showSpecialPrice ? `
-                                        <span class="price-badge" style="background: #FCD34D; color: #000000; font-weight: 600;">${escapeHtml(specialPrice)}</span>
-                                    ` : ''}
-                                </div>
-                            </div>
-                            
-                            <div class="text-xs text-gray-400 mb-3">
-                                <span>${escapeHtml(product.section || '')} → ${escapeHtml(product.category || '')}</span>
-                            </div>
-
-                            <div class="mt-3">
-                                <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
-                                    <i data-feather="phone" class="w-4 h-4 mr-2"></i>
-                                    Позвонить
-                                </button>
-                            </div>
-
-                            <div class="mt-3">
-                                <button onclick="contactAboutSpecificProduct(${index})" 
-                                        class="w-full py-3 tg-theme-button rounded-lg transition font-medium flex items-center justify-center">
-                                    <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
-                                    Узнать подробнее
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `
-                <button onclick="clearSearch(); loadSections();" class="back-button">
-                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Вернуться к каталогу
-                </button>
-            `;
-
-            html += '</div>';
-            
-            elements.content.innerHTML = html;
-            scheduleFeatherReplace();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function clearSearch() {
-            const searchInput = document.getElementById('searchInputHeader');
-            const clearBtn = document.getElementById('clearSearchBtnHeader');
-            const container = document.getElementById('searchInputContainer');
-            
-            if (searchInput) {
-                searchInput.value = '';
-            }
-            
-            if (clearBtn) {
-                clearBtn.classList.add('hidden');
-            }
-            
-            isSearching = false;
-            searchExpanded = false;
-            
-            if (container) {
-                container.classList.add('hidden');
-            }
-        }
-
-        function closeSearchResults() {
-            clearSearch();
-            loadSections();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 initTelegramApp();
@@ -6460,9 +5931,6 @@
                 
                 // Отображаем имя пользователя
                 displayUserName();
-                
-                // Инициализируем поиск
-                initSearch();
                 
                 const toggleMenuBtn = document.getElementById('toggleMenu');
                 const closeMenuBtn = document.getElementById('closeMenu');
