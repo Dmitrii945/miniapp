@@ -1133,6 +1133,7 @@
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
                 transform: translateX(-50%) !important;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
             }
             
             /* Адаптация для узких экранов */
@@ -1896,7 +1897,7 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            color: var(--text-primary);
+            color: #000000 !important;
             font-size: 16px;
             line-height: 1.5;
             white-space: pre-line;
@@ -2886,7 +2887,7 @@
         <!-- Loading -->
         <div id="loading" class="hidden p-8 text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p class="mt-4 tg-theme-hint text-contrast">Загрузка...</p>
+            <p class="mt-4 text-contrast" style="color: var(--text-primary) !important;">Загрузка...</p>
         </div>
 
         <!-- Empty State -->
@@ -2996,7 +2997,10 @@
         <!-- My Chats Modal -->
         <div id="myChatsModal" class="chat-modal hidden">
             <div class="chat-modal-header">
-                <h2 class="chat-modal-title">Мои чаты</h2>
+                <button onclick="closeMyChatsModal(); loadBrigades();" class="chat-brigade-btn" title="Открыть бригады">
+                    <i data-feather="users" class="w-5 h-5"></i>
+                </button>
+                <h2 class="chat-modal-title" style="flex: 1;">Мои чаты</h2>
                 <button onclick="closeMyChatsModal()" class="chat-modal-close">
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
@@ -6402,29 +6406,11 @@
             // Скрываем строку поиска
             container.classList.add('hidden');
             
-            // Если были результаты поиска, восстанавливаем состояние
+            // Если были результаты поиска, просто скрываем их
             if (isSearching) {
                 isSearching = false;
-                
-                // Восстанавливаем сохраненное состояние
-                if (stateBeforeSearch) {
-                    // Восстанавливаем состояние
-                    lastAction = stateBeforeSearch.lastAction;
-                    navigationStack = stateBeforeSearch.navigationStack;
-                    currentProducts = stateBeforeSearch.currentProducts;
-                    elements.pageTitle.textContent = stateBeforeSearch.pageTitle;
-                    elements.content.innerHTML = stateBeforeSearch.contentHTML;
-                    
-                    // Обновляем иконки Feather
-                    scheduleFeatherReplace();
-                    
-                    // Очищаем сохраненное состояние
-                    stateBeforeSearch = null;
-                } else {
-                    // Если нет сохраненного состояния, возвращаемся к началу
-                    loadSections();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+                stateBeforeSearch = null;
+                // Не делаем ничего - пользователь остается на текущей странице
             }
         }
 
@@ -6517,12 +6503,11 @@
         }
 
         function renderSearchResults(query, products) {
-            let html = '<div class="product-list">';
-            
-            html += `
+            let html = `
                 <p class="mb-3 text-sm" style="color: var(--text-primary);">
                     Найдено товаров: <strong>${products.length}</strong>
                 </p>
+                <div class="product-list">
             `;
             
             products.forEach((product, index) => {
