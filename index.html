@@ -1132,7 +1132,6 @@
             .back-button:hover {
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: translateX(-50%) !important;
                 box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
             }
             
@@ -1897,11 +1896,15 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            color: #000000 !important;
+            color: #ffffff !important;
             font-size: 16px;
             line-height: 1.5;
             white-space: pre-line;
             word-wrap: break-word;
+        }
+        
+        body.light-theme .info-modal-content {
+            color: #000000 !important;
         }
 
         /* МОДАЛЬНОЕ ОКНО ТОВАРА */
