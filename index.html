@@ -6429,14 +6429,10 @@
             // Скрываем строку поиска
             container.classList.add('hidden');
             
-            // Если были результаты поиска, возвращаемся к последнему действию
-            if (isSearching) {
-                isSearching = false;
-                stateBeforeSearch = null;
-                
-                // Выполняем последнее действие для обновления контента
-                retryLastAction();
-            }
+            // Всегда очищаем результаты поиска и возвращаемся к последней странице
+            isSearching = false;
+            stateBeforeSearch = null;
+            retryLastAction();
         }
 
         function initSearch() {
