@@ -1376,6 +1376,16 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
+        
+        /* Desktop версия - карточки на 30% уже и выше */
+        @media (min-width: 1024px) {
+            .brigade-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+        }
 
         .brigade-card {
             background: var(--bg-card);
@@ -1391,6 +1401,13 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             color: var(--text-primary) !important;
+        }
+        
+        /* Desktop версия - карточки выше на 30% */
+        @media (min-width: 1024px) {
+            .brigade-card {
+                height: 182px;
+            }
         }
 
         .brigade-card:hover {
