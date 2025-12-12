@@ -19,9 +19,61 @@
             --tg-theme-button-text-color: #ffffff;
         }
         
+        /* Темная тема (по умолчанию) */
+        body {
+            --bg-primary: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --bg-secondary: rgba(30, 41, 59, 0.95);
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-hint: #999999;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --hover-bg: rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Светлая тема */
+        body.light-theme {
+            --bg-primary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --bg-secondary: rgba(248, 250, 252, 0.98);
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-hint: #64748b;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --hover-bg: rgba(0, 0, 0, 0.05);
+        }
+        
+        body.light-theme h1,
+        body.light-theme h2,
+        body.light-theme h3 {
+            color: #0f172a !important;
+        }
+        
+        /* Дополнительные стили для светлой темы */
+        body.light-theme .info-modal,
+        body.light-theme .chat-modal,
+        body.light-theme .product-detail-modal {
+            background: rgba(248, 250, 252, 0.98) !important;
+            color: #0f172a !important;
+        }
+        
+        body.light-theme .menu-divider {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-theme .close-search-btn-inline,
+        body.light-theme .search-toggle-btn {
+            color: #0f172a !important;
+        }
+        
         /* Общие стили и шрифты */
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
         }
         
         h1, h2, h3 {
@@ -32,24 +84,29 @@
         
         /* Базовый стиль для всех стеклянных кнопок */
         .glass-btn, button:not(.no-glass) {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
             border-radius: 16px !important;
             backdrop-filter: blur(40px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
             transition: all 0.3s ease !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 8px 32px var(--shadow-color), inset 0 1px 0 var(--border-color) !important;
             cursor: pointer !important;
         }
         
         .glass-btn:hover, button:not(.no-glass):hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: var(--hover-bg) !important;
+            border-color: var(--border-color) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
+            box-shadow: 0 12px 40px var(--shadow-color), inset 0 1px 0 var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Светлая тема - дополнительные стили для кнопок */
+        body.light-theme .glass-btn,
+        body.light-theme button:not(.no-glass) {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
         }
         
         .tg-theme-button {
@@ -204,48 +261,48 @@
         }
         
         .product-card {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--bg-card);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 8px 32px var(--shadow-color);
+            border: 1px solid var(--border-color);
             overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
         }
 
         .product-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 16px 48px var(--shadow-color);
+            border-color: var(--border-color);
+            background: var(--hover-bg);
         }
 
         .product-card * {
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
         }
         
         .category-card {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--bg-card);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 8px 32px var(--shadow-color);
+            border: 1px solid var(--border-color);
             overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
         }
 
         .category-card:hover {
             transform: translateY(-6px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-            border-color: rgba(255,255,255,0.5);
-            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 60px var(--shadow-color);
+            border-color: var(--border-color);
+            background: var(--hover-bg);
         }
 
         .category-card * {
@@ -541,9 +598,9 @@
         }
 
         .back-button {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: white !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
             padding: 12px 20px !important;
             border-radius: 16px !important;
             cursor: pointer !important;
@@ -556,15 +613,14 @@
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 8px 32px var(--shadow-color), inset 0 1px 0 var(--border-color) !important;
         }
         
         .back-button:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background: var(--hover-bg) !important;
+            border-color: var(--border-color) !important;
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 12px 40px var(--shadow-color), inset 0 1px 0 var(--border-color) !important;
         }
 
         /* Кнопка поиска в хедере */
@@ -600,10 +656,10 @@
             z-index: 19;
             max-width: 100%;
             padding: 12px 16px;
-            background: rgba(30, 41, 59, 0.95);
+            background: var(--bg-secondary);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-color);
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -611,7 +667,6 @@
         }
 
         .search-input-container-main:focus-within {
-            background: rgba(30, 41, 59, 1);
             border-color: rgba(59, 130, 246, 0.5);
         }
 
@@ -620,24 +675,24 @@
             left: 28px;
             width: 18px;
             height: 18px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-secondary);
             pointer-events: none;
         }
 
         .search-input-header {
             flex: 1;
             padding: 10px 45px 10px 50px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            color: #ffffff;
+            color: var(--text-primary);
             font-size: 15px;
             outline: none;
             transition: all 0.3s ease;
         }
 
         .search-input-header:focus {
-            background: rgba(255, 255, 255, 0.12);
+            background: var(--hover-bg);
             border-color: rgba(59, 130, 246, 0.5);
         }
 
@@ -700,26 +755,25 @@
         }
 
         header {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+            background: var(--bg-card) !important;
+            border-bottom: 1px solid var(--border-color) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
-            color: white;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+            color: var(--text-primary);
+            box-shadow: 0 4px 20px var(--shadow-color) !important;
         }
 
         header h1, header span, header .page-title {
-            color: #ffffff !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            color: var(--text-primary) !important;
         }
 
         h1, h2, h3, h4, h5, h6, p, span, div {
             color: inherit;
         }
 
-        /* Переопределение Tailwind классов для белого текста */
+        /* Переопределение Tailwind классов */
         .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700 {
-            color: #ffffff !important;
+            color: var(--text-secondary) !important;
         }
 
         button {
@@ -830,21 +884,20 @@
             display: flex !important;
             align-items: center !important;
             gap: 12px !important;
-            color: white !important;
-            background: rgba(255, 255, 255, 0.08) !important;
+            color: var(--text-primary) !important;
+            background: var(--bg-card) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid var(--border-color) !important;
             margin-bottom: 8px !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 4px 16px var(--shadow-color) !important;
         }
 
         .menu-item:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
+            background: var(--hover-bg) !important;
             transform: translateX(-4px) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            border-color: var(--border-color) !important;
+            box-shadow: 0 8px 32px var(--shadow-color) !important;
         }
 
         .menu-item i {
@@ -1056,7 +1109,7 @@
             .back-button:hover {
                 background: rgba(59, 130, 246, 0.4) !important;
                 border-top-color: rgba(59, 130, 246, 0.9) !important;
-                transform: translateX(-50%) !important;
+                transform: translateX(-50%) translateY(0) !important;
             }
             
             /* Адаптация для узких экранов */
@@ -2690,6 +2743,11 @@
                     </div>
                 </div>
                 
+                <!-- Кнопка смены темы -->
+                <button id="themeToggleBtn" class="search-toggle-btn" onclick="toggleTheme()" title="Сменить тему">
+                    <i data-feather="sun" class="w-5 h-5" id="themeIcon"></i>
+                </button>
+                
                 <!-- Кнопка поиска в хедере -->
                 <button id="searchToggleBtn" class="search-toggle-btn" onclick="toggleSearch()">
                     <i data-feather="search" class="w-5 h-5"></i>
@@ -3134,6 +3192,54 @@
                 document.documentElement.style.setProperty('--tg-theme-button-color', '#3B82F6');
                 document.documentElement.style.setProperty('--tg-theme-button-text-color', '#ffffff');
             }
+        }
+
+        // Функция переключения темы
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const isLightTheme = body.classList.contains('light-theme');
+            
+            if (isLightTheme) {
+                // Переключаем на темную тему
+                body.classList.remove('light-theme');
+                themeIcon.setAttribute('data-feather', 'sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                // Переключаем на светлую тему
+                body.classList.add('light-theme');
+                themeIcon.setAttribute('data-feather', 'moon');
+                localStorage.setItem('theme', 'light');
+            }
+            
+            // Обновляем иконки Feather
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+
+        // Применение сохраненной темы при загрузке
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                if (themeIcon) {
+                    themeIcon.setAttribute('data-feather', 'moon');
+                }
+            } else {
+                if (themeIcon) {
+                    themeIcon.setAttribute('data-feather', 'sun');
+                }
+            }
+            
+            // Обновляем иконки после применения темы
+            setTimeout(() => {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            }, 100);
         }
 
         function escapeHtml(unsafe) {
@@ -6366,6 +6472,7 @@
             try {
                 initTelegramApp();
                 fixMobileColors();
+                applySavedTheme(); // Применяем сохраненную тему
                 scheduleFeatherReplace();
                 
                 // Дополнительный вызов feather для десктоп кнопок
