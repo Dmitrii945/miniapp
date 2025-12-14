@@ -2887,7 +2887,7 @@
                 <i data-feather="heart"></i>
                 <span>Избранное</span>
             </button>
-            <button class="desktop-action-btn" onclick="makePhoneCall()">
+            <button class="desktop-action-btn" onclick="makePhoneCall(event)">
                 <i data-feather="phone"></i>
                 <span>Телефон</span>
             </button>
@@ -3089,7 +3089,7 @@
                 <div id="productDetailSpecialPrice" class="product-detail-price" style="background: #FCD34D; color: #000000; font-weight: 600; display: none; margin-top: 8px;"></div>
                 <div id="productDetailDescription" class="product-detail-description"></div>
                 <div class="product-detail-buttons">
-                    <button onclick="makePhoneCall()" class="product-detail-btn">
+                    <button onclick="makePhoneCall(event)" class="product-detail-btn">
                         <i data-feather="phone" class="w-5 h-5"></i>
                         Позвонить
                     </button>
@@ -3191,7 +3191,7 @@
                         <div class="menu-divider"></div>
                         
                         <!-- Контакты -->
-                        <div class="menu-item" onclick="makePhoneCall(); closeSideMenu();">
+                        <div class="menu-item" onclick="makePhoneCall(event); closeSideMenu();">
                             <i data-feather="phone"></i>
                             <div>
                                 <div class="font-medium">Телефон</div>
@@ -3292,7 +3292,9 @@
 
         // Контактная информация
         const CONTACT_INFO = {
-            phone: "60-01-60",
+            phones: [
+                { number: "83452600160", display: "60-01-60" }
+            ],
             gisUrl: "https://2gis.ru/tyumen/firm/70000001048108193/65.610084%2C57.15728?m=65.610539%2C57.157207%2F19.57",
             telegramChannel: "https://t.me/skidkaservis",
             address: "г. Тюмень, ул. Барабинская 3а ст4",
@@ -3522,9 +3524,54 @@
         }
 
         // ФУНКЦИИ ДЛЯ КНОПОК ТЕЛЕФОНА И 2GIS
-        function makePhoneCall() {
-            const phoneNumber = CONTACT_INFO.phone.replace(/-/g, '');
-            window.location.href = `tel:${phoneNumber}`;
+        function makePhoneCall(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            // Показываем popup с выбором номера
+            const popup = document.createElement('div');
+            popup.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+            popup.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            
+            const content = document.createElement('div');
+            content.className = 'rounded-lg p-6 max-w-sm w-full';
+            content.style.backgroundColor = 'var(--bg-secondary)';
+            content.style.color = 'var(--text-primary)';
+            
+            const title = document.createElement('h3');
+            title.className = 'text-lg font-semibold mb-4 text-center';
+            title.textContent = 'Выберите номер для звонка';
+            content.appendChild(title);
+            
+            CONTACT_INFO.phones.forEach(phone => {
+                const button = document.createElement('button');
+                button.className = 'w-full py-3 mb-2 rounded-lg font-medium transition';
+                button.style.backgroundColor = 'var(--tg-theme-button-color, #3390ec)';
+                button.style.color = 'var(--tg-theme-button-text-color, #ffffff)';
+                button.textContent = `📞 ${phone.display}`;
+                button.onclick = () => {
+                    window.location.href = `tel:${phone.number}`;
+                    document.body.removeChild(popup);
+                };
+                content.appendChild(button);
+            });
+            
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'w-full py-3 mt-2 rounded-lg font-medium transition';
+            cancelButton.style.backgroundColor = 'var(--bg-primary)';
+            cancelButton.style.color = 'var(--text-primary)';
+            cancelButton.style.border = '1px solid var(--border-color)';
+            cancelButton.textContent = 'Отмена';
+            cancelButton.onclick = () => document.body.removeChild(popup);
+            content.appendChild(cancelButton);
+            
+            popup.appendChild(content);
+            popup.onclick = (e) => {
+                if (e.target === popup) document.body.removeChild(popup);
+            };
+            
+            document.body.appendChild(popup);
         }
 
         function open2GIS() {
@@ -3888,7 +3935,7 @@
 
                 html += `
                     <div class="mt-3">
-                        <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
+                        <button onclick="makePhoneCall(event)" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="phone" class="w-4 h-4 mr-2"></i>
                             Позвонить
                         </button>
@@ -4367,7 +4414,7 @@
         
             html += `
                         <div class="space-y-3">
-                            <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                            <button onclick="makePhoneCall(event)" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
                                 <i data-feather="phone" class="w-5 h-5 mr-3"></i>
                                 Позвонить
                             </button>
@@ -4506,7 +4553,7 @@
                     </div>
                         
                     <div class="space-y-3">
-                        <button onclick="makePhoneCall()" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
+                        <button onclick="makePhoneCall(event)" class="w-full py-4 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center text-lg">
                             <i data-feather="phone" class="w-5 h-5 mr-3"></i>
                             Позвонить
                         </button>
@@ -5912,7 +5959,7 @@
 
                 html += `
                     <div class="mt-3">
-                        <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
+                        <button onclick="makePhoneCall(event)" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                             <i data-feather="phone" class="w-4 h-4 mr-2"></i>
                             Позвонить
                         </button>
@@ -6702,7 +6749,7 @@
                             </div>
 
                             <div class="mt-3">
-                                <button onclick="makePhoneCall()" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
+                                <button onclick="makePhoneCall(event)" class="w-full py-3 phone-button rounded-lg transition font-medium flex items-center justify-center">
                                     <i data-feather="phone" class="w-4 h-4 mr-2"></i>
                                     Позвонить
                                 </button>
