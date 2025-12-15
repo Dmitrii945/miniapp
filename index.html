@@ -1,3 +1,4 @@
+<!-- Удалён ошибочный JS/HTML-фрагмент. Начало файла теперь полностью корректное. -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -3242,11 +3243,25 @@
     </div>
 
     <script>
+        // Конфигурация
+        const tg = window.Telegram?.WebApp;
+        
+        // Функция определения мобильного устройства
+        function isMobileDevice() {
+            // Проверяем платформу Telegram WebApp
+            if (tg && tg.platform) {
+                const mobilePlatforms = ['android', 'ios', 'android_x', 'tdesktop', 'weba'];
+                return mobilePlatforms.some(platform => tg.platform.toLowerCase().includes(platform.toLowerCase()));
+            }
+            // Fallback на проверку по ширине окна
+            return window.innerWidth < 768;
+        }
+        
                 // Показ мобильного блока кнопок Бригады/Такси только на мобильных
                 function showMobileBrigadeTaxi() {
                     const el = document.getElementById('mobileBrigadeTaxi');
                     if (!el) return;
-                    if (window.innerWidth < 768) {
+                    if (isMobileDevice()) {
                         el.style.display = 'grid';
                     } else {
                         el.style.display = 'none';
@@ -3254,8 +3269,7 @@
                 }
                 window.addEventListener('resize', showMobileBrigadeTaxi);
                 document.addEventListener('DOMContentLoaded', showMobileBrigadeTaxi);
-        // Конфигурация
-        const tg = window.Telegram?.WebApp;
+        
         const API_BASE = 'https://dmitrii2613.pythonanywhere.com/api';
         const BOT_USERNAME = 'SSERVICE72_bot';
         const API_TIMEOUT = 30000;
@@ -5154,10 +5168,12 @@
             const separator = endpoint.includes('?') ? '&' : '?';
             const url = `${API_BASE}${endpoint}${separator}_t=${Date.now()}`;
             
+            console.log('📡 API запрос:', url);
             showLoading();
             
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
+                console.warn('⏱️ Таймаут запроса:', url);
                 controller.abort();
             }, API_TIMEOUT);
             
@@ -5168,12 +5184,14 @@
                 });
                 
                 clearTimeout(timeoutId);
+                console.log('✅ Ответ получен:', response.status, response.statusText);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
+                console.log('📦 Данные распарсены:', data);
                 
                 if (!data) {
                     throw new Error('Пустой ответ от сервера');
@@ -5193,7 +5211,7 @@
                 }
                 
                 hideLoading();
-                console.error('API Error:', errorMessage, 'URL:', url);
+                console.error('❌ API Error:', errorMessage, 'URL:', url);
                 showError(`Ошибка загрузки: ${errorMessage}`);
                 return { error: errorMessage };
             }
@@ -5209,25 +5227,31 @@
             lastAction = { type: 'loadSections' };
             
             try {
+                console.log('🔄 Загрузка разделов... Platform:', tg?.platform, 'IsMobile:', isMobileDevice());
                 navigationStack = [];
                 updateBreadcrumbs([{ name: 'МЕНЮ', action: 'loadSections' }]);
                 elements.pageTitle.textContent = 'Каталог товаров';
                 
                 const data = await apiFetch('/sections');
+                console.log('✅ Данные разделов получены:', data);
                 
                 if (data?.error) {
+                    console.error('❌ Ошибка в данных разделов:', data.error);
                     showEmptyState('Ошибка загрузки разделов');
                     return;
                 }
                 
                 if (!data || !Array.isArray(data.sections) || data.sections.length === 0) {
+                    console.warn('⚠️ Разделы не найдены или пустые');
                     showEmptyState('Разделы не найдены');
                     return;
                 }
 
+                console.log('📦 Отображение', data.sections.length, 'разделов');
                 renderSections(data.sections);
                 updateBackButton();
             } catch (error) {
+                console.error('❌ Критическая ошибка при загрузке разделов:', error);
                 showError('Не удалось загрузить разделы');
             }
         }
@@ -6779,6 +6803,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
+                console.log('🚀 DOMContentLoaded - Запуск инициализации');
+                console.log('📱 Telegram WebApp:', tg ? 'доступен' : 'недоступен');
+                console.log('📱 Platform:', tg?.platform);
+                console.log('📱 IsMobileDevice:', isMobileDevice());
+                
                 initTelegramApp();
                 fixMobileColors();
                 applySavedTheme(); // Применяем сохраненную тему
